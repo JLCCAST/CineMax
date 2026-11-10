@@ -1,0 +1,2 @@
+# Las migraciones de Flyway se guardan con saltos de linea LF en cualquier sistema operativo.
+microservices/**/db/migration/*.sql text eol=lf

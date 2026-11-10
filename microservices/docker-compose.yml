@@ -5,7 +5,7 @@ services:
   # ============================
 
   mysql-sucursales:
-    image: mysql:8
+    image: mysql:8.4.13
     container_name: mysql-sucursales
     ports:
       - "3307:3306"
@@ -24,7 +24,7 @@ services:
       start_period: 40s
 
   mysql-confiteria:
-    image: mysql:8
+    image: mysql:8.4.13
     container_name: mysql-confiteria
     ports:
       - "3308:3306"
@@ -43,7 +43,7 @@ services:
       start_period: 40s
 
   mongodb-cartelera:
-    image: mongo:7
+    image: mongo:7.0.45
     container_name: mongodb-cartelera
     ports:
       - "27017:27017"
@@ -61,7 +61,7 @@ services:
       start_period: 40s
 
   postgres-usuarios:
-    image: postgres:16
+    image: postgres:16.15
     container_name: postgres-usuarios
     ports:
       - "5433:5432"
@@ -79,7 +79,7 @@ services:
       start_period: 20s
 
   postgres-facturacion:
-    image: postgres:16
+    image: postgres:16.15
     container_name: postgres-facturacion
     ports:
       - "5434:5432"
@@ -370,6 +370,9 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
+      # Sin credenciales SMTP reales, el chequeo de correo dejaría el servicio como
+      # "unhealthy". Ponlo en true en el .env si configuras un correo de verdad.
+      - MANAGEMENT_HEALTH_MAIL_ENABLED=${MAIL_HEALTH_ENABLED:-false}
       - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
       - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}

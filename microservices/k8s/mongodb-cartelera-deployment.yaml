@@ -25,7 +25,7 @@ spec:
                   key: DB_PASSWORD
             - name: MONGO_INITDB_ROOT_USERNAME
               value: cine
-          image: mongo:7
+          image: mongo:7.0.45
           livenessProbe:
             exec:
               command:
