@@ -1,7 +1,9 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: update
+      # El esquema lo crea Flyway (db/migration en cada servicio).
+      # Hibernate solo comprueba que las entidades coincidan con él.
+      ddl-auto: validate
     show-sql: false
 
 eureka:
@@ -14,3 +16,10 @@ eureka:
 jwt:
   secret: ${JWT_SECRET:your-secret-key}
   expiration: ${JWT_EXPIRATION:3600000}
+
+# Control de acceso entre servicios (ServiceAccessFilter, en common-library).
+# Sin valor por defecto a propósito: un servicio sin estos secretos no arranca.
+cinemax:
+  security:
+    gateway-secret: ${GATEWAY_SECRET:}
+    internal-token: ${INTERNAL_TOKEN:}

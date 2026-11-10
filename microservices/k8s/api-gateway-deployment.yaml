@@ -30,6 +30,11 @@ spec:
         - env:
             - name: JAVA_TOOL_OPTIONS
               value: "-Deureka.client.service-url.defaultZone=http://service-discovery:8761/eureka/ -Deureka.instance.prefer-ip-address=true"
+            - name: GATEWAY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: GATEWAY_SECRET
             - name: SPRING_CONFIG_IMPORT
               value: optional:configserver:http://config-server:8888
           image: cinemax/api-gateway

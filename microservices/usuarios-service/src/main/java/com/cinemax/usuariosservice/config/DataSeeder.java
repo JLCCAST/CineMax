@@ -28,11 +28,11 @@ public class DataSeeder implements CommandLineRunner {
 
         Role rolAdmin = roleRepository.findByRoleName("ADMIN")
                 .orElseThrow(() -> new IllegalStateException(
-                        "Rol ADMIN no existe. Revisa init-scripts/postgres-usuarios."));
+                        "Rol ADMIN no existe. Revisa la migración V2__datos_semilla.sql."));
 
         DocumentType dni = documentTypeRepository.findByDocName("DNI")
                 .orElseThrow(() -> new IllegalStateException(
-                        "Tipo de documento DNI no existe. Revisa init-scripts/postgres-usuarios."));
+                        "Tipo de documento DNI no existe. Revisa la migración V2__datos_semilla.sql."));
 
         UserAccount admin = new UserAccount();
         admin.setFirstName("Admin");

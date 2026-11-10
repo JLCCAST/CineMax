@@ -9,11 +9,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Configuration
 public class FeignConfig {
 
-    @Bean
-    public RequestInterceptor gatewayHeaderInterceptor() {
-        return template -> template.header("X-Gateway-Request", "true");
-    }
-
+    // El token de servicio lo agrega InternalTokenFeignInterceptor (common-library).
+    // Este interceptor reenvía además el JWT del usuario, para que el servicio de
+    // destino sepa en nombre de quién se hace la llamada.
     @Bean
     public RequestInterceptor authForwardingInterceptor() {
         return template -> {

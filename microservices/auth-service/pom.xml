@@ -42,6 +42,13 @@
             <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
 
+        <!-- Control de acceso entre servicios (ServiceAccessFilter y el token interno) -->
+        <dependency>
+            <groupId>com.cinemax</groupId>
+            <artifactId>common-library</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- OpenFeign: para llamar a usuarios-service (validar credenciales) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

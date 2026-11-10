@@ -47,6 +47,16 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: JWT_SECRET
+            - name: GATEWAY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: GATEWAY_SECRET
+            - name: INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: INTERNAL_TOKEN
             - name: SPRING_CONFIG_IMPORT
               value: optional:configserver:http://config-server:8888
           image: cinemax/cartelera-service

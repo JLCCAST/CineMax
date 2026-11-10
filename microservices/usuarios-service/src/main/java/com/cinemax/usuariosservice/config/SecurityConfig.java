@@ -1,6 +1,7 @@
 package com.cinemax.usuariosservice.config;
 
 import com.cinemax.common.security.JwtAuthenticationFilter;
+import com.cinemax.common.security.ServiceAccessFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -32,8 +33,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // Servicio-a-servicio: Auth Service llamándote vía Feign
-                .requestMatchers("/internal/**").permitAll()
+                // Servicio-a-servicio (auth-service vía Feign): exige el token de servicio.
+                .requestMatchers("/internal/**").access(ServiceAccessFilter.internalCallsOnly())
 
                 // Flujo público de auth (forgot/reset-password)
                 .requestMatchers("/api/auth/**").permitAll()
