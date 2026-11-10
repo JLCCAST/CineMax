@@ -140,7 +140,7 @@ class InternalResponse:
 
 
 class InternalNetwork:
-    """Hace peticiones GET desde dentro de la red de Docker.
+    """Hace peticiones GET o POST desde dentro de la red de Docker.
 
     Usa el wget de BusyBox del contenedor api-gateway, que está en la misma red
     que los servicios. Así se comprueba qué responde un servicio cuando alguien
@@ -149,10 +149,18 @@ class InternalNetwork:
 
     CONTAINER = "api-gateway"
 
-    def request(self, url: str, headers: dict[str, str] | None = None) -> InternalResponse:
+    def request(
+        self,
+        url: str,
+        headers: dict[str, str] | None = None,
+        post: bool = False,
+    ) -> InternalResponse:
         command = ["docker", "exec", self.CONTAINER, "wget", "-q", "-S", "-O", "-", "-T", "15"]
         for name, value in (headers or {}).items():
             command += ["--header", f"{name}: {value}"]
+        if post:
+            # El wget de BusyBox solo sabe GET y POST; el cuerpo no importa en estas pruebas.
+            command += ["--post-data", "{}"]
         command.append(url)
         result = subprocess.run(command, capture_output=True, text=True, timeout=60)
         status = None

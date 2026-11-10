@@ -58,6 +58,7 @@ class Settings:
     staff_email: str
     staff_password: str
     internal_token: str | None
+    gateway_secret: str | None
 
     @property
     def gateway_root(self) -> str:
@@ -91,6 +92,7 @@ def load_settings() -> Settings:
         staff_email=get("TEST_STAFF_EMAIL", f"gerente.{local}@{domain}"),
         staff_password=get("TEST_STAFF_PASSWORD", client_password),
         internal_token=get("INTERNAL_TOKEN"),
+        gateway_secret=get("GATEWAY_SECRET"),
     )
 
 

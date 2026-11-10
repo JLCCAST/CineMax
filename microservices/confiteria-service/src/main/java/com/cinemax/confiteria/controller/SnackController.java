@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.cinemax.confiteria.dto.SnackRequestDTO;
@@ -44,17 +45,20 @@ public class SnackController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
     public ResponseEntity<SnackResponseDTO> create(@Valid @RequestBody SnackRequestDTO dto) {
         SnackResponseDTO created = snackService.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
     public ResponseEntity<SnackResponseDTO> update(@PathVariable Integer id, @Valid @RequestBody SnackRequestDTO dto) {
         return ResponseEntity.ok(snackService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         snackService.delete(id);
         return ResponseEntity.noContent().build();

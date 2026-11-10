@@ -49,6 +49,16 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: JWT_SECRET
+            - name: GATEWAY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: GATEWAY_SECRET
+            - name: INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: INTERNAL_TOKEN
             - name: MAIL_PASSWORD
               valueFrom:
                 secretKeyRef:

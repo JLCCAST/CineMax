@@ -20,7 +20,15 @@ spring:
             allowCredentials: true
             
       default-filters:
-        - AddRequestHeader=X-Gateway-Request, true
+        # Los servicios solo aceptan peticiones que traigan este secreto
+        # (ServiceAccessFilter, en common-library). SetRequestHeader reemplaza
+        # cualquier valor que mande el cliente.
+        - name: SetRequestHeader
+          args:
+            name: X-Gateway-Secret
+            value: ${GATEWAY_SECRET}
+        # El token de servicio solo vale entre servicios: nunca se acepta de fuera.
+        - RemoveRequestHeader=X-Internal-Token
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
       routes:
         - id: auth-service

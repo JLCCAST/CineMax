@@ -3,8 +3,8 @@ package com.cinemax.facturacion.client;
 import com.cinemax.facturacion.dto.external.ShowtimeDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "cartelera-service")
@@ -16,6 +16,7 @@ public interface CarteleraClient {
     ShowtimeDTO getShowtime(@PathVariable("id") String id);
 
     // Igual que el monolito: showtime.setAvailableSeats(availableSeats - seats.size()) al confirmar una venta.
-    @PatchMapping("/api/showtimes/{id}/decrease-seats")
+    // Ruta interna: no pasa por el gateway y exige el token de servicio.
+    @PostMapping("/internal/showtimes/{id}/decrease-seats")
     void decreaseAvailableSeats(@PathVariable("id") String id, @RequestParam("cantidad") int cantidad);
 }

@@ -44,6 +44,8 @@ jobs:
           DB_PASSWORD=$(openssl rand -hex 16)
           JWT_SECRET=$(openssl rand -base64 48)
           JWT_EXPIRATION=3600000
+          GATEWAY_SECRET=$(openssl rand -hex 32)
+          INTERNAL_TOKEN=$(openssl rand -hex 32)
           FRONTEND_URL=http://localhost:4200
           MAIL_USERNAME=ci@example.com
           MAIL_PASSWORD=sin-correo-en-ci

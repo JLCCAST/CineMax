@@ -103,6 +103,8 @@ services:
   # ============================
   # INFRAESTRUCTURA
   # ============================
+  # Solo el gateway publica su puerto. Los demás servicios se alcanzan por la
+  # red interna de Docker (por ejemplo, con `docker compose exec`).
 
   config-server:
     build:
@@ -110,8 +112,6 @@ services:
       dockerfile: config-server/Dockerfile
     image: cinemax/config-server
     container_name: config-server
-    ports:
-      - "8888:8888"
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8888/auth-service/default || exit 1"]
       interval: 10s
@@ -125,8 +125,9 @@ services:
       dockerfile: service-discovery/Dockerfile
     image: cinemax/service-discovery
     container_name: service-discovery
+    # Panel de Eureka, solo para depurar y solo desde esta máquina.
     ports:
-      - "8761:8761"
+      - "127.0.0.1:8761:8761"
     depends_on:
       config-server:
         condition: service_healthy
@@ -148,6 +149,7 @@ services:
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - FRONTEND_URL=${FRONTEND_URL}
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
     depends_on:
       service-discovery:
         condition: service_healthy
@@ -170,12 +172,12 @@ services:
       dockerfile: auth-service/Dockerfile
     image: cinemax/auth-service
     container_name: auth-service
-    ports:
-      - "8081:8081"
     environment:
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - FRONTEND_URL=${FRONTEND_URL}
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - INTERNAL_TOKEN=${INTERNAL_TOKEN}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
     depends_on:
@@ -196,12 +198,12 @@ services:
       dockerfile: sucursales-service/Dockerfile
     image: cinemax/sucursales-service
     container_name: sucursales-service
-    ports:
-      - "8083:8083"
     environment:
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - FRONTEND_URL=${FRONTEND_URL}
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - INTERNAL_TOKEN=${INTERNAL_TOKEN}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -228,12 +230,12 @@ services:
       dockerfile: cartelera-service/Dockerfile
     image: cinemax/cartelera-service
     container_name: cartelera-service
-    ports:
-      - "8082:8082"
     environment:
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - FRONTEND_URL=${FRONTEND_URL}
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - INTERNAL_TOKEN=${INTERNAL_TOKEN}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -257,12 +259,12 @@ services:
       dockerfile: confiteria-service/Dockerfile
     image: cinemax/confiteria-service
     container_name: confiteria-service
-    ports:
-      - "8084:8084"
     environment:
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - FRONTEND_URL=${FRONTEND_URL}
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - INTERNAL_TOKEN=${INTERNAL_TOKEN}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -286,12 +288,12 @@ services:
       dockerfile: usuarios-service/Dockerfile
     image: cinemax/usuarios-service
     container_name: usuarios-service
-    ports:
-      - "8085:8085"
     environment:
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - FRONTEND_URL=${FRONTEND_URL}
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - INTERNAL_TOKEN=${INTERNAL_TOKEN}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -320,12 +322,12 @@ services:
       dockerfile: facturacion-service/Dockerfile
     image: cinemax/facturacion-service
     container_name: facturacion-service
-    ports:
-      - "8086:8086"
     environment:
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - FRONTEND_URL=${FRONTEND_URL}
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - INTERNAL_TOKEN=${INTERNAL_TOKEN}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}

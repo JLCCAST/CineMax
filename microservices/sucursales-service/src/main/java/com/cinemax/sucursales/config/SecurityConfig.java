@@ -1,6 +1,7 @@
 package com.cinemax.sucursales.config;
 
 import com.cinemax.common.security.JwtAuthenticationFilter;
+import com.cinemax.common.security.ServiceAccessFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +41,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
-                .requestMatchers("/internal/**").permitAll()
+                // Llamadas entre servicios: exigen el token de servicio, no un JWT.
+                .requestMatchers("/internal/**").access(ServiceAccessFilter.internalCallsOnly())
 
                 .requestMatchers(HttpMethod.GET, "/api/venues/**", "/api/locations/**").permitAll()
                 .anyRequest().authenticated()

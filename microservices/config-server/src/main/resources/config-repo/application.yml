@@ -14,3 +14,10 @@ eureka:
 jwt:
   secret: ${JWT_SECRET:your-secret-key}
   expiration: ${JWT_EXPIRATION:3600000}
+
+# Control de acceso entre servicios (ServiceAccessFilter, en common-library).
+# Sin valor por defecto a propósito: un servicio sin estos secretos no arranca.
+cinemax:
+  security:
+    gateway-secret: ${GATEWAY_SECRET:}
+    internal-token: ${INTERNAL_TOKEN:}
