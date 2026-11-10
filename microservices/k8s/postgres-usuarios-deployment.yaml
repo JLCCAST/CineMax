@@ -47,13 +47,8 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: pgdata-usuarios
-            - mountPath: /docker-entrypoint-initdb.d
-              name: postgres-usuarios-cm1
       restartPolicy: Always
       volumes:
         - name: pgdata-usuarios
           persistentVolumeClaim:
             claimName: pgdata-usuarios
-        - configMap:
-            name: postgres-usuarios-cm1
-          name: postgres-usuarios-cm1

@@ -1,37 +1,9 @@
-CREATE TABLE IF NOT EXISTS snack_category (
-    id_snack_category INT AUTO_INCREMENT PRIMARY KEY,
-    name_category VARCHAR(50) NOT NULL UNIQUE
-);
-
-CREATE TABLE IF NOT EXISTS snack (
-    id_snack INT AUTO_INCREMENT PRIMARY KEY,
-    id_venue INT,
-    id_snack_category INT NOT NULL,
-    name_snack VARCHAR(100) NOT NULL,
-    description_snack VARCHAR(250),
-    price DECIMAL(10,2) NOT NULL,
-    stock INT NOT NULL,
-    image_url_snack VARCHAR(250),
-    status VARCHAR(20) DEFAULT 'Activo',
-    created_at DATETIME,
-    FOREIGN KEY (id_snack_category) REFERENCES snack_category(id_snack_category)
-);
-
-CREATE TABLE IF NOT EXISTS snack_venue_stock (
-    id_snack_venue_stock INT AUTO_INCREMENT PRIMARY KEY,
-    id_snack INT NOT NULL,
-    id_venue INT NOT NULL,
-    stock INT NOT NULL,
-    status VARCHAR(20) DEFAULT 'Activo',
-    FOREIGN KEY (id_snack) REFERENCES snack(id_snack)
-);
-
--- Idempotente: si el script se corre manualmente más de una vez, limpia antes de insertar
-SET FOREIGN_KEY_CHECKS = 0;
-TRUNCATE TABLE snack_venue_stock;
-TRUNCATE TABLE snack;
-TRUNCATE TABLE snack_category;
-SET FOREIGN_KEY_CHECKS = 1;
+-- Datos semilla de confiteria_db: categorías, snacks y stock por sede.
+-- Son las mismas sentencias del init-script, así que los ids quedan igual.
+--
+-- Diferencia con el init-script: Flyway envía este archivo en UTF-8, así que
+-- los textos con tilde quedan bien guardados. El init-script lo cargaba un
+-- cliente en latin1 y "elección" terminaba guardado como "elecciÃ³n".
 
 -- ---- SNACK_CATEGORY ----
 INSERT INTO snack_category (name_category) VALUES

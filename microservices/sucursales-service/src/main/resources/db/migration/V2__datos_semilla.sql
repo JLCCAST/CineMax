@@ -1,76 +1,11 @@
-CREATE DATABASE IF NOT EXISTS sucursales_db;
-USE sucursales_db;
-
--- ============================================
--- TABLAS BASE
--- ============================================
-
-CREATE TABLE IF NOT EXISTS department (
-    id_department INT AUTO_INCREMENT PRIMARY KEY,
-    name_department VARCHAR(100) NOT NULL UNIQUE
-);
-
-CREATE TABLE IF NOT EXISTS province (
-    id_province INT AUTO_INCREMENT PRIMARY KEY,
-    name_province VARCHAR(100) NOT NULL,
-    id_department INT NOT NULL,
-    FOREIGN KEY (id_department) REFERENCES department(id_department)
-);
-
-CREATE TABLE IF NOT EXISTS district (
-    id_district INT AUTO_INCREMENT PRIMARY KEY,
-    name_district VARCHAR(100) NOT NULL,
-    id_province INT NOT NULL,
-    FOREIGN KEY (id_province) REFERENCES province(id_province)
-);
-
-CREATE TABLE IF NOT EXISTS seat_type (
-    id_seat_type INT AUTO_INCREMENT PRIMARY KEY,
-    name_seat_type VARCHAR(50) NOT NULL
-);
-
--- ============================================
--- TABLAS DE NEGOCIO (creadas explícitamente para seed)
--- ============================================
-
-CREATE TABLE IF NOT EXISTS venue (
-    id_venue INT NOT NULL AUTO_INCREMENT,
-    name_venue VARCHAR(100) NOT NULL,
-    address VARCHAR(150) NOT NULL,
-    phone_number VARCHAR(20) DEFAULT NULL,
-    status VARCHAR(20) DEFAULT 'Activo',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    image_url VARCHAR(500) DEFAULT NULL,
-    id_district INT NOT NULL,
-    latitude DOUBLE DEFAULT NULL,
-    longitude DOUBLE DEFAULT NULL,
-    PRIMARY KEY (id_venue),
-    CONSTRAINT fk_venue_district FOREIGN KEY (id_district) REFERENCES district(id_district)
-);
-
-CREATE TABLE IF NOT EXISTS room (
-    id_room INT NOT NULL AUTO_INCREMENT,
-    name_room VARCHAR(50) NOT NULL,
-    capacity INT NOT NULL,
-    num_rows INT DEFAULT NULL,
-    seats_per_row INT DEFAULT NULL,
-    status VARCHAR(20) DEFAULT 'Activo',
-    id_venue INT NOT NULL,
-    PRIMARY KEY (id_room),
-    CONSTRAINT fk_room_venue FOREIGN KEY (id_venue) REFERENCES venue(id_venue)
-);
-
-CREATE TABLE IF NOT EXISTS seat (
-    id_seat INT NOT NULL AUTO_INCREMENT,
-    row_name VARCHAR(5) NOT NULL,
-    column_number INT NOT NULL,
-    status VARCHAR(20) DEFAULT 'ACTIVO',
-    id_seat_type INT NOT NULL,
-    id_room INT NOT NULL,
-    PRIMARY KEY (id_seat),
-    CONSTRAINT fk_seat_type FOREIGN KEY (id_seat_type) REFERENCES seat_type(id_seat_type),
-    CONSTRAINT fk_seat_room FOREIGN KEY (id_room) REFERENCES room(id_room)
-);
+-- Datos semilla de sucursales_db: ubicaciones, tipos de butaca, sedes, salas y
+-- butacas. Son las mismas sentencias del init-script, así que los ids quedan
+-- igual (los de las butacas tienen saltos: MySQL reserva ids de más en cada
+-- INSERT ... SELECT).
+--
+-- Diferencia con el init-script: Flyway envía este archivo en UTF-8, así que
+-- los textos con tilde quedan bien guardados. El init-script lo cargaba un
+-- cliente en latin1 y "María" terminaba guardado como "MarÃ­a".
 
 -- ============================================
 -- SEED DATA: Departamentos
@@ -78,8 +13,7 @@ CREATE TABLE IF NOT EXISTS seat (
 INSERT INTO department (name_department) VALUES
     ('Lima'),
     ('Arequipa'),
-    ('Cusco')
-ON DUPLICATE KEY UPDATE name_department = name_department;
+    ('Cusco');
 
 -- ============================================
 -- SEED DATA: Provincias
@@ -107,8 +41,7 @@ INSERT INTO district (name_district, id_province) VALUES
 -- ============================================
 INSERT INTO seat_type (name_seat_type) VALUES
     ('REGULAR'),
-    ('WHEELCHAIR')
-ON DUPLICATE KEY UPDATE name_seat_type = name_seat_type;
+    ('WHEELCHAIR');
 
 -- ============================================
 -- SEED DATA: Sedes (Venues)

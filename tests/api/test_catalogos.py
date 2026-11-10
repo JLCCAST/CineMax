@@ -4,8 +4,6 @@ Protegen las migraciones: si el esquema o los seeds cambian sin querer, estas
 pruebas lo detectan. Comparan por inclusión para tolerar datos agregados a mano.
 """
 
-import pytest
-
 from support import jwt_claims
 
 ALL_PERMISSIONS = {
@@ -19,12 +17,6 @@ ALL_PERMISSIONS = {
     "MANAGE_CONFITERIA",
     "MANAGE_USERS",
 }
-
-MYSQL_ENCODING_BUG = (
-    "Bug conocido: los init-scripts de MySQL se cargan con el cliente en latin1 y "
-    "los textos quedan con doble codificación (María se guarda como MarÃ­a). Se "
-    "corrige en el paso 3, cuando el seed pasa a Flyway."
-)
 
 
 # ---- usuarios (PostgreSQL) ------------------------------------------------
@@ -74,10 +66,13 @@ def test_sedes_para_el_selector(api):
     assert len(response.json()) >= 2
 
 
-@pytest.mark.xfail(strict=True, reason=MYSQL_ENCODING_BUG)
 def test_sedes_con_tildes_correctas(api):
-    names = {venue["nameVenue"] for venue in api.get("/venues/public").json()}
-    assert "CineMax Villa María del Triunfo" in names
+    """Los init-scripts guardaban "MarÃ­a" (doble codificación); Flyway carga UTF-8."""
+    venues = {venue["nameVenue"]: venue for venue in api.get("/venues/public").json()}
+    assert "CineMax Villa María del Triunfo" in venues
+    venue = venues["CineMax Villa María del Triunfo"]
+    assert venue["addressVenue"] == "Av. Bolívar 1234, Villa María del Triunfo"
+    assert venue["districtName"] == "Villa María del Triunfo"
 
 
 def test_el_listado_completo_de_sedes_exige_permiso(api, client_headers):
@@ -105,10 +100,11 @@ def test_snacks(api):
         assert snack["snackCategory"]["nameCategory"]
 
 
-@pytest.mark.xfail(strict=True, reason=MYSQL_ENCODING_BUG)
 def test_snacks_con_tildes_correctas(api):
+    """Los init-scripts guardaban "elecciÃ³n" (doble codificación); Flyway carga UTF-8."""
     descriptions = {snack["descriptionSnack"] for snack in api.get("/snacks").json()}
     assert "Vaso grande de gaseosa a elección" in descriptions
+    assert "Canchita salada tamaño grande" in descriptions
 
 
 def test_stock_por_sede(api, client_headers):

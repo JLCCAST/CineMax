@@ -47,13 +47,8 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: pgdata-facturacion
-            - mountPath: /docker-entrypoint-initdb.d
-              name: postgres-facturacion-cm1
       restartPolicy: Always
       volumes:
         - name: pgdata-facturacion
           persistentVolumeClaim:
             claimName: pgdata-facturacion
-        - configMap:
-            name: postgres-facturacion-cm1
-          name: postgres-facturacion-cm1

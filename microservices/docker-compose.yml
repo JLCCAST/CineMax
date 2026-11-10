@@ -16,7 +16,6 @@ services:
       MYSQL_DATABASE: sucursales_db
     volumes:
       - mysqldata-sucursales:/var/lib/mysql
-      - ./init-scripts/mysql-sucursales:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p${DB_PASSWORD}"]
       interval: 5s
@@ -36,7 +35,6 @@ services:
       MYSQL_DATABASE: confiteria_db
     volumes:
       - mysqldata-confiteria:/var/lib/mysql
-      - ./init-scripts/mysql-confiteria:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p${DB_PASSWORD}"]
       interval: 5s
@@ -73,7 +71,6 @@ services:
       POSTGRES_DB: usuarios_db
     volumes:
       - pgdata-usuarios:/var/lib/postgresql/data
-      - ./init-scripts/postgres-usuarios:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${DB_USER} -d usuarios_db"]
       interval: 5s
@@ -92,13 +89,83 @@ services:
       POSTGRES_DB: sales_db
     volumes:
       - pgdata-facturacion:/var/lib/postgresql/data
-      - ./init-scripts/postgres-facturacion:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${DB_USER} -d sales_db"]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 20s
+
+  # ============================
+  # MIGRACIONES DE ESQUEMA (Flyway)
+  # ============================
+  # Contenedores de un solo uso: aplican las migraciones de cada servicio
+  # (<servicio>/src/main/resources/db/migration) y terminan. Los servicios Java
+  # esperan a que terminen bien y, al arrancar, comprueban esas mismas migraciones.
+  #
+  # Para preparar solo las bases, sin los servicios Java:
+  #   docker compose up -d flyway-usuarios flyway-facturacion flyway-sucursales flyway-confiteria mongodb-cartelera
+  # La versión coincide con la de Flyway que trae Spring Boot.
+
+  flyway-usuarios:
+    image: flyway/flyway:10.20.1
+    container_name: flyway-usuarios
+    command: migrate
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres-usuarios:5432/usuarios_db
+      FLYWAY_USER: ${DB_USER}
+      FLYWAY_PASSWORD: ${DB_PASSWORD}
+      FLYWAY_CONNECT_RETRIES: 10
+    volumes:
+      - ./usuarios-service/src/main/resources/db/migration:/flyway/sql:ro
+    depends_on:
+      postgres-usuarios:
+        condition: service_healthy
+
+  flyway-facturacion:
+    image: flyway/flyway:10.20.1
+    container_name: flyway-facturacion
+    command: migrate
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres-facturacion:5432/sales_db
+      FLYWAY_USER: ${DB_USER}
+      FLYWAY_PASSWORD: ${DB_PASSWORD}
+      FLYWAY_CONNECT_RETRIES: 10
+    volumes:
+      - ./facturacion-service/src/main/resources/db/migration:/flyway/sql:ro
+    depends_on:
+      postgres-facturacion:
+        condition: service_healthy
+
+  flyway-sucursales:
+    image: flyway/flyway:10.20.1
+    container_name: flyway-sucursales
+    command: migrate
+    environment:
+      FLYWAY_URL: jdbc:mysql://mysql-sucursales:3306/sucursales_db?allowPublicKeyRetrieval=true&useSSL=false
+      FLYWAY_USER: ${DB_USER}
+      FLYWAY_PASSWORD: ${DB_PASSWORD}
+      FLYWAY_CONNECT_RETRIES: 10
+    volumes:
+      - ./sucursales-service/src/main/resources/db/migration:/flyway/sql:ro
+    depends_on:
+      mysql-sucursales:
+        condition: service_healthy
+
+  flyway-confiteria:
+    image: flyway/flyway:10.20.1
+    container_name: flyway-confiteria
+    command: migrate
+    environment:
+      FLYWAY_URL: jdbc:mysql://mysql-confiteria:3306/confiteria_db?allowPublicKeyRetrieval=true&useSSL=false
+      FLYWAY_USER: ${DB_USER}
+      FLYWAY_PASSWORD: ${DB_PASSWORD}
+      FLYWAY_CONNECT_RETRIES: 10
+    volumes:
+      - ./confiteria-service/src/main/resources/db/migration:/flyway/sql:ro
+    depends_on:
+      mysql-confiteria:
+        condition: service_healthy
 
   # ============================
   # INFRAESTRUCTURA
@@ -213,6 +280,8 @@ services:
     depends_on:
       mysql-sucursales:
         condition: service_healthy
+      flyway-sucursales:
+        condition: service_completed_successfully
       service-discovery:
         condition: service_healthy
       config-server:
@@ -271,6 +340,8 @@ services:
     depends_on:
       mysql-confiteria:
         condition: service_healthy
+      flyway-confiteria:
+        condition: service_completed_successfully
       service-discovery:
         condition: service_healthy
       config-server:
@@ -305,6 +376,8 @@ services:
     depends_on:
       postgres-usuarios:
         condition: service_healthy
+      flyway-usuarios:
+        condition: service_completed_successfully
       service-discovery:
         condition: service_healthy
       config-server:
@@ -334,6 +407,8 @@ services:
     depends_on:
       postgres-facturacion:
         condition: service_healthy
+      flyway-facturacion:
+        condition: service_completed_successfully
       service-discovery:  
         condition: service_healthy
       config-server:
