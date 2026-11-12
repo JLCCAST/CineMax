@@ -1,7 +1,8 @@
 """Promociones automáticas: vista previa del checkout y compra con descuento.
 
 Cada prueba usa funciones creadas aquí para el día que necesita (próximo
-miércoles, martes o viernes), con precio base S/ 25: adulto 25, niño 14.
+miércoles, martes o viernes), con precio base S/ 25: adulto 25, niño 14 (55 %)
+y adulto mayor 16,50 (65 %).
 """
 
 from datetime import date, timedelta
@@ -123,7 +124,7 @@ def test_la_vista_previa_usa_las_tarifas_de_cartelera(api, funciones):
     body = _ok(_preview(api, funciones["viernes_noche"], {"ADULTO": 1, "NINO": 1, "ADULTO_MAYOR": 1}))
     precios = {t["categoryCode"]: t["price"] for t in body["tickets"]}
     assert precios == {"ADULTO": pytest.approx(25.0), "NINO": pytest.approx(14.0),
-                       "ADULTO_MAYOR": pytest.approx(16.0)}
+                       "ADULTO_MAYOR": pytest.approx(16.5)}
 
 
 def test_tipo_de_entrada_invalido(api, funciones):

@@ -39,10 +39,6 @@ public class ShowtimeService {
 
     private static final Logger log = LoggerFactory.getLogger(ShowtimeService.class);
 
-    // Descuentos por categoría sobre el precio base (mismas reglas que el monolito).
-    private static final BigDecimal DESCUENTO_NINO = new BigDecimal("11.00");
-    private static final BigDecimal DESCUENTO_REDUCIDA = new BigDecimal("9.00");
-
     private static final Comparator<Showtime> POR_FECHA_Y_HORA = Comparator
             .comparing(Showtime::getShowDate, Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(Showtime::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()));
@@ -115,9 +111,9 @@ public class ShowtimeService {
         }
         return List.of(
                 new TicketFareDTO("ADULTO", "Adulto", base),
-                new TicketFareDTO("NINO", "Niño", conDescuento(base, DESCUENTO_NINO)),
-                new TicketFareDTO("ADULTO_MAYOR", "Adulto Mayor", conDescuento(base, DESCUENTO_REDUCIDA)),
-                new TicketFareDTO("DISCAPACITADO", "Personas Discapacitadas", conDescuento(base, DESCUENTO_REDUCIDA)));
+                new TicketFareDTO("NINO", "Niño", Tarifas.aplicar(base, Tarifas.NINO)),
+                new TicketFareDTO("ADULTO_MAYOR", "Adulto Mayor", Tarifas.aplicar(base, Tarifas.REDUCIDA)),
+                new TicketFareDTO("DISCAPACITADO", "Personas Discapacitadas", Tarifas.aplicar(base, Tarifas.REDUCIDA)));
     }
 
     public SaleContextDTO getSaleContext(String id) {
@@ -258,10 +254,6 @@ public class ShowtimeService {
     private Showtime buscarFuncion(String id) {
         return showtimeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Función no encontrada con id: " + id));
-    }
-
-    private static BigDecimal conDescuento(BigDecimal base, BigDecimal descuento) {
-        return base.subtract(descuento).max(BigDecimal.ZERO);
     }
 
     private RoomVenueDTO buscarSala(Integer idRoom) {

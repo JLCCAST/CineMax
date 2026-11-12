@@ -1,6 +1,7 @@
 """Cartelera pública: películas, detalle y funciones."""
 
 import json
+import math
 from datetime import date, timedelta
 
 import httpx
@@ -166,17 +167,22 @@ def test_resumen_de_la_funcion(api, showtimes):
     assert summary["languageFormat"] == sample["languageFormat"]
 
 
+def _medio_sol(monto: float) -> float:
+    """Redondeo a S/ 0,50, con las mitades hacia arriba (como Tarifas.java)."""
+    return math.floor(monto * 2 + 0.5) / 2
+
+
 def test_tarifas_de_la_funcion(api, showtimes):
-    sample = next(s for s in showtimes if s["baseTicketPrice"] >= 11)
+    sample = showtimes[0]
     base = sample["baseTicketPrice"]
     response = api.get(f"/showtimes/{sample['idShowtime']}/fares")
     assert response.status_code == 200
     fares = {fare["categoryCode"]: fare["price"] for fare in response.json()}
     assert fares == {
         "ADULTO": pytest.approx(base),
-        "NINO": pytest.approx(base - 11),
-        "ADULTO_MAYOR": pytest.approx(base - 9),
-        "DISCAPACITADO": pytest.approx(base - 9),
+        "NINO": pytest.approx(_medio_sol(base * 0.55)),
+        "ADULTO_MAYOR": pytest.approx(_medio_sol(base * 0.65)),
+        "DISCAPACITADO": pytest.approx(_medio_sol(base * 0.65)),
     }
 
 
