@@ -44,6 +44,12 @@
             <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
 
+        <!-- OpenFeign: consulta salas a sucursales-service -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+
         <!-- common-library -->
         <dependency>
             <groupId>com.cinemax</groupId>

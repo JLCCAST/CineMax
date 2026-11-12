@@ -36,4 +36,8 @@ public class ShowtimeResponseDTO {
     private String movieTitle;
 
     private Integer idRoom;
+    private String nameRoom;
+
+    private Integer idVenue;
+    private String nameVenue;
 }

@@ -172,9 +172,9 @@ db.showtimes.insertMany([
         endTime: makeEndtime(makeShowtime(today, 14, 30), 169),
         languageFormat: "Subtitulada",
         baseTicketPrice: NumberDecimal("18.00"),
-        status: "Disponible",
-        roomId: 1,
-        venueId: 1,
+        status: "Programada",
+        idRoom: 1,
+        idVenue: 1,
         availableSeats: 80
     },
     {
@@ -184,9 +184,9 @@ db.showtimes.insertMany([
         endTime: makeEndtime(makeShowtime(today, 18, 0), 169),
         languageFormat: "Subtitulada",
         baseTicketPrice: NumberDecimal("20.00"),
-        status: "Disponible",
-        roomId: 1,
-        venueId: 1,
+        status: "Programada",
+        idRoom: 1,
+        idVenue: 1,
         availableSeats: 80
     },
     {
@@ -196,9 +196,9 @@ db.showtimes.insertMany([
         endTime: makeEndtime(makeShowtime(tomorrow, 16, 0), 169),
         languageFormat: "Subtitulada",
         baseTicketPrice: NumberDecimal("18.00"),
-        status: "Disponible",
-        roomId: 4,
-        venueId: 2,
+        status: "Programada",
+        idRoom: 4,
+        idVenue: 2,
         availableSeats: 100
     },
     {
@@ -208,9 +208,9 @@ db.showtimes.insertMany([
         endTime: makeEndtime(makeShowtime(today, 15, 0), 110),
         languageFormat: "Doblada",
         baseTicketPrice: NumberDecimal("15.00"),
-        status: "Disponible",
-        roomId: 2,
-        venueId: 1,
+        status: "Programada",
+        idRoom: 2,
+        idVenue: 1,
         availableSeats: 60
     },
     {
@@ -220,9 +220,9 @@ db.showtimes.insertMany([
         endTime: makeEndtime(makeShowtime(tomorrow, 11, 0), 110),
         languageFormat: "Doblada",
         baseTicketPrice: NumberDecimal("12.00"),
-        status: "Disponible",
-        roomId: 2,
-        venueId: 1,
+        status: "Programada",
+        idRoom: 2,
+        idVenue: 1,
         availableSeats: 60
     },
     {
@@ -232,9 +232,9 @@ db.showtimes.insertMany([
         endTime: makeEndtime(makeShowtime(today, 20, 0), 120),
         languageFormat: "Subtitulada",
         baseTicketPrice: NumberDecimal("22.00"),
-        status: "Disponible",
-        roomId: 3,
-        venueId: 1,
+        status: "Programada",
+        idRoom: 3,
+        idVenue: 1,
         availableSeats: 40
     },
     {
@@ -244,9 +244,9 @@ db.showtimes.insertMany([
         endTime: makeEndtime(makeShowtime(tomorrow, 19, 30), 120),
         languageFormat: "Subtitulada",
         baseTicketPrice: NumberDecimal("22.00"),
-        status: "Disponible",
-        roomId: 5,
-        venueId: 2,
+        status: "Programada",
+        idRoom: 5,
+        idVenue: 2,
         availableSeats: 70
     },
     {
@@ -257,9 +257,9 @@ db.showtimes.insertMany([
         endTime: makeEndtime(makeShowtime(nextWednesday, 19, 0), 130),
         languageFormat: "Subtitulada",
         baseTicketPrice: NumberDecimal("25.00"),
-        status: "Disponible",
-        roomId: 1,
-        venueId: 1,
+        status: "Programada",
+        idRoom: 1,
+        idVenue: 1,
         availableSeats: 80
     }
 ]);

@@ -36,6 +36,7 @@ INTERNAL_SEAT = "http://sucursales-service:8083/internal/seats/1"
 INTERNAL_ENDPOINTS = {
     "sucursales: butaca": (INTERNAL_SEAT, False),
     "sucursales: sala": ("http://sucursales-service:8083/internal/rooms/1", False),
+    "sucursales: salas por lote": ("http://sucursales-service:8083/internal/rooms?ids=1,2", False),
     "usuarios: validar credenciales": (
         "http://usuarios-service:8085/internal/users/validate-credentials", True),
     "cartelera: descontar butacas": (
@@ -69,6 +70,7 @@ def _internal(name: str, showtimes: list[dict]) -> tuple[str, bool]:
     [
         "/internal/seats/1",
         "/internal/rooms/1",
+        "/internal/rooms?ids=1",
         "/internal/users/validate-credentials",
         "/internal/showtimes/x/decrease-seats",
         "/internal/snack-venue-stock/1",
