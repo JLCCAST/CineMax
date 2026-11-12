@@ -15,9 +15,14 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
+    // Sin remitente explícito, JavaMail inventa uno con el nombre del contenedor.
+    @Value("${app.mail-from:CineMax <no-responder@cinemax.local>}")
+    private String remitente;
+
     @Override
     public void sendPasswordResetEmail(String toEmail, String resetToken) {
         SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(remitente);
         message.setTo(toEmail);
         message.setSubject("CineMax - Recuperación de Contraseña");
         

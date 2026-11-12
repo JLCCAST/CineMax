@@ -7,17 +7,20 @@ spring:
     username: ${DB_USER:cine}
     password: ${DB_PASSWORD:cine123}
     driver-class-name: org.postgresql.Driver
+  # En local los correos van a Mailpit (http://127.0.0.1:8025). Para un SMTP real,
+  # como Gmail: MAIL_HOST=smtp.gmail.com, MAIL_PORT=587, MAIL_SMTP_AUTH=true,
+  # MAIL_STARTTLS=true, más MAIL_USERNAME y MAIL_PASSWORD.
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME:tu-correo@gmail.com}
-    password: ${MAIL_PASSWORD:tu-password}
+    host: ${MAIL_HOST:mailpit}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
-          auth: true
+          auth: ${MAIL_SMTP_AUTH:false}
           starttls:
-            enable: true
+            enable: ${MAIL_STARTTLS:false}
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:tu-cloud}
