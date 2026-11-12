@@ -11,7 +11,7 @@ import pytest
 
 from support import MISSING_MONGO_ID, unique
 
-FIN_DE_VIGENCIA = date(2026, 12, 31)  # de las promociones semilla
+FIN_DE_VIGENCIA = date(2027, 12, 31)  # de las promociones semilla (V7)
 SALA = 2
 PRECIO_BASE = 25.0
 COMBO_PAREJA = 3  # categoría Combos en el seed de confitería
@@ -25,7 +25,7 @@ def _proximo(dia_iso: int) -> date:
 @pytest.fixture(scope="module")
 def funciones(api, staff_headers, movies):
     if _proximo(5) > FIN_DE_VIGENCIA:
-        pytest.skip("Las promociones semilla vencen el 2026-12-31.")
+        pytest.skip("Las promociones semilla vencen el 2027-12-31.")
     pelicula = next((m for m in movies if m["titleMovie"] == "Interestelar"), None)
     if pelicula is None:
         pytest.skip("Falta Interestelar en el seed de MongoDB.")
