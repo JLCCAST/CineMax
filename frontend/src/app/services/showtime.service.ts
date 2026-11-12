@@ -9,7 +9,7 @@ export class ShowtimeService {
 
   constructor(private http: HttpClient) {}
 
-  getShowtimesByMovie(idMovie: number): Observable<any[]> {
+  getShowtimesByMovie(idMovie: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}?idMovie=${idMovie}`);
   }
 
@@ -18,11 +18,11 @@ export class ShowtimeService {
     return this.http.get<any[]>(`${this.apiUrl}/by-venue`, { params });
   }
 
-  getShowtimeSummary(idShowtime: number): Observable<any> {
+  getShowtimeSummary(idShowtime: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/${idShowtime}/summary`);
   }
 
-  getTicketFares(idShowtime: number): Observable<any[]> {
+  getTicketFares(idShowtime: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${idShowtime}/fares`);
   }
 
@@ -30,11 +30,11 @@ export class ShowtimeService {
     return this.http.post(this.apiUrl, data);
   }
 
-  updateShowtime(id: number, data: any): Observable<any> {
+  updateShowtime(id: string, data: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}`, data);
   }
 
-  cancelShowtime(id: number): Observable<any> {
+  cancelShowtime(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`, { responseType: 'text' });
   }
 }

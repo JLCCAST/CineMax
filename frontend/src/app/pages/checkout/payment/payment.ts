@@ -50,7 +50,7 @@ export class Payment implements OnInit {
   // Número de tarjeta formateado para la vista previa
   numeroMostrado = '';
 
-  private readonly apiUrl = '${environment.apiUrl}';
+  private readonly apiUrl = environment.apiUrl;
 
   constructor(
     public router: Router,

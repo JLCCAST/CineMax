@@ -16,7 +16,7 @@ export interface SnackLineDTO {
 }
 
 export interface SaleTransactionRequestDTO {
-  idShowtime: number;
+  idShowtime: string;
   asientosIds: number[];
   tickets: TicketLineDTO[];
   snacks: SnackLineDTO[];

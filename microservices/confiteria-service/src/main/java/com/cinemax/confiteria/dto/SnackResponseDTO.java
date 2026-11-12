@@ -19,6 +19,8 @@ public class SnackResponseDTO {
     private Integer idVenue;
 
     private SnackCategoryResponseDTO snackCategory;
+    private Integer idSnackCategory;
+    private String nameCategory;
 
     private String nameSnack;
 

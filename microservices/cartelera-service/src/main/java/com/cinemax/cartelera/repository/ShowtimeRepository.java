@@ -13,5 +13,9 @@ public interface ShowtimeRepository extends MongoRepository<Showtime, String> {
 
     List<Showtime> findByShowDate(LocalDate showDate);
 
+    List<Showtime> findByMovieIdAndShowDate(String movieId, LocalDate showDate);
+
+    List<Showtime> findByIdVenueAndShowDate(Integer idVenue, LocalDate showDate);
+
     List<Showtime> findByIdRoom(Integer idRoom);
 }

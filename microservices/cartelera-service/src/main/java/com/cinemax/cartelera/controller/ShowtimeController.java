@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import com.cinemax.cartelera.dto.ShowtimeRequestDTO;
 import com.cinemax.cartelera.dto.ShowtimeResponseDTO;
+import com.cinemax.cartelera.dto.ShowtimeSummaryDTO;
+import com.cinemax.cartelera.dto.TicketFareDTO;
 import com.cinemax.cartelera.service.ShowtimeService;
 
 import jakarta.validation.Valid;
@@ -24,8 +26,27 @@ public class ShowtimeController {
     private ShowtimeService showtimeService;
 
     @GetMapping
-    public ResponseEntity<List<ShowtimeResponseDTO>> findAll() {
-        return ResponseEntity.ok(showtimeService.findAll());
+    public ResponseEntity<List<ShowtimeResponseDTO>> findAll(
+            @RequestParam(required = false) String idMovie,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(showtimeService.findAll(idMovie, date));
+    }
+
+    @GetMapping("/by-venue")
+    public ResponseEntity<List<ShowtimeResponseDTO>> findByVenue(
+            @RequestParam Integer idVenue,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(showtimeService.findByVenueAndDate(idVenue, date));
+    }
+
+    @GetMapping("/{id}/summary")
+    public ResponseEntity<ShowtimeSummaryDTO> getSummary(@PathVariable String id) {
+        return ResponseEntity.ok(showtimeService.getSummary(id));
+    }
+
+    @GetMapping("/{id}/fares")
+    public ResponseEntity<List<TicketFareDTO>> getFares(@PathVariable String id) {
+        return ResponseEntity.ok(showtimeService.getFares(id));
     }
 
     @GetMapping("/movie/{movieId}")

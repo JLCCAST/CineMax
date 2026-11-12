@@ -26,7 +26,7 @@ interface SeatCell {
 })
 export class Seats implements OnInit {
 
-  idShowtime: number | null = null;
+  idShowtime: string | null = null;
   resumen: any = null;
 
   filas: string[] = [];
@@ -50,9 +50,10 @@ export class Seats implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const paramId = this.route.snapshot.queryParamMap.get('idShowtime');
+    const paramId = this.route.snapshot.queryParamMap.get('show')
+      ?? this.route.snapshot.queryParamMap.get('idShowtime');
     if (paramId) {
-      this.idShowtime = +paramId;
+      this.idShowtime = paramId;
       this.bookingService.iniciarReserva(this.idShowtime);
     } else if (this.bookingService.idShowtime) {
       this.idShowtime = this.bookingService.idShowtime;
@@ -77,6 +78,8 @@ export class Seats implements OnInit {
           formato: data.languageFormat,
           poster: data.posterUrl,
           cine: data.nameVenue,
+          sala: data.nameRoom,
+          idVenue: data.idVenue,
           fechaHora
         });
         this.resumen = this.bookingService.obtenerResumen();

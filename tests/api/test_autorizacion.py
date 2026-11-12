@@ -126,6 +126,27 @@ ADMIN_WRITES = {
         {"json": {"snackId": MISSING_SQL_ID, "idVenue": MISSING_SQL_ID, "quantity": 1}}),
     "DELETE /snack-venue-stock/{id}": lambda c: (
         "DELETE", f"/snack-venue-stock/{MISSING_SQL_ID}", {}),
+    # confiteria-service: snacks por sede (MANAGE_CONFITERIA)
+    "PATCH /snacks/{id}/venue/{venue}/habilitar": lambda c: (
+        "PATCH", f"/snacks/{MISSING_SQL_ID}/venue/{MISSING_SQL_ID}/habilitar", {}),
+    "PATCH /snacks/{id}/venue/{venue}/inhabilitar": lambda c: (
+        "PATCH", f"/snacks/{MISSING_SQL_ID}/venue/{MISSING_SQL_ID}/inhabilitar", {}),
+    "PATCH /snacks/{id}/venue/{venue}/stock": lambda c: (
+        "PATCH", f"/snacks/{MISSING_SQL_ID}/venue/{MISSING_SQL_ID}/stock", {"params": {"stock": 1}}),
+    "POST /snacks/{id}/venue/{venue}/agregar": lambda c: (
+        "POST", f"/snacks/{MISSING_SQL_ID}/venue/{MISSING_SQL_ID}/agregar", {"params": {"stock": 1}}),
+    "POST /snacks/{id}/venue/todas/agregar": lambda c: (
+        "POST", f"/snacks/{MISSING_SQL_ID}/venue/todas/agregar", {"params": {"stock": 1}}),
+    "DELETE /snacks/{id}/venue/{venue}": lambda c: (
+        "DELETE", f"/snacks/{MISSING_SQL_ID}/venue/{MISSING_SQL_ID}", {}),
+    "DELETE /snacks/{id}/venue/todas": lambda c: (
+        "DELETE", f"/snacks/{MISSING_SQL_ID}/venue/todas", {}),
+}
+
+# Lecturas que solo ve quien administra la confitería.
+ADMIN_READS = {
+    "GET /snacks/venue/{venue}/admin": f"/snacks/venue/{MISSING_SQL_ID}/admin",
+    "GET /snacks/{id}/sedes-count": f"/snacks/{MISSING_SQL_ID}/sedes-count",
 }
 
 # Las de películas ya exigían MANAGE_MOVIES, pero respondían 400 en vez de 403.
@@ -153,14 +174,24 @@ def _delete_if_created(api: httpx.Client, headers: dict, path: str, response: ht
     """Si un POST que debía rechazarse creó algo, lo borra para no dejar basura."""
     if response.request.method != "POST" or response.status_code not in (200, 201):
         return
+    if path not in ID_FIELD:
+        return
     created_id = response.json().get(ID_FIELD[path])
     if created_id is not None:
         api.delete(f"{path}/{created_id}", headers=headers)
 
 
 def test_cantidad_de_escrituras_cubiertas():
-    assert len(ADMIN_WRITES) == 19
-    assert len(PROTECTED_WRITES) == 22
+    assert len(ADMIN_WRITES) == 26
+    assert len(PROTECTED_WRITES) == 29
+
+
+@pytest.mark.parametrize("name", list(ADMIN_READS))
+def test_las_lecturas_de_administracion_exigen_el_permiso(api, client_headers, admin_token, name):
+    path = ADMIN_READS[name]
+    assert api.get(path).status_code in (401, 403)
+    assert api.get(path, headers=client_headers).status_code == 403
+    assert api.get(path, headers=bearer(admin_token)).status_code == 403
 
 
 @pytest.mark.parametrize("name", list(PROTECTED_WRITES))

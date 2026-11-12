@@ -109,7 +109,7 @@ public class SnackService {
         snackRepository.deleteById(id);
     }
 
-    private SnackResponseDTO toResponseDTO(Snack snack) {
+    public SnackResponseDTO toResponseDTO(Snack snack) {
         SnackCategoryResponseDTO categoryDTO = SnackCategoryResponseDTO.builder()
                 .idSnackCategory(snack.getSnackCategory().getIdSnackCategory())
                 .nameCategory(snack.getSnackCategory().getNameCategory())
@@ -119,6 +119,8 @@ public class SnackService {
                 .idSnack(snack.getIdSnack())
                 .idVenue(snack.getIdVenue())
                 .snackCategory(categoryDTO)
+                .idSnackCategory(categoryDTO.getIdSnackCategory())
+                .nameCategory(categoryDTO.getNameCategory())
                 .nameSnack(snack.getNameSnack())
                 .descriptionSnack(snack.getDescriptionSnack())
                 .price(snack.getPrice())

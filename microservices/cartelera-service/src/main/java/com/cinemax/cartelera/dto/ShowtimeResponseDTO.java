@@ -34,6 +34,12 @@ public class ShowtimeResponseDTO {
     // Info resumida de la película, no todo el objeto completo
     private String movieId;
     private String movieTitle;
+    private Integer durationMinutes;
 
     private Integer idRoom;
+    private String nameRoom;
+    private Integer roomCapacity;
+
+    private Integer idVenue;
+    private String nameVenue;
 }

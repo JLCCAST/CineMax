@@ -13,4 +13,8 @@ public interface SnackVenueStockRepository extends JpaRepository<SnackVenueStock
     List<SnackVenueStock> findBySnack_IdSnack(Integer idSnack);
 
     List<SnackVenueStock> findByIdVenueAndSnack_IdSnack(Integer idVenue, Integer idSnack);
+
+    List<SnackVenueStock> findByIdVenueAndStatusAndStockGreaterThan(Integer idVenue, String status, Integer stock);
+
+    long countBySnack_IdSnack(Integer idSnack);
 }

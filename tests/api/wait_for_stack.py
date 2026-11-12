@@ -48,6 +48,18 @@ def pending_services(api: httpx.Client, admin_email: str, admin_password: str) -
     for name, path in PUBLIC_CHECKS:
         check(name, lambda path=path: api.get(path))
 
+    # Cartelera pide a sucursales el nombre de sala y sede de cada función. Si
+    # todavía no la ve en Eureka, la lista sale sin esos nombres.
+    listed = check("cartelera-service", lambda: api.get("/showtimes"))
+    if listed is not None:
+        showtimes = listed.json()
+        if any(not s.get("nameVenue") for s in showtimes):
+            pending.append("cartelera-service (aún no ve a sucursales-service)")
+        elif showtimes:
+            # El mapa de butacas recorre facturación -> cartelera y sucursales.
+            first = showtimes[0]["idShowtime"]
+            check("facturacion-service", lambda: api.get(f"/availability/showtimes/{first}/seats"))
+
     # El login recorre gateway -> auth-service -> usuarios-service -> PostgreSQL.
     logged_in = check(
         "auth-service",

@@ -9,4 +9,5 @@ public class SeatDTO {
     private Integer columnNumber;
     private String status;
     private Integer idSeatType;
+    private String nameSeatType;
 }

@@ -105,7 +105,7 @@ export class Movies implements OnInit {
       // Filtra por sede usando showtimes
       this.http.get<any[]>(`${environment.apiUrl}/showtimes/by-venue?idVenue=${this.filtroIdVenue}&date=${new Date().toISOString().split('T')[0]}`).subscribe({
         next: (showtimes) => {
-          const idsConFuncion = new Set(showtimes.map((s: any) => s.idMovie));
+          const idsConFuncion = new Set(showtimes.map((s: any) => s.movieId));
           this.peliculasFiltradas = this.todasLasPeliculas.filter(p => idsConFuncion.has(p.idMovie));
           this.mensajeFiltro = `${this.peliculasFiltradas.length} película(s) en esta sede hoy.`;
           this.cdr.detectChanges();

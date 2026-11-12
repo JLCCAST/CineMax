@@ -46,4 +46,7 @@ public class Showtime {
 
     // Antes era @ManyToOne a Room (de otro microservicio). Se guarda plano.
     private Integer idRoom;
+
+    // Sede de la sala. Se copia de sucursales al crear o editar la función.
+    private Integer idVenue;
 }
