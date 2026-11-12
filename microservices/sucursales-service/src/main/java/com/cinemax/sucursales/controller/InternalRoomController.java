@@ -53,6 +53,7 @@ public class InternalRoomController {
         RoomVenueDTO dto = new RoomVenueDTO();
         dto.setIdRoom(room.getIdRoom());
         dto.setNameRoom(room.getNameRoom());
+        dto.setCapacity(room.getCapacity());
         if (room.getVenue() != null) {
             dto.setIdVenue(room.getVenue().getIdVenue());
             dto.setNameVenue(room.getVenue().getNameVenue());

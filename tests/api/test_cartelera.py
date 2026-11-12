@@ -76,13 +76,18 @@ def _new_showtime(movie_id: str, id_room: int) -> dict:
 
 
 def test_crear_funcion_guarda_la_sede_de_la_sala(api, staff_headers, movies):
-    # En el seed de sucursales, la sala 4 es de la sede 2 (Miraflores).
-    response = api.post("/showtimes", headers=staff_headers, json=_new_showtime(movies[0]["idMovie"], 4))
+    # En el seed de sucursales, la sala 4 es de la sede 2 (Miraflores) y tiene 100 butacas.
+    body = _new_showtime(movies[0]["idMovie"], 4)
+    del body["availableSeats"]  # el admin no lo envía: debe salir de la capacidad de la sala
+    response = api.post("/showtimes", headers=staff_headers, json=body)
     assert response.status_code == 201, response.text
     created = response.json()
     try:
         assert created["idRoom"] == 4
         assert created["idVenue"] == 2
+        assert created["availableSeats"] == 100
+        assert created["roomCapacity"] == 100
+        assert created["durationMinutes"] == movies[0]["durationMinutes"]
     finally:
         api.delete(f"/showtimes/{created['idShowtime']}", headers=staff_headers)
 

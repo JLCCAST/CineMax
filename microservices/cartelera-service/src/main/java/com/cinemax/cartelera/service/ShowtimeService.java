@@ -126,7 +126,8 @@ public class ShowtimeService {
                 .endTime(dto.getEndTime())
                 .languageFormat(dto.getLanguageFormat())
                 .baseTicketPrice(dto.getBaseTicketPrice())
-                .availableSeats(dto.getAvailableSeats())
+                // Sin dato, la función empieza con toda la sala disponible.
+                .availableSeats(dto.getAvailableSeats() != null ? dto.getAvailableSeats() : sala.getCapacity())
                 .status(dto.getStatus() != null ? dto.getStatus() : "Programada")
                 .movieId(dto.getMovieId())
                 .idRoom(sala.getIdRoom())
@@ -155,7 +156,9 @@ public class ShowtimeService {
         showtime.setEndTime(dto.getEndTime());
         showtime.setLanguageFormat(dto.getLanguageFormat());
         showtime.setBaseTicketPrice(dto.getBaseTicketPrice());
-        showtime.setAvailableSeats(dto.getAvailableSeats());
+        if (dto.getAvailableSeats() != null) {
+            showtime.setAvailableSeats(dto.getAvailableSeats());
+        }
 
         if (!dto.getIdRoom().equals(showtime.getIdRoom()) || showtime.getIdVenue() == null) {
             RoomVenueDTO sala = buscarSala(dto.getIdRoom());
@@ -246,8 +249,10 @@ public class ShowtimeService {
                 .status(showtime.getStatus())
                 .movieId(showtime.getMovieId())
                 .movieTitle(movie != null ? movie.getTitleMovie() : null)
+                .durationMinutes(movie != null ? movie.getDurationMinutes() : null)
                 .idRoom(showtime.getIdRoom())
                 .nameRoom(sala != null ? sala.getNameRoom() : null)
+                .roomCapacity(sala != null ? sala.getCapacity() : null)
                 .idVenue(showtime.getIdVenue())
                 .nameVenue(sala != null ? sala.getNameVenue() : null)
                 .build();
