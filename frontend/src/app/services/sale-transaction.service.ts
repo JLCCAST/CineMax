@@ -6,31 +6,32 @@ import { environment } from '../environments/environment';
 export interface TicketLineDTO {
   categoryCode: string;
   cantidad: number;
-  precioUnitario: number;
 }
 
 export interface SnackLineDTO {
   idSnack: number;
   cantidad: number;
-  unitPrice: number;
 }
 
+// Los precios los pone el servidor; totalAmount es el total que vio el cliente.
 export interface SaleTransactionRequestDTO {
   idShowtime: string;
   asientosIds: number[];
   tickets: TicketLineDTO[];
   snacks: SnackLineDTO[];
-  subtotal: number;
-  discountAmount: number;
   totalAmount: number;
   paymentMethod: 'TARJETA' | 'YAPE';
-  idPromotion: number | null;
+  promotionCode: string | null;
 }
 
 export interface SaleTransactionResponseDTO {
   idTransaction: number;
   qrCodeData: string;
   message: string;
+  subtotal: number;
+  discountAmount: number;
+  totalAmount: number;
+  namePromotion: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

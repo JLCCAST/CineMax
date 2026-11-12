@@ -32,9 +32,12 @@ export class Payment implements OnInit {
   card: CardForm = { titular: '', numero: '', vencimiento: '', cvv: '' };
   yapenumero = '';
 
+  // Cotización del servidor: precios, promoción aplicada y total
+  cotizacion: any = null;
+
   // Código promocional
   codigoPromo    = '';
-  promoAplicada: any = null;
+  cuponAplicado: string | null = null;
   promoError     = '';
   cargandoPromo  = false;
 
@@ -65,7 +68,9 @@ ngOnInit(): void {
   this.resumen = this.bookingService.obtenerResumen();
   if (!this.resumen.tickets?.length && !this.resumen.snacks?.length) {
     this.router.navigate(['/seats']);
+    return;
   }
+  this.cotizar(null);
 }
 
   // ── Método de pago ────────────────────────────────────────────────────────
@@ -116,48 +121,69 @@ ngOnInit(): void {
     return '';
   }
 
-  // ── Código promo ──────────────────────────────────────────────────────────
-  aplicarPromo(): void {
-    if (!this.codigoPromo.trim()) return;
-    this.promoError   = '';
-    this.cargandoPromo = true;
-
-    this.http.post<any>(`${this.apiUrl}/promotions/calculate`, {
+  // ── Cotización y código promo ──────────────────────────────────────────────
+  // La promoción la decide el servidor; el cupón es una condición más.
+  private cotizar(cupon: string | null, alTerminar?: (res: any) => void): void {
+    this.http.post<any>(`${this.apiUrl}/promotions/preview`, {
       idShowtime:    this.resumen.idShowtime,
-      subtotal:      this.totalSinDescuento,
-      promotionCode: this.codigoPromo.trim().toUpperCase()
+      tickets:       this.resumen.tickets.map((t: any) => ({ categoryCode: t.categoryCode, cantidad: t.cantidad })),
+      snacks:        (this.resumen.snacks ?? []).map((s: any) => ({ idSnack: s.idSnack, cantidad: s.cantidad })),
+      promotionCode: cupon
     }).subscribe({
       next: (res) => {
-        this.promoAplicada = res;
-        this.cargandoPromo = false;
+        this.cotizacion = res;
+        alTerminar?.(res);
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.promoError    = typeof err.error === 'string' ? err.error : (err.error?.message ?? 'Código inválido.');
-        this.promoAplicada = null;
+        this.errorPago = err.error?.message ?? 'No se pudo calcular el total. Vuelve a intentarlo.';
         this.cargandoPromo = false;
         this.cdr.detectChanges();
       }
     });
   }
 
-  quitarPromo(): void {
-    this.promoAplicada = null;
-    this.codigoPromo   = '';
+  aplicarPromo(): void {
+    const codigo = this.codigoPromo.trim().toUpperCase();
+    if (!codigo) return;
     this.promoError    = '';
+    this.cargandoPromo = true;
+
+    this.cotizar(codigo, (res) => {
+      this.cargandoPromo = false;
+      if (res.promotionCode?.toUpperCase() === codigo) {
+        this.cuponAplicado = codigo;
+      } else {
+        this.promoError = 'El cupón no aplica a esta compra.';
+        this.cotizar(null);
+      }
+    });
   }
 
-  // ── Totales ───────────────────────────────────────────────────────────────
+  quitarPromo(): void {
+    this.cuponAplicado = null;
+    this.codigoPromo   = '';
+    this.promoError    = '';
+    this.cotizar(null);
+  }
+
+  // ── Totales (del servidor) ─────────────────────────────────────────────────
+  get promoAplicada(): any {
+    return this.cotizacion?.namePromotion ? this.cotizacion : null;
+  }
+
   get totalSinDescuento(): number {
-    return this.bookingService.calcularTotalTickets() + this.bookingService.calcularTotalSnacks();
+    return this.cotizacion
+      ? Number(this.cotizacion.subtotal)
+      : this.bookingService.calcularTotalTickets() + this.bookingService.calcularTotalSnacks();
   }
 
   get descuento(): number {
-    return this.promoAplicada ? Number(this.promoAplicada.discountAmount) : 0;
+    return this.cotizacion ? Number(this.cotizacion.discountAmount) : 0;
   }
 
   get totalFinal(): number {
-    return this.promoAplicada ? Number(this.promoAplicada.finalAmount) : this.totalSinDescuento;
+    return this.cotizacion ? Number(this.cotizacion.totalAmount) : this.totalSinDescuento;
   }
 
   // ── Validación ────────────────────────────────────────────────────────────
@@ -195,7 +221,7 @@ ngOnInit(): void {
 
   // ── Confirmar pago ────────────────────────────────────────────────────────
   confirmarPago(): void {
-    if (!this.formularioValido || this.procesando) return;
+    if (!this.formularioValido || this.procesando || !this.cotizacion) return;
 
     this.procesando = true;
     this.errorPago  = '';
@@ -208,22 +234,19 @@ ngOnInit(): void {
       asientosIds:    this.resumen.asientosIds,
 
       tickets: this.resumen.tickets.map((t: any) => ({
-        categoryCode:   t.categoryCode,
-        cantidad:       t.cantidad,
-        precioUnitario: t.precioUnitario
+        categoryCode: t.categoryCode,
+        cantidad:     t.cantidad
       })),
 
       snacks: (this.resumen.snacks ?? []).map((s: any) => ({
-        idSnack:   s.idSnack,
-        cantidad:  s.cantidad,
-        unitPrice: s.precio
+        idSnack:  s.idSnack,
+        cantidad: s.cantidad
       })),
 
-      subtotal:       this.totalSinDescuento,
-      discountAmount: this.descuento,
-      totalAmount:    this.totalFinal,
-      paymentMethod:  this.metodoPago.toUpperCase() as 'TARJETA' | 'YAPE',
-      idPromotion:    this.promoAplicada?.idPromotion ?? null
+      // Total que vio el cliente: si el servidor calcula otro, responde 409.
+      totalAmount:   this.totalFinal,
+      paymentMethod: this.metodoPago.toUpperCase() as 'TARJETA' | 'YAPE',
+      promotionCode: this.cuponAplicado
     };
 
     this.saleTransactionService.createSaleTransaction(request).subscribe({
@@ -240,6 +263,9 @@ ngOnInit(): void {
           ? err.error
           : (err.error?.message ?? 'Ocurrió un error al procesar el pago. Intenta de nuevo.');
         this.errorPago = msg;
+        if (err.status === 409) {
+          this.cotizar(this.cuponAplicado);  // muestra el total nuevo
+        }
         this.cdr.detectChanges();
       }
     });
