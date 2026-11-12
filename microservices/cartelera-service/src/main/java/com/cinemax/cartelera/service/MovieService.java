@@ -108,7 +108,10 @@ public class MovieService {
         movie.setTitleMovie(dto.getTitleMovie());
         movie.setSynopsis(dto.getSynopsis());
         movie.setDurationMinutes(dto.getDurationMinutes());
-        movie.setPosterUrl(dto.getPosterUrl());
+        // Sin póster nuevo se conserva el actual (el admin edita sin volver a subirlo).
+        if (dto.getPosterUrl() != null && !dto.getPosterUrl().isBlank()) {
+            movie.setPosterUrl(dto.getPosterUrl());
+        }
         movie.setReleaseDate(dto.getReleaseDate());
         movie.setDirector(dto.getDirector());
 

@@ -40,7 +40,7 @@
       [routerLink]="['/movie', pelicula.idMovie]">
 
       <div class="movie-poster-wrap">
-        <img [src]="pelicula.posterUrl" [alt]="pelicula.titleMovie" class="movie-poster-img">
+        <img [src]="pelicula.posterUrl || 'Imagenes/poster-generico.svg'" [alt]="pelicula.titleMovie" class="movie-poster-img">
         <div class="movie-overlay">
           <button class="btn-ver-detalle">Ver detalle</button>
         </div>

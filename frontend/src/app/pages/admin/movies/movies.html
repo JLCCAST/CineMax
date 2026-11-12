@@ -32,7 +32,7 @@
   <div *ngIf="!cargando" class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
     <div class="col" *ngFor="let peli of movies">
       <div class="card h-100 bg-dark text-white border-secondary shadow-sm">
-        <img [src]="peli.posterUrl" class="card-img-top"
+        <img [src]="peli.posterUrl || 'Imagenes/poster-generico.svg'" class="card-img-top"
              style="height:350px;object-fit:cover;border-bottom:1px solid var(--secondary-color);">
         <div class="card-body">
           <h5 class="card-title fw-bold text-truncate" style="color:var(--secondary-color);" [title]="peli.titleMovie">
@@ -213,7 +213,7 @@
       <div class="modal-body p-4" *ngIf="peliculaDetalle">
         <div class="row">
           <div class="col-md-4">
-            <img [src]="peliculaDetalle.posterUrl" class="img-fluid rounded border border-secondary shadow">
+            <img [src]="peliculaDetalle.posterUrl || 'Imagenes/poster-generico.svg'" class="img-fluid rounded border border-secondary shadow">
           </div>
           <div class="col-md-8">
             <h3 class="fw-bold" style="color:var(--primary-color);">{{ peliculaDetalle.titleMovie }}</h3>

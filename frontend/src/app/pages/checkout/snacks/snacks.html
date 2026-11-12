@@ -139,7 +139,7 @@
         <!-- Película -->
         <h6 class="text-uppercase fw-bold summary-label mb-2">Película</h6>
         <div class="d-flex gap-3 mb-4 align-items-center">
-          <img [src]="resumen.pelicula?.poster" alt="Póster" width="65" class="rounded-3 shadow">
+          <img [src]="resumen.pelicula?.poster || 'Imagenes/poster-generico.svg'" alt="Póster" width="65" class="rounded-3 shadow">
           <div>
             <p class="mb-1 fw-bold text-white lh-sm fs-5">{{ resumen.pelicula?.nombre }}</p>
             <span class="badge py-1 px-2 pastel-badge">{{ resumen.pelicula?.formato }}</span>

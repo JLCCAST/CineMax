@@ -65,6 +65,55 @@
     height: 420px
 }
 
+/* Láminas de películas en el carrusel */
+.slide-pelicula {
+    height: 420px;
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    padding: 2rem 5rem;
+    background: linear-gradient(120deg, #2a1145 0%, #0d0618 100%);
+    color: white;
+}
+
+.carousel-item img.slide-poster {
+    height: 340px;
+    width: auto;
+    aspect-ratio: 2 / 3;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.slide-texto {
+    max-width: 560px;
+}
+
+.slide-texto p {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.slide-etiqueta {
+    display: inline-block;
+    margin-bottom: 0.75rem;
+    padding: 0.2rem 0.8rem;
+    border-radius: 999px;
+    background-color: var(--primary-dark);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+    .slide-pelicula {
+        gap: 1.25rem;
+        padding: 1.5rem;
+    }
+
+    .carousel-item img.slide-poster {
+        height: 220px;
+    }
+}
+
 /* Caja de filtros */
 
 .filtro {
@@ -133,6 +182,19 @@
     height: 100%;
     object-fit: cover;
     display: block;
+}
+
+/* Título sobre el póster genérico, cuando la película aún no tiene imagen. */
+.titulo-mosaico {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 1rem;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+    color: white;
+    font-weight: 700;
+    font-size: 1.3rem;
 }
 
 .badge-estreno {

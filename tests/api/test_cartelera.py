@@ -1,10 +1,12 @@
 """Cartelera pública: películas, detalle y funciones."""
 
+import json
 from datetime import date, timedelta
 
+import httpx
 import pytest
 
-from support import MISSING_MONGO_ID, MISSING_SQL_ID
+from support import MISSING_MONGO_ID, MISSING_SQL_ID, unique
 
 
 def test_cartelera_lista_las_peliculas(movies):
@@ -181,3 +183,38 @@ def test_tarifas_de_la_funcion(api, showtimes):
 @pytest.mark.parametrize("suffix", ["summary", "fares"])
 def test_resumen_y_tarifas_de_una_funcion_inexistente_responden_404(api, suffix):
     assert api.get(f"/showtimes/{MISSING_MONGO_ID}/{suffix}").status_code == 404
+
+
+# ---- formulario del admin de películas ---------------------------------------
+
+def _formulario_pelicula(api, headers, metodo: str, ruta: str, pelicula: dict) -> httpx.Response:
+    """Igual que el admin: los datos en la parte "movie" (JSON) y el póster opcional en "file"."""
+    return api.request(metodo, ruta, headers=headers,
+                       files={"movie": (None, json.dumps(pelicula), "application/json")})
+
+
+def test_el_admin_crea_y_edita_una_pelicula_con_su_formulario(api, staff_headers):
+    clasificacion = api.get("/classifications").json()[0]["idClassification"]
+    pelicula = {
+        "titleMovie": unique("pelicula"), "director": "Prueba", "synopsis": "Prueba",
+        "durationMinutes": 95, "releaseDate": None, "status": "Preventa", "premiereWeek": False,
+        "classificationId": clasificacion, "genreIds": [], "posterUrl": "https://ejemplo.test/poster.jpg",
+    }
+    creada = _formulario_pelicula(api, staff_headers, "POST", "/movies", pelicula)
+    assert creada.status_code == 201, creada.text
+    id_movie = creada.json()["idMovie"]
+    try:
+        # Editar sin subir otro póster conserva el que tenía.
+        cambios = {**pelicula, "durationMinutes": 100, "posterUrl": None}
+        editada = _formulario_pelicula(api, staff_headers, "PUT", f"/movies/{id_movie}", cambios)
+        assert editada.status_code == 200, editada.text
+        assert editada.json()["durationMinutes"] == 100
+        assert editada.json()["posterUrl"] == "https://ejemplo.test/poster.jpg"
+    finally:
+        api.delete(f"/movies/{id_movie}", headers=staff_headers)
+
+
+def test_el_formulario_de_pelicula_valida_los_datos(api, staff_headers):
+    respuesta = _formulario_pelicula(api, staff_headers, "POST", "/movies", {"titleMovie": ""})
+    assert respuesta.status_code == 400
+    assert "obligatori" in respuesta.text
