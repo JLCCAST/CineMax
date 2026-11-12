@@ -169,10 +169,18 @@ export class AdminMovies implements OnInit {
     this.form.markAllAsTouched();
     if (this.form.invalid || this.sinGeneros) return;
   
+    // Mismos nombres que MovieRequestDTO de cartelera.
+    const { idClassification, idGenres, releaseDate, ...resto } = this.form.value;
     const formData = new FormData();
-    formData.append('movie', JSON.stringify(this.form.value));
+    formData.append('movie', JSON.stringify({
+      ...resto,
+      releaseDate: releaseDate || null,
+      classificationId: idClassification,
+      genreIds: idGenres
+    }));
     if (this.selectedFile) formData.append('file', this.selectedFile);
-  
+
+    const mensajeError = (err: any) => err.error?.message ?? 'No se pudo guardar la película.';
     if (this.isEditMode && this.currentMovieId) {
       this.movieService.updateMovie(this.currentMovieId, formData).subscribe({
         next: () => {
@@ -180,7 +188,7 @@ export class AdminMovies implements OnInit {
           alert('Película actualizada correctamente');
           document.getElementById('btnCerrarModalPelicula')?.click();
         },
-        error: err => alert('Error al actualizar: ' + err.message)
+        error: err => alert('Error al actualizar: ' + mensajeError(err))
       });
     } else {
       this.movieService.createMovie(formData).subscribe({
@@ -189,7 +197,7 @@ export class AdminMovies implements OnInit {
           alert('Película creada exitosamente');
           document.getElementById('btnCerrarModalPelicula')?.click();
         },
-        error: err => alert('Error al crear: ' + err.message)
+        error: err => alert('Error al crear: ' + mensajeError(err))
       });
     }
   }

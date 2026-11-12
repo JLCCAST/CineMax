@@ -69,7 +69,7 @@
           <tr *ngFor="let snack of snacks; let i = index">
             <td>CK-{{ (i + 1).toString().padStart(3, '0') }}</td>
             <td>
-              <img [src]="snack.imageUrlSnack || 'https://via.placeholder.com/60x60?text=?'"
+              <img [src]="snack.imageUrlSnack || 'Imagenes/snack-generico.svg'"
                    style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
             </td>
             <td>{{ snack.nameSnack }}</td>

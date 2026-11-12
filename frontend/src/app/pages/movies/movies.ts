@@ -103,7 +103,9 @@ export class Movies implements OnInit {
       this.mensajeFiltro = `${this.peliculasFiltradas.length} película(s) encontrada(s).`;
     } else if (this.filtroIdVenue) {
       // Filtra por sede usando showtimes
-      this.http.get<any[]>(`${environment.apiUrl}/showtimes/by-venue?idVenue=${this.filtroIdVenue}&date=${new Date().toISOString().split('T')[0]}`).subscribe({
+      // Fecha local (en-CA da AAAA-MM-DD): toISOString usa UTC y después de las 19:00 en Lima ya es mañana.
+      const hoy = new Date().toLocaleDateString('en-CA');
+      this.http.get<any[]>(`${environment.apiUrl}/showtimes/by-venue?idVenue=${this.filtroIdVenue}&date=${hoy}`).subscribe({
         next: (showtimes) => {
           const idsConFuncion = new Set(showtimes.map((s: any) => s.movieId));
           this.peliculasFiltradas = this.todasLasPeliculas.filter(p => idsConFuncion.has(p.idMovie));

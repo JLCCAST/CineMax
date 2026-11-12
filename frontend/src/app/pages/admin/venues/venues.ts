@@ -377,7 +377,7 @@ export class Venues implements OnInit {
     }).addTo(this.map);
 
     const customIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png',
+      iconUrl: 'Imagenes/marcador-sede.svg',
       iconSize: [35, 35],
       iconAnchor: [17, 35]
     });

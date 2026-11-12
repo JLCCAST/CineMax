@@ -4,13 +4,16 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize; 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.cinemax.cartelera.dto.MovieRequestDTO;
 import com.cinemax.cartelera.dto.MovieResponseDTO;
 import com.cinemax.cartelera.service.MovieService;
+import com.cinemax.cartelera.service.PosterService;
 
 import jakarta.validation.Valid;
 
@@ -20,6 +23,9 @@ public class MovieController {
 
     @Autowired
     private MovieService movieService;
+
+    @Autowired
+    private PosterService posterService;
 
    @GetMapping
 public ResponseEntity<List<MovieResponseDTO>> findAll(
@@ -48,9 +54,25 @@ public ResponseEntity<List<MovieResponseDTO>> findAll(
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('MANAGE_MOVIES')") 
+    @PreAuthorize("hasAuthority('MANAGE_MOVIES')")
     public ResponseEntity<MovieResponseDTO> update(@PathVariable String id, @Valid @RequestBody MovieRequestDTO dto) {
         return ResponseEntity.ok(movieService.update(id, dto));
+    }
+
+    // El formulario del admin: los datos en "movie" (JSON) y el póster opcional en "file".
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('MANAGE_MOVIES')")
+    public ResponseEntity<MovieResponseDTO> createFromForm(
+            @RequestPart("movie") String movie, @RequestPart(value = "file", required = false) MultipartFile file) {
+        MovieResponseDTO created = movieService.create(posterService.leerFormulario(movie, file));
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('MANAGE_MOVIES')")
+    public ResponseEntity<MovieResponseDTO> updateFromForm(@PathVariable String id,
+            @RequestPart("movie") String movie, @RequestPart(value = "file", required = false) MultipartFile file) {
+        return ResponseEntity.ok(movieService.update(id, posterService.leerFormulario(movie, file)));
     }
 
     @DeleteMapping("/{id}")

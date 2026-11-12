@@ -198,6 +198,7 @@ export class Confiteria implements OnInit {
 
     // Limpia cualquier reserva previa y guarda solo los snacks, luego va al pago
     this.bookingService.limpiar();
+    this.bookingService.guardarSede(this.sedeSeleccionada.idVenue, this.sedeSeleccionada.nameVenue);
     this.bookingService.guardarSnacks(snackEntries);
     this.router.navigate(['/payment']);
   }

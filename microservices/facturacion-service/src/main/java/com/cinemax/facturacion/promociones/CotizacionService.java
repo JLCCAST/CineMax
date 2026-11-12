@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ public class CotizacionService {
     private final ConfiteriaClient confiteriaClient;
     private final PromotionRepository promotionRepository;
     private final SaleTransactionRepository saleTransactionRepository;
+    private final Clock reloj;
     private final PromotionEngine engine = new PromotionEngine();
 
     public record EntradaPedida(String categoryCode, int cantidad) {}
@@ -56,18 +58,17 @@ public class CotizacionService {
     public record Cotizacion(SaleContextDTO contexto, List<LineaEntrada> entradas, List<LineaSnack> snacks,
                              Promotion promocion, BigDecimal subtotal, BigDecimal descuento, BigDecimal total) {}
 
-    /** @param cliente null si no hay sesión iniciada */
-    public Cotizacion cotizar(String idShowtime, List<EntradaPedida> entradas, List<SnackPedido> snacks,
-                              String cupon, UserDTO cliente) {
-        if (idShowtime == null || idShowtime.isBlank()) {
-            throw new IllegalStateException("Selecciona una función.");
-        }
-        SaleContextDTO contexto = contexto(idShowtime);
-        if (!"Programada".equals(contexto.getStatus())) {
-            throw new IllegalStateException("Esta función ya no está disponible.");
-        }
-
-        List<SaleContextDTO.Fare> tarifas = tarifaPorEntrada(contexto, entradas);
+    /**
+     * @param idShowtime null en un pedido solo de confitería; entonces idVenue es la sede de recojo
+     * @param cliente    null si no hay sesión iniciada
+     */
+    public Cotizacion cotizar(String idShowtime, Integer idVenue, List<EntradaPedida> entradas,
+                              List<SnackPedido> snacks, String cupon, UserDTO cliente) {
+        boolean soloConfiteria = idShowtime == null || idShowtime.isBlank();
+        SaleContextDTO contexto = soloConfiteria
+                ? contextoConfiteria(idVenue, entradas, snacks)
+                : contextoFuncion(idShowtime);
+        List<SaleContextDTO.Fare> tarifas = soloConfiteria ? List.of() : tarifaPorEntrada(contexto, entradas);
         List<SnackPedido> pedidos = snacks == null ? List.of()
                 : snacks.stream().filter(s -> s.cantidad() > 0).toList();
         Map<Integer, SnackInfoDTO> catalogo = catalogo(pedidos);
@@ -104,6 +105,45 @@ public class CotizacionService {
         BigDecimal subtotal = venta.subtotal().setScale(2);
         return new Cotizacion(contexto, lineasEntrada, lineasSnack, resultado.promotion(),
                 subtotal, resultado.discount(), subtotal.subtract(resultado.discount()));
+    }
+
+    private SaleContextDTO contextoFuncion(String idShowtime) {
+        SaleContextDTO contexto = contexto(idShowtime);
+        if (!"Programada".equals(contexto.getStatus())) {
+            throw new IllegalStateException("Esta función ya no está disponible.");
+        }
+        if (yaEmpezo(contexto)) {
+            throw new IllegalStateException("Esta función ya empezó. Elige otro horario.");
+        }
+        return contexto;
+    }
+
+    // Pedido de confitería sin función: se recoge hoy en la sede elegida. Las
+    // promociones de entradas no aplican; las de toda la compra (como un cupón) sí.
+    private SaleContextDTO contextoConfiteria(Integer idVenue, List<EntradaPedida> entradas, List<SnackPedido> snacks) {
+        if (idVenue == null) {
+            throw new IllegalStateException("Selecciona una función o la sede donde recoges tu pedido.");
+        }
+        if (entradas != null && entradas.stream().anyMatch(e -> e.cantidad() > 0)) {
+            throw new IllegalStateException("Para comprar entradas, selecciona una función.");
+        }
+        if (snacks == null || snacks.stream().noneMatch(s -> s.cantidad() > 0)) {
+            throw new IllegalStateException("Elige al menos un producto.");
+        }
+        LocalDateTime ahora = LocalDateTime.now(reloj);
+        SaleContextDTO contexto = new SaleContextDTO();
+        contexto.setIdVenue(idVenue);
+        contexto.setShowDate(ahora.toLocalDate());
+        contexto.setStartTime(ahora.toLocalTime());
+        contexto.setFares(List.of());
+        return contexto;
+    }
+
+    private boolean yaEmpezo(SaleContextDTO contexto) {
+        if (contexto.getShowDate() == null || contexto.getStartTime() == null) {
+            return false;
+        }
+        return !LocalDateTime.of(contexto.getShowDate(), contexto.getStartTime()).isAfter(LocalDateTime.now(reloj));
     }
 
     private SaleContextDTO contexto(String idShowtime) {
@@ -155,7 +195,7 @@ public class CotizacionService {
 
     // Solo cuentan las promociones con límite de usos.
     private Map<Integer, Long> usosDelAnio(UserDTO cliente, List<Promotion> promociones) {
-        LocalDateTime desde = LocalDate.now().withDayOfYear(1).atStartOfDay();
+        LocalDateTime desde = LocalDate.now(reloj).withDayOfYear(1).atStartOfDay();
         LocalDateTime hasta = desde.plusYears(1);
         return promociones.stream()
                 .filter(p -> p.getMaxUsesPerUser() != null)

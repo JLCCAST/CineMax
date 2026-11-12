@@ -23,6 +23,7 @@ public class SaleContextDTO {
     private Integer idRoom;
     private Integer idVenue;
     private String movieId;
+    private String movieTitle;
     private LocalDate releaseDate;
     private List<TicketFareDTO> fares;
 }

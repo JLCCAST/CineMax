@@ -11,6 +11,8 @@ import java.util.List;
 public interface SaleTicketDetailRepository extends JpaRepository<SaleTicketDetail, Integer> {
     List<SaleTicketDetail> findBySaleTransaction_IdTransaction(Integer idTransaction);
 
+    List<SaleTicketDetail> findBySaleTransaction_IdTransactionIn(Collection<Integer> idTransactions);
+
     List<SaleTicketDetail> findByIdShowtimeAndIdSeatIn(String idShowtime, Collection<Integer> idSeats);
 
     @Query("select t.idSeat from SaleTicketDetail t where t.idShowtime = :idShowtime")

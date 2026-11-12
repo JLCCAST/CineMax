@@ -42,7 +42,8 @@ public class PromotionController {
                 .toList();
 
         return ResponseEntity.ok(CotizacionResponseDTO.from(cotizacionService.cotizar(
-                request.getIdShowtime(), entradas, snacks, request.getPromotionCode(), clienteConSesion())));
+                request.getIdShowtime(), request.getIdVenue(), entradas, snacks, request.getPromotionCode(),
+                clienteConSesion())));
     }
 
     // ---- Gestión (admin) -----------------------------------------------------

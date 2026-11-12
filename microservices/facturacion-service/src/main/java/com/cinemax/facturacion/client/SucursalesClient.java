@@ -2,6 +2,7 @@ package com.cinemax.facturacion.client;
 
 import com.cinemax.facturacion.dto.external.RoomVenueDTO;
 import com.cinemax.facturacion.dto.external.SeatDTO;
+import com.cinemax.facturacion.dto.external.VenueDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,9 @@ public interface SucursalesClient {
     // Las butacas de una compra, con su sala, en una sola llamada.
     @GetMapping("/internal/seats")
     List<SeatDTO> getSeats(@RequestParam("ids") List<Integer> ids);
+
+    @GetMapping("/internal/venues/{idVenue}")
+    VenueDTO getVenue(@PathVariable("idVenue") Integer idVenue);
 
     @GetMapping("/internal/rooms/{idRoom}")
     RoomVenueDTO getRoomWithVenue(@PathVariable("idRoom") Integer idRoom);

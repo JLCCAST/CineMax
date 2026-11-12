@@ -267,19 +267,20 @@ describe('AdminShowtimes (HU-14)', () => {
 
   describe('precioNino y precioMayor', () => {
 
-    it('precioNino = baseTicketPrice - 11', () => {
-      component.form.patchValue({ baseTicketPrice: 20 });
-      expect(component.precioNino).toBe(9);
+    it('precioNino es el 55 % del precio base, redondeado a S/ 0,50', () => {
+      component.form.patchValue({ baseTicketPrice: 25 });
+      expect(component.precioNino).toBe(14);
     });
 
-    it('precioMayor = baseTicketPrice - 9', () => {
-      component.form.patchValue({ baseTicketPrice: 20 });
-      expect(component.precioMayor).toBe(11);
+    it('precioMayor es el 65 % del precio base, redondeado a S/ 0,50', () => {
+      component.form.patchValue({ baseTicketPrice: 25 });
+      expect(component.precioMayor).toBe(16.5);
     });
 
-    it('precioNino nunca baja de 0 (precio base muy bajo)', () => {
-      component.form.patchValue({ baseTicketPrice: 5 });
-      expect(component.precioNino).toBeGreaterThanOrEqual(0);
+    it('con un precio base bajo el descuento sigue siendo proporcional', () => {
+      component.form.patchValue({ baseTicketPrice: 10 });
+      expect(component.precioNino).toBe(5.5);
+      expect(component.precioMayor).toBe(6.5);
     });
   });
 

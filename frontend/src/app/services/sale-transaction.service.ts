@@ -15,7 +15,9 @@ export interface SnackLineDTO {
 
 // Los precios los pone el servidor; totalAmount es el total que vio el cliente.
 export interface SaleTransactionRequestDTO {
-  idShowtime: string;
+  idShowtime: string | null;
+  // Sede de recojo de un pedido solo de confitería (sin función).
+  idVenue: number | null;
   asientosIds: number[];
   tickets: TicketLineDTO[];
   snacks: SnackLineDTO[];

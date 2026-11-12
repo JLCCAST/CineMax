@@ -10,6 +10,16 @@ spring:
       username: ${DB_USER:cine}
       password: ${DB_PASSWORD:cine123}
       authentication-database: admin
+  # Pósters que sube el admin de películas.
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:your-cloud-name}
+  api-key: ${CLOUDINARY_API_KEY:your-api-key}
+  api-secret: ${CLOUDINARY_API_SECRET:your-api-secret}
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:4200}

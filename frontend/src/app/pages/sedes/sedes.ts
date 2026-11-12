@@ -98,10 +98,12 @@ export class Sedes implements OnInit {
     const lng = sede.longitude || -77.042793;
 
     this.map = L.map('mapa-cliente').setView([lat, lng], 16);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(this.map);
 
     const customIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png',
+      iconUrl: 'Imagenes/marcador-sede.svg',
       iconSize: [40, 40],
       iconAnchor: [20, 40]
     });

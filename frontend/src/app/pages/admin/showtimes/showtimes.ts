@@ -146,8 +146,9 @@ export class AdminShowtimes implements OnInit {
   // ── Tarifas estimadas (computed) ──────────────────────────────────────────
 
   get precioBase(): number { return +(this.ctrl('baseTicketPrice').value ?? 0); }
-  get precioNino(): number  { return Math.max(0, this.precioBase - 11); }
-  get precioMayor(): number { return Math.max(0, this.precioBase - 9); }
+  // Misma regla que cartelera (Tarifas.java): porcentaje del precio base, redondeado a S/ 0,50.
+  get precioNino(): number  { return Math.round(this.precioBase * 0.55 * 2) / 2; }
+  get precioMayor(): number { return Math.round(this.precioBase * 0.65 * 2) / 2; }
 
   // ── Datos ─────────────────────────────────────────────────────────────────
 

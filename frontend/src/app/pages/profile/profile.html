@@ -174,14 +174,18 @@
             <div class="col-12" *ngFor="let compra of misCompras">
               <div class="p-3 rounded border border-secondary d-flex justify-content-between align-items-center flex-wrap gap-3" style="background-color: #0d0d11;">
                 <div>
-                  <!-- Título: película o lista de snacks -->
+                  <!-- Título: la película, o "Pedido de confitería" si solo hubo snacks -->
                   <h5 class="fw-bold mb-1 text-white">
-                    {{ compra.movieTitle || (compra.snacks && compra.snacks.length > 0 ? compra.snacks.join(', ') : 'Compra de Snacks') }}
+                    {{ compra.movieTitle || 'Pedido de confitería' }}
                   </h5>
 
-                  <!-- Sede y sala: solo si hay película -->
+                  <!-- Sede y sala (en un pedido de confitería, la sede de recojo) -->
                   <p *ngIf="compra.venueName" class="mb-1 small text-secondary">
-                    <i class="fa-solid fa-film me-2"></i>{{ compra.venueName }}{{ compra.roomName ? ' — ' + compra.roomName : '' }}
+                    <i class="fa-solid me-2" [ngClass]="compra.roomName ? 'fa-film' : 'fa-location-dot'"></i>{{ compra.venueName }}{{ compra.roomName ? ' — ' + compra.roomName : '' }}
+                  </p>
+
+                  <p *ngIf="compra.snacks?.length" class="mb-1 small text-secondary">
+                    <i class="fa-solid fa-cookie-bite me-2"></i>{{ compra.snacks.join(', ') }}
                   </p>
 
                   <!-- Fecha y hora -->

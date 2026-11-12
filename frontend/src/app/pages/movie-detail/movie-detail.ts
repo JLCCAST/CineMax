@@ -58,7 +58,10 @@ export class MovieDetail implements OnInit {
   cargarHorarios(idMovie: string) {
     this.http.get<any[]>(`${environment.apiUrl}/showtimes?idMovie=${idMovie}`).subscribe({
       next: (data) => {
-        this.horarios = data;
+        // Solo funciones que no han empezado, en orden de fecha y hora.
+        this.horarios = data
+          .filter(h => h.status === 'Programada' && !MovieDetail.yaEmpezo(h))
+          .sort((a, b) => (a.showDate + a.startTime).localeCompare(b.showDate + b.startTime));
         this.agruparPorSede();
         this.cdr.detectChanges();
       },
@@ -84,7 +87,8 @@ export class MovieDetail implements OnInit {
       }
       sede.formatos.get(h.languageFormat).push({
         idShowtime: h.idShowtime,
-        hora: h.startTime,
+        dia: MovieDetail.etiquetaDia(h.showDate),
+        hora: String(h.startTime).slice(0, 5),
         precio: h.baseTicketPrice
       });
     }
@@ -93,6 +97,22 @@ export class MovieDetail implements OnInit {
       nameVenue: s.nameVenue,
       formatos: (Array.from(s.formatos.entries()) as [string, any][]).map(([formato, horas]) => ({ formato, horas }))
     }));
+  }
+
+  // Fecha y hora de la función son de Lima, igual que el navegador del cliente.
+  private static yaEmpezo(h: any): boolean {
+    return new Date(`${h.showDate}T${h.startTime}`) <= new Date();
+  }
+
+  // "Hoy", "Mañana" o el día abreviado ("mié 18"), para no mezclar funciones de días distintos.
+  private static etiquetaDia(fecha: string): string {
+    const dia = new Date(`${fecha}T00:00:00`);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const diferencia = Math.round((dia.getTime() - hoy.getTime()) / 86_400_000);
+    if (diferencia === 0) return 'Hoy';
+    if (diferencia === 1) return 'Mañana';
+    return dia.toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric' });
   }
 
   seleccionarHorario(idShowtime: string, formato: string) {

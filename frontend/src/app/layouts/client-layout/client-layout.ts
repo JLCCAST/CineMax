@@ -1,7 +1,8 @@
 // client-layout.ts
 import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Offcanvas } from 'bootstrap';
 // ✅ CAMBIO: Reemplazar FormsModule por ReactiveFormsModule
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
@@ -49,6 +50,7 @@ export class ClientLayout implements OnInit {
     private authService: AuthService,
     private userService: UserService,
     private router: Router,
+    private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -73,6 +75,16 @@ export class ClientLayout implements OnInit {
     });
 
     this.verificarSesion();
+
+    // ?sesion=requerida (lo pone authGuard) o ?sesion=vencida (lo pone el admin).
+    this.route.queryParamMap.subscribe(params => {
+      const motivo = params.get('sesion');
+      if (!motivo) return;
+      this.pedirInicioDeSesion(motivo === 'vencida'
+        ? 'Tu sesión venció. Vuelve a iniciar sesión.'
+        : 'Inicia sesión para continuar.');
+      this.router.navigate([], { queryParams: { sesion: null }, queryParamsHandling: 'merge', replaceUrl: true });
+    });
 
     this.userService.user$.subscribe(user => {
       if (user) {
@@ -226,6 +238,28 @@ export class ClientLayout implements OnInit {
       this.cargarDatosUsuario();
     }
     this.cdr.detectChanges();
+  }
+
+  // El interceptor avisa cuando el token venció con la página abierta.
+  @HostListener('window:cinemax-sesion-vencida')
+  onSesionVencida() {
+    this.pedirInicioDeSesion('Tu sesión venció. Vuelve a iniciar sesión.');
+  }
+
+  private pedirInicioDeSesion(mensaje: string) {
+    this.isLogged = false;
+    this.userFullName = 'Usuario';
+    this.userInitials = 'U';
+    this.userImageUrl = null;
+    this.vistaActiva = 'login';
+    this.mensajeAuth = mensaje;
+    this.esErrorAuth = true;
+    this.cdr.detectChanges();
+    // El panel puede no existir todavía si esto ocurre al cargar la página.
+    setTimeout(() => {
+      const panel = document.getElementById('authOffcanvas');
+      if (panel) Offcanvas.getOrCreateInstance(panel).show();
+    });
   }
 
   cerrarSesion() {

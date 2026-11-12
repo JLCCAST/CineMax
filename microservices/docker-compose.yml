@@ -173,6 +173,15 @@ services:
   # Solo el gateway publica su puerto. Los demás servicios se alcanzan por la
   # red interna de Docker (por ejemplo, con `docker compose exec`).
 
+  # Correo local: atrapa los correos que envía la app (por ejemplo, el de recuperar
+  # la contraseña) y los muestra en http://127.0.0.1:8025. No envía nada afuera.
+  mailpit:
+    image: axllent/mailpit:v1.21.8
+    container_name: mailpit
+    ports:
+      - "127.0.0.1:8025:8025"
+    restart: unless-stopped
+
   config-server:
     build:
       context: .
@@ -308,6 +317,9 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
     depends_on:
       mongodb-cartelera:
         condition: service_healthy
@@ -368,10 +380,14 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
+      # Por defecto, el correo va a Mailpit. Para un SMTP real, ver usuarios-service.yml.
+      - MAIL_HOST=${MAIL_HOST:-mailpit}
+      - MAIL_PORT=${MAIL_PORT:-1025}
+      - MAIL_SMTP_AUTH=${MAIL_SMTP_AUTH:-false}
+      - MAIL_STARTTLS=${MAIL_STARTTLS:-false}
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
-      # Sin credenciales SMTP reales, el chequeo de correo dejaría el servicio como
-      # "unhealthy". Ponlo en true en el .env si configuras un correo de verdad.
+      # Si el SMTP no responde, el chequeo de correo deja el servicio como "unhealthy".
       - MANAGEMENT_HEALTH_MAIL_ENABLED=${MAIL_HEALTH_ENABLED:-false}
       - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
       - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}

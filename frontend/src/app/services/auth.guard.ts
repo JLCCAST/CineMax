@@ -7,8 +7,10 @@ export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
 
   // Verificar que el usuario esté logueado
+  // Sin sesión (o vencida): a la portada, que abre el panel de inicio de sesión.
+  const habiaSesion = !!localStorage.getItem('cinemax_token');
   if (!authService.isLoggedIn()) {
-    router.navigate(['/']);
+    router.navigate(['/'], { queryParams: { sesion: habiaSesion ? 'vencida' : 'requerida' } });
     return false;
   }
 

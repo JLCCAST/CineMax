@@ -6,22 +6,24 @@
         <div id="CarruselPrincipal" class="carousel slide shadow" data-bs-ride="carousel">
           <div class="carousel-indicators">
             <button type="button" data-bs-target="#CarruselPrincipal" data-bs-slide-to="0" class="active"></button>
-            <button type="button" data-bs-target="#CarruselPrincipal" data-bs-slide-to="1"></button>
-            <button type="button" data-bs-target="#CarruselPrincipal" data-bs-slide-to="2"></button>
-            <button type="button" data-bs-target="#CarruselPrincipal" data-bs-slide-to="3"></button>
+            <button *ngFor="let m of destacadas(); let i = index" type="button"
+                    data-bs-target="#CarruselPrincipal" [attr.data-bs-slide-to]="i + 1"></button>
           </div>
           <div class="carousel-inner">
             <div class="carousel-item active">
               <img src="Imagenes/Estreno/morado.jpeg" class="d-block w-100" alt="Nuevos Estrenos">
             </div>
-            <div class="carousel-item">
-              <img src="https://static.cinepolis.com/img/front/11/2026318121640616-prin.jpg" class="d-block w-100" alt="Poster 1">
-            </div>
-            <div class="carousel-item">
-              <img src="https://static.cinepolis.com/img/front/11/2026415152353291-prin.jpg" class="d-block w-100" alt="Poster 2">
-            </div>
-            <div class="carousel-item">
-              <img src="https://static.cinepolis.com/img/front/11/2026325112451386-prin.jpg" class="d-block w-100" alt="Poster 3">
+            <!-- Una lámina por película en cartelera, con datos de la API. -->
+            <div class="carousel-item" *ngFor="let m of destacadas()">
+              <div class="slide-pelicula">
+                <img [src]="m.posterUrl || posterGenerico" class="slide-poster" [alt]="m.titleMovie">
+                <div class="slide-texto">
+                  <span class="slide-etiqueta">{{ m.status === 'Estreno' ? 'Estreno' : 'En cartelera' }}</span>
+                  <h2 class="fw-bold">{{ m.titleMovie }}</h2>
+                  <p class="d-none d-md-block">{{ m.synopsis }}</p>
+                  <a class="btn btn-filtrar-redondeado" [routerLink]="['/movie', m.idMovie]">Comprar entradas</a>
+                </div>
+              </div>
             </div>
           </div>
           <button class="carousel-control-prev" type="button" data-bs-target="#CarruselPrincipal" data-bs-slide="prev">
@@ -74,41 +76,25 @@
       <div class="mb-4 border-bottom-purple">
         <h2 class="fw-bold text-white d-inline-block border-bottom border-primary border-3 pb-2">EN CARTELERA</h2>
       </div>
-      <div class="row g-3">
+      <!-- Las primeras cuatro películas en cartelera o en estreno, desde la API. -->
+      <div class="row g-3" *ngIf="destacadas().length">
 
-        <div class="col-md-4">
-          <div class="poster-container h-100 shadow-purple" style="cursor:pointer" [routerLink]="['/movie', 1]">
-            <img src="https://cdn.apis.cineplanet.com.pe/CDN/media/entity/get/FilmPosterGraphic/HO00002775?referenceScheme=HeadOffice&allowPlaceHolder=true" class="img-mosaico" alt="Mario">
-            <div class="badge-estreno">Estreno</div>
-          </div>
+        <div class="col-md-4" *ngIf="destacadas()[0] as m">
+          <ng-container *ngTemplateOutlet="posterMosaico; context: { $implicit: m }"></ng-container>
         </div>
 
         <div class="col-md-8">
           <div class="row g-3 mb-3">
 
-            <div class="col-md-6">
-              <div class="poster-container h-100 shadow-purple position-relative" style="cursor:pointer" [routerLink]="['/movie', 2]">
-                <img src="https://cdn.apis.cineplanet.com.pe/CDN/media/entity/get/FilmPosterGraphic/HO00002801?referenceScheme=HeadOffice&allowPlaceHolder=true" class="img-mosaico" alt="La Momia">
-                <div class="badge-estreno">Estreno</div>
-                <span class="badge bg-danger text-white position-absolute top-0 end-0 m-2 fs-6 rounded-pill shadow-sm">+17</span>
-              </div>
-            </div>
-
-            <div class="col-md-6">
-              <div class="poster-container h-100 shadow-purple position-relative" style="cursor:pointer" [routerLink]="['/movie', 3]">
-                <img src="https://cdn.apis.cineplanet.com.pe/CDN/media/entity/get/FilmPosterGraphic/HO00002680?referenceScheme=HeadOffice&allowPlaceHolder=true" class="img-mosaico" alt="Fin del mundo">
-                <div class="badge-estreno">Estreno</div>
-              </div>
+            <div class="col-md-6" *ngFor="let m of destacadas().slice(1, 3)">
+              <ng-container *ngTemplateOutlet="posterMosaico; context: { $implicit: m }"></ng-container>
             </div>
 
           </div>
           <div class="row g-3">
 
-            <div class="col-md-6">
-              <div class="poster-container h-100 shadow-purple position-relative" style="cursor:pointer" [routerLink]="['/movie', 4]">
-                <img src="https://cdn.apis.cineplanet.com.pe/CDN/media/entity/get/FilmPosterGraphic/HO00002837?referenceScheme=HeadOffice&allowPlaceHolder=true" class="img-mosaico" alt="Boulevard">
-                <span class="badge bg-danger text-white position-absolute top-0 end-0 m-2 fs-6 rounded-pill shadow-sm">+14</span>
-              </div>
+            <div class="col-md-6" *ngIf="destacadas()[3] as m">
+              <ng-container *ngTemplateOutlet="posterMosaico; context: { $implicit: m }"></ng-container>
             </div>
 
             <div class="col-md-6">
@@ -123,6 +109,20 @@
           </div>
         </div>
       </div>
+
+      <p class="text-white-50" *ngIf="!loading && !destacadas().length">
+        Pronto anunciaremos nuevas películas.
+      </p>
+
+      <ng-template #posterMosaico let-m>
+        <div class="poster-container h-100 shadow-purple position-relative" style="cursor:pointer" [routerLink]="['/movie', m.idMovie]">
+          <img [src]="m.posterUrl || posterGenerico" class="img-mosaico" [alt]="m.titleMovie">
+          <div class="titulo-mosaico" *ngIf="!m.posterUrl">{{ m.titleMovie }}</div>
+          <div class="badge-estreno" *ngIf="m.status === 'Estreno' || m.premiereWeek">Estreno</div>
+          <span *ngIf="m.classification?.nameClassification as clasificacion"
+                class="badge bg-danger text-white position-absolute top-0 end-0 m-2 fs-6 rounded-pill shadow-sm">{{ clasificacion }}</span>
+        </div>
+      </ng-template>
     </div>
 
     <div class="container mt-5 pb-5">

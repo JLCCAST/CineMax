@@ -12,6 +12,8 @@ import java.util.List;
 public class SaleTransactionRequestDTO {
 
     private String idShowtime;
+    // Solo en un pedido de confitería sin función: la sede donde se recoge.
+    private Integer idVenue;
     private List<Integer> asientosIds;
     private List<TicketLineDTO> tickets;
     private List<SnackLineDTO> snacks;
