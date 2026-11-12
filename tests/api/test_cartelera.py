@@ -150,7 +150,9 @@ def test_funciones_por_sede_es_publico_y_exige_la_fecha(api):
 
 
 def test_resumen_de_la_funcion(api, showtimes):
-    sample = showtimes[0]
+    # Detalle recién pedido: la lista de la sesión se descarga al inicio y puede
+    # haberse armado antes de que cartelera viera a sucursales.
+    sample = api.get(f"/showtimes/{showtimes[0]['idShowtime']}").json()
     response = api.get(f"/showtimes/{sample['idShowtime']}/summary")
     assert response.status_code == 200
     summary = response.json()
