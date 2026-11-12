@@ -1,14 +1,12 @@
 package com.cinemax.confiteria.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.cinemax.confiteria.dto.SnackVenueStockRequestDTO;
-import com.cinemax.confiteria.dto.SnackVenueStockResponseDTO;
+import com.cinemax.confiteria.dto.MovimientoStockDTO;
 import com.cinemax.confiteria.service.SnackVenueStockService;
 
 import jakarta.validation.Valid;
@@ -25,12 +23,17 @@ public class InternalSnackVenueStockController {
 
     private final SnackVenueStockService snackVenueStockService;
 
-    // Llamado por facturacion-service para descontar el stock durante la compra.
-    // La misma operación en /api/snack-venue-stock/{id} exige MANAGE_CONFITERIA,
-    // que un cliente no tiene.
-    @PutMapping("/{id}")
-    public ResponseEntity<SnackVenueStockResponseDTO> update(
-            @PathVariable Integer id, @Valid @RequestBody SnackVenueStockRequestDTO dto) {
-        return ResponseEntity.ok(snackVenueStockService.update(id, dto));
+    // Llamado por facturacion-service al vender. Responde 409 si algún snack no alcanza.
+    @PostMapping("/descontar")
+    public ResponseEntity<Void> descontar(@Valid @RequestBody MovimientoStockDTO movimiento) {
+        snackVenueStockService.descontarLote(movimiento);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Llamado por facturacion-service si la venta no se completó.
+    @PostMapping("/reponer")
+    public ResponseEntity<Void> reponer(@Valid @RequestBody MovimientoStockDTO movimiento) {
+        snackVenueStockService.reponerLote(movimiento);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -12,7 +12,13 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.cinemax.cartelera.client.SucursalesClient;
 import com.cinemax.cartelera.dto.SaleContextDTO;
@@ -49,6 +55,9 @@ public class ShowtimeService {
 
     @Autowired
     private SucursalesClient sucursalesClient;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     public List<ShowtimeResponseDTO> findAll(String movieId, LocalDate showDate) {
         List<Showtime> showtimes;
@@ -197,12 +206,52 @@ public class ShowtimeService {
         showtimeRepository.deleteById(id);
     }
 
-    // Usado por facturacion-service al confirmar una venta, igual que hacía
-    // el monolito: showtime.setAvailableSeats(availableSeats - seats.size()).
+    // Usado por facturacion-service al confirmar una venta. Resta en una sola
+    // operación de MongoDB y solo si alcanzan las butacas: dos compras
+    // simultáneas no pueden dejar el contador en negativo.
     public void decreaseAvailableSeats(String id, int cantidad) {
+        validarCantidad(cantidad);
+        if (restarSiAlcanza(id, cantidad)) {
+            return;
+        }
         Showtime showtime = buscarFuncion(id);
-        showtime.setAvailableSeats(showtime.getAvailableSeats() - cantidad);
-        showtimeRepository.save(showtime);
+        if (showtime.getAvailableSeats() == null && iniciarContador(showtime) && restarSiAlcanza(id, cantidad)) {
+            return;
+        }
+        throw new ResponseStatusException(HttpStatus.CONFLICT, "No quedan suficientes butacas en esta función.");
+    }
+
+    // Compensación: facturación devuelve las butacas de una compra que no se completó.
+    public void increaseAvailableSeats(String id, int cantidad) {
+        validarCantidad(cantidad);
+        Query query = Query.query(Criteria.where("idShowtime").is(id).and("availableSeats").ne(null));
+        if (mongoTemplate.updateFirst(query, new Update().inc("availableSeats", cantidad), Showtime.class)
+                .getMatchedCount() == 0) {
+            buscarFuncion(id);
+        }
+    }
+
+    private boolean restarSiAlcanza(String id, int cantidad) {
+        Query query = Query.query(Criteria.where("idShowtime").is(id).and("availableSeats").gte(cantidad));
+        return mongoTemplate.updateFirst(query, new Update().inc("availableSeats", -cantidad), Showtime.class)
+                .getMatchedCount() == 1;
+    }
+
+    // Funciones creadas antes de que se guardara el contador: parten de la capacidad de la sala.
+    private boolean iniciarContador(Showtime showtime) {
+        if (showtime.getIdRoom() == null) {
+            return false;
+        }
+        Query query = Query.query(Criteria.where("idShowtime").is(showtime.getIdShowtime()).and("availableSeats").is(null));
+        mongoTemplate.updateFirst(query, Update.update("availableSeats", buscarSala(showtime.getIdRoom()).getCapacity()),
+                Showtime.class);
+        return true;
+    }
+
+    private static void validarCantidad(int cantidad) {
+        if (cantidad < 0) {
+            throw new RuntimeException("La cantidad de butacas no puede ser negativa.");
+        }
     }
 
     private Showtime buscarFuncion(String id) {

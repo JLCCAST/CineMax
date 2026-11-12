@@ -10,4 +10,5 @@ public class SeatDTO {
     private String status;
     private Integer idSeatType;
     private String nameSeatType;
+    private Integer idRoom;
 }
