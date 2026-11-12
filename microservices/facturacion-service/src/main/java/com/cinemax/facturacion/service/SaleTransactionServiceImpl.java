@@ -16,22 +16,26 @@ import com.cinemax.facturacion.model.entity.SaleSnackDetail;
 import com.cinemax.facturacion.model.entity.SaleTicketDetail;
 import com.cinemax.facturacion.model.entity.SaleTransaction;
 import com.cinemax.facturacion.model.entity.TransactionStatus;
-import com.cinemax.facturacion.model.entity.Promotion;
+import com.cinemax.facturacion.promociones.CotizacionService;
+import com.cinemax.facturacion.promociones.CotizacionService.Cotizacion;
+import com.cinemax.facturacion.promociones.CotizacionService.EntradaPedida;
+import com.cinemax.facturacion.promociones.CotizacionService.LineaEntrada;
+import com.cinemax.facturacion.promociones.CotizacionService.LineaSnack;
+import com.cinemax.facturacion.promociones.CotizacionService.SnackPedido;
 import com.cinemax.facturacion.repository.SaleSnackDetailRepository;
 import com.cinemax.facturacion.repository.SaleTicketDetailRepository;
 import com.cinemax.facturacion.repository.SaleTransactionRepository;
 import com.cinemax.facturacion.repository.TransactionStatusRepository;
-import com.cinemax.facturacion.repository.PromotionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -44,7 +48,7 @@ public class SaleTransactionServiceImpl implements SaleTransactionService {
     private final SaleTicketDetailRepository saleTicketDetailRepository;
     private final SaleSnackDetailRepository saleSnackDetailRepository;
     private final TransactionStatusRepository transactionStatusRepository;
-    private final PromotionRepository promotionRepository;
+    private final CotizacionService cotizacionService;
 
     private final CarteleraClient carteleraClient;
     private final ConfiteriaClient confiteriaClient;
@@ -54,143 +58,139 @@ public class SaleTransactionServiceImpl implements SaleTransactionService {
     @Override
     @Transactional
     public SaleTransactionResponseDTO createSaleTransaction(SaleTransactionRequestDTO request) {
-
-        // 1. Resolver usuario autenticado (vía JWT reenviado por FeignConfig)
         UserDTO user = usuariosClient.getProfile();
         if (user == null) {
             throw new IllegalStateException("Usuario no encontrado.");
         }
 
-        // 2. Validar showtime (si la compra incluye entradas)
-        ShowtimeDTO showtime = null;
-        if (request.getIdShowtime() != null) {
-            showtime = carteleraClient.getShowtime(request.getIdShowtime());
-            if (showtime == null) {
-                throw new IllegalStateException("Función no encontrada.");
-            }
-            if (!"Programada".equals(showtime.getStatus())) {
-                throw new IllegalStateException("Esta función ya no está disponible.");
-            }
-        }
+        // Precios, promoción y descuentos los calcula el servidor.
+        Cotizacion cotizacion = cotizacionService.cotizar(
+                request.getIdShowtime(), entradasPedidas(request), snacksPedidos(request),
+                request.getPromotionCode(), user);
 
-        // 3. Validar asientos: existencia + estado (vía sucursales-service) y que no
-        //    estén ya ocupados en esta función (nuestra propia tabla reemplaza "reservar asiento").
-        //    Guardamos el SeatDTO de cada uno para mostrar el código real (fila+columna)
-        //    en vez del ID crudo, igual que hacía el monolito.
         List<Integer> seatIds = request.getAsientosIds() != null ? request.getAsientosIds() : List.of();
-        Map<Integer, SeatDTO> seatsById = new HashMap<>();
-        if (showtime != null) {
-            for (Integer idSeat : seatIds) {
-                SeatDTO seat = sucursalesClient.getSeat(idSeat);
-                if (seat == null) {
-                    throw new IllegalStateException("Asiento ID " + idSeat + " no encontrado.");
-                }
-                if ("MANTENIMIENTO".equals(seat.getStatus())) {
-                    throw new IllegalStateException(
-                            "El asiento " + seat.getRowName() + seat.getColumnNumber() + " está en mantenimiento.");
-                }
-
-                boolean yaOcupado = saleTicketDetailRepository
-                        .existsByIdShowtimeAndIdSeat(request.getIdShowtime(), idSeat);
-                if (yaOcupado) {
-                    throw new IllegalStateException(
-                            "El asiento " + seat.getRowName() + seat.getColumnNumber() + " ya fue reservado.");
-                }
-
-                seatsById.put(idSeat, seat);
-            }
-        }
-
-        // 4. Expandir "tickets" (agrupados por categoría) a un precio por asiento,
-        //    igual que hacía el monolito.
-        List<BigDecimal> preciosPorAsiento = new ArrayList<>();
-        if (request.getTickets() != null) {
-            for (var linea : request.getTickets()) {
-                for (int i = 0; i < linea.getCantidad(); i++) {
-                    preciosPorAsiento.add(linea.getPrecioUnitario());
-                }
-            }
-        }
-        if (preciosPorAsiento.size() != seatIds.size()) {
+        if (seatIds.size() != cotizacion.entradas().size()) {
             throw new IllegalStateException("La cantidad de tickets no coincide con los asientos seleccionados.");
         }
+        validarButacas(request.getIdShowtime(), seatIds);
+        verificarTotalEsperado(request.getTotalAmount(), cotizacion.total());
 
-        // 5. Estado inicial de la transacción
-        TransactionStatus statusCompletado = transactionStatusRepository.findByNameStatus("COMPLETADO")
-                .orElseThrow(() -> new IllegalStateException("Estado COMPLETADO no configurado."));
+        SaleTransaction transaction = registrarVenta(user, request.getPaymentMethod(), cotizacion);
+        registrarEntradas(transaction, request.getIdShowtime(), seatIds, cotizacion.entradas());
+        registrarSnacks(transaction, cotizacion);
+        carteleraClient.decreaseAvailableSeats(request.getIdShowtime(), seatIds.size());
 
-        // 5b. Resolver Promotion (opcional), igual que el monolito
-        Promotion promotion = null;
-        if (request.getIdPromotion() != null) {
-            promotion = promotionRepository.findById(request.getIdPromotion()).orElse(null);
+        return SaleTransactionResponseDTO.builder()
+                .idTransaction(transaction.getIdTransaction())
+                .qrCodeData(transaction.getQrCodeData())
+                .message("Reserva confirmada exitosamente.")
+                .subtotal(cotizacion.subtotal())
+                .discountAmount(cotizacion.descuento())
+                .totalAmount(cotizacion.total())
+                .namePromotion(cotizacion.promocion() != null ? cotizacion.promocion().getNamePromotion() : null)
+                .build();
+    }
+
+    private static List<EntradaPedida> entradasPedidas(SaleTransactionRequestDTO request) {
+        return request.getTickets() == null ? List.of() : request.getTickets().stream()
+                .map(t -> new EntradaPedida(t.getCategoryCode(), t.getCantidad() == null ? 0 : t.getCantidad()))
+                .toList();
+    }
+
+    private static List<SnackPedido> snacksPedidos(SaleTransactionRequestDTO request) {
+        return request.getSnacks() == null ? List.of() : request.getSnacks().stream()
+                .map(s -> new SnackPedido(s.getIdSnack(), s.getCantidad() == null ? 0 : s.getCantidad()))
+                .toList();
+    }
+
+    // Que cada butaca exista, no esté en mantenimiento ni vendida para esta función.
+    private void validarButacas(String idShowtime, List<Integer> seatIds) {
+        if (new HashSet<>(seatIds).size() != seatIds.size()) {
+            throw new IllegalStateException("Hay butacas repetidas en la compra.");
         }
+        for (Integer idSeat : seatIds) {
+            SeatDTO seat = sucursalesClient.getSeat(idSeat);
+            if (seat == null) {
+                throw new IllegalStateException("Asiento ID " + idSeat + " no encontrado.");
+            }
+            String codigo = seat.getRowName() + seat.getColumnNumber();
+            if ("MANTENIMIENTO".equals(seat.getStatus())) {
+                throw new IllegalStateException("El asiento " + codigo + " está en mantenimiento.");
+            }
+            if (saleTicketDetailRepository.existsByIdShowtimeAndIdSeat(idShowtime, idSeat)) {
+                throw new IllegalStateException("El asiento " + codigo + " ya fue reservado.");
+            }
+        }
+    }
 
+    // El cliente envía el total que vio; si cambió (otra promoción, otro precio), se le avisa.
+    private static void verificarTotalEsperado(BigDecimal esperado, BigDecimal calculado) {
+        if (esperado != null && esperado.compareTo(calculado) != 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "El precio cambió: el total ahora es S/ " + calculado + ".");
+        }
+    }
+
+    private SaleTransaction registrarVenta(UserDTO user, String paymentMethod, Cotizacion cotizacion) {
+        TransactionStatus completado = transactionStatusRepository.findByNameStatus("COMPLETADO")
+                .orElseThrow(() -> new IllegalStateException("Estado COMPLETADO no configurado."));
         String qrCodeData = "TXN-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
 
-        // 6. Guardar la transacción. Confiamos en los totales que manda el frontend,
-        //    igual que hacía el monolito (no se recalculan).
-        SaleTransaction transaction = SaleTransaction.builder()
+        return saleTransactionRepository.save(SaleTransaction.builder()
                 .idUser(user.getIdUser())
-                .promotion(promotion)
-                .transactionStatus(statusCompletado)
-                .subtotal(request.getSubtotal())
-                .discountAmount(request.getDiscountAmount() != null ? request.getDiscountAmount() : BigDecimal.ZERO)
-                .totalAmount(request.getTotalAmount())
-                .paymentMethod(request.getPaymentMethod())
+                .promotion(cotizacion.promocion())
+                .transactionStatus(completado)
+                .subtotal(cotizacion.subtotal())
+                .discountAmount(cotizacion.descuento())
+                .totalAmount(cotizacion.total())
+                .paymentMethod(paymentMethod)
                 .paymentDate(LocalDateTime.now())
                 .qrCodeData(qrCodeData)
-                .build();
-        transaction = saleTransactionRepository.save(transaction);
+                .build());
+    }
 
-        // 7. Guardar un SaleTicketDetail por cada asiento
+    private void registrarEntradas(SaleTransaction transaction, String idShowtime,
+                                   List<Integer> seatIds, List<LineaEntrada> entradas) {
         for (int i = 0; i < seatIds.size(); i++) {
+            LineaEntrada entrada = entradas.get(i);
             saleTicketDetailRepository.save(SaleTicketDetail.builder()
                     .saleTransaction(transaction)
-                    .idShowtime(request.getIdShowtime())
+                    .idShowtime(idShowtime)
                     .idSeat(seatIds.get(i))
-                    .ticketPrice(preciosPorAsiento.get(i))
+                    .fareCategory(entrada.categoryCode())
+                    .ticketPrice(entrada.price())
+                    .discountAmount(entrada.discount())
                     .isUsed(false)
                     .build());
         }
+    }
 
-        // 8. Snacks: validar y descontar stock vía confiteria-service.
-        //    idSnackVenueStock (el registro) es distinto de idSnack (el producto) -
-        //    hay que buscarlo primero filtrando por snack + sede. La sede es la de la
-        //    función; sin función (solo confitería), la del usuario.
-        Integer idVenueVenta = showtime != null ? showtime.getIdVenue() : user.getIdVenue();
-        if (request.getSnacks() != null) {
-            for (var linea : request.getSnacks()) {
+    // Descuenta el stock de la sede de la función. idSnackVenueStock (el registro)
+    // es distinto de idSnack (el producto): se busca por snack y sede.
+    private void registrarSnacks(SaleTransaction transaction, Cotizacion cotizacion) {
+        Integer idVenue = cotizacion.contexto().getIdVenue();
+        for (LineaSnack linea : cotizacion.snacks()) {
+            SnackStockDTO stock = confiteriaClient.findBySnack(linea.idSnack()).stream()
+                    .filter(r -> Objects.equals(r.getIdVenue(), idVenue))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException(
+                            "El snack " + linea.idSnack() + " no está disponible en esta sede."));
 
-                List<SnackStockDTO> registros = confiteriaClient.findBySnack(linea.getIdSnack());
-                SnackStockDTO stock = registros.stream()
-                        .filter(r -> Objects.equals(r.getIdVenue(), idVenueVenta))
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalStateException(
-                                "El snack " + linea.getIdSnack() + " no está disponible en esta sede."));
-
-                if (stock.getStock() < linea.getCantidad()) {
-                    throw new IllegalStateException("Stock insuficiente para el snack " + linea.getIdSnack());
-                }
-
-                stock.setStock(stock.getStock() - linea.getCantidad());
-                confiteriaClient.updateStock(stock.getIdSnackVenueStock(), stock);
-
-                saleSnackDetailRepository.save(SaleSnackDetail.builder()
-                        .saleTransaction(transaction)
-                        .idSnack(linea.getIdSnack())
-                        .quantity(linea.getCantidad())
-                        .unitPrice(linea.getUnitPrice())
-                        .isDelivered(false)
-                        .build());
+            if (stock.getStock() < linea.quantity()) {
+                throw new IllegalStateException("Stock insuficiente para el snack " + linea.idSnack());
             }
-        }
+            stock.setStock(stock.getStock() - linea.quantity());
+            confiteriaClient.updateStock(stock.getIdSnackVenueStock(), stock);
 
-        // 9. Reducir availableSeats en cartelera-service (solo si hay showtime), igual que el monolito.
-        if (showtime != null && !seatIds.isEmpty()) {
-            carteleraClient.decreaseAvailableSeats(request.getIdShowtime(), seatIds.size());
+            saleSnackDetailRepository.save(SaleSnackDetail.builder()
+                    .saleTransaction(transaction)
+                    .idSnack(linea.idSnack())
+                    .quantity(linea.quantity())
+                    .unitPrice(linea.unitPrice())
+                    .discountAmount(linea.discount())
+                    .isDelivered(false)
+                    .build());
         }
-
-        return new SaleTransactionResponseDTO(transaction.getIdTransaction(), qrCodeData, "Reserva confirmada exitosamente.");
     }
 
     @Override

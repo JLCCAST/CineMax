@@ -5,6 +5,9 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
 
+// Los precios, el descuento y la promoción los calcula el servidor. De los
+// montos del cliente solo se usa totalAmount, como total esperado: si no
+// coincide con el calculado, la compra responde 409.
 @Data
 public class SaleTransactionRequestDTO {
 
@@ -13,25 +16,21 @@ public class SaleTransactionRequestDTO {
     private List<TicketLineDTO> tickets;
     private List<SnackLineDTO> snacks;
 
-    private BigDecimal subtotal;
-    private BigDecimal discountAmount;
     private BigDecimal totalAmount;
 
     private String paymentMethod;
 
-    private Integer idPromotion;
+    private String promotionCode;
 
     @Data
     public static class TicketLineDTO {
         private String categoryCode;
         private Integer cantidad;
-        private BigDecimal precioUnitario;
     }
 
     @Data
     public static class SnackLineDTO {
         private Integer idSnack;
         private Integer cantidad;
-        private BigDecimal unitPrice;
     }
 }

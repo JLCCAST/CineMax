@@ -84,6 +84,20 @@ def _snack(ctx: Context) -> dict:
     }
 
 
+def _promotion() -> dict:
+    # Inactiva y con cupón propio: si una escritura se colara, no afectaría a ninguna compra.
+    return {
+        "namePromotion": unique("promo"),
+        "promotionType": "PORCENTAJE",
+        "promotionCode": unique("P")[:30],
+        "discountPercentage": 1,
+        "startDate": date.today().isoformat(),
+        "endDate": date.today().isoformat(),
+        "appliesTo": "ENTRADAS",
+        "status": "Inactivo",
+    }
+
+
 def _stock() -> dict:
     return {"snackId": MISSING_SQL_ID, "idVenue": MISSING_SQL_ID, "stock": 0}
 
@@ -141,12 +155,21 @@ ADMIN_WRITES = {
         "DELETE", f"/snacks/{MISSING_SQL_ID}/venue/{MISSING_SQL_ID}", {}),
     "DELETE /snacks/{id}/venue/todas": lambda c: (
         "DELETE", f"/snacks/{MISSING_SQL_ID}/venue/todas", {}),
+    # facturacion-service: promociones (MANAGE_PROMOTIONS)
+    "POST /promotions": lambda c: ("POST", "/promotions", {"json": _promotion()}),
+    "PUT /promotions/{id}": lambda c: (
+        "PUT", f"/promotions/{MISSING_SQL_ID}", {"json": _promotion()}),
+    "PATCH /promotions/{id}/estado": lambda c: (
+        "PATCH", f"/promotions/{MISSING_SQL_ID}/estado", {"params": {"status": "Inactivo"}}),
 }
 
 # Lecturas que solo ve quien administra la confitería.
 ADMIN_READS = {
     "GET /snacks/venue/{venue}/admin": f"/snacks/venue/{MISSING_SQL_ID}/admin",
     "GET /snacks/{id}/sedes-count": f"/snacks/{MISSING_SQL_ID}/sedes-count",
+    "GET /promotions": "/promotions",
+    "GET /promotions/types": "/promotions/types",
+    "GET /promotions/{id}": f"/promotions/{MISSING_SQL_ID}",
 }
 
 # Las de películas ya exigían MANAGE_MOVIES, pero respondían 400 en vez de 403.
@@ -182,8 +205,8 @@ def _delete_if_created(api: httpx.Client, headers: dict, path: str, response: ht
 
 
 def test_cantidad_de_escrituras_cubiertas():
-    assert len(ADMIN_WRITES) == 26
-    assert len(PROTECTED_WRITES) == 29
+    assert len(ADMIN_WRITES) == 29
+    assert len(PROTECTED_WRITES) == 32
 
 
 @pytest.mark.parametrize("name", list(ADMIN_READS))

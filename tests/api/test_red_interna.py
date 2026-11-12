@@ -39,6 +39,9 @@ INTERNAL_ENDPOINTS = {
     "sucursales: salas por lote": ("http://sucursales-service:8083/internal/rooms?ids=1,2", False),
     "usuarios: validar credenciales": (
         "http://usuarios-service:8085/internal/users/validate-credentials", True),
+    "cartelera: contexto de venta": (
+        "http://cartelera-service:8082/internal/showtimes/{showtime}/contexto-venta", False),
+    "confitería: snacks por id": ("http://confiteria-service:8084/internal/snacks?ids=1,2", False),
     "cartelera: descontar butacas": (
         "http://cartelera-service:8082/internal/showtimes/{showtime}/decrease-seats?cantidad=0",
         True),
@@ -73,6 +76,8 @@ def _internal(name: str, showtimes: list[dict]) -> tuple[str, bool]:
         "/internal/rooms?ids=1",
         "/internal/users/validate-credentials",
         "/internal/showtimes/x/decrease-seats",
+        "/internal/showtimes/x/contexto-venta",
+        "/internal/snacks?ids=1",
         "/internal/snack-venue-stock/1",
     ],
 )
