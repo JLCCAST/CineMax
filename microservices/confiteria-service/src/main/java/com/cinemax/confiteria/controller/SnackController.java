@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.cinemax.confiteria.dto.SnackRequestDTO;
 import com.cinemax.confiteria.dto.SnackResponseDTO;
+import com.cinemax.confiteria.service.SnackSedeService;
 import com.cinemax.confiteria.service.SnackService;
 
 import jakarta.validation.Valid;
@@ -20,6 +21,9 @@ public class SnackController {
 
     @Autowired
     private SnackService snackService;
+
+    @Autowired
+    private SnackSedeService snackSedeService;
 
     @GetMapping
     public ResponseEntity<List<SnackResponseDTO>> findAll(
@@ -42,6 +46,81 @@ public class SnackController {
     @GetMapping("/{id}")
     public ResponseEntity<SnackResponseDTO> findById(@PathVariable Integer id) {
         return ResponseEntity.ok(snackService.findById(id));
+    }
+
+    @GetMapping("/category/{idCategory}")
+    public ResponseEntity<List<SnackResponseDTO>> findByCategory(@PathVariable Integer idCategory) {
+        return ResponseEntity.ok(snackService.findByCategory(idCategory));
+    }
+
+    // ---- Snacks por sede ----------------------------------------------------
+
+    @GetMapping("/venue/{idVenue}")
+    public ResponseEntity<List<SnackResponseDTO>> catalogoDeSede(@PathVariable Integer idVenue) {
+        return ResponseEntity.ok(snackSedeService.catalogoDeSede(idVenue));
+    }
+
+    @GetMapping("/venue/{idVenue}/admin")
+    @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
+    public ResponseEntity<List<SnackResponseDTO>> catalogoAdmin(@PathVariable Integer idVenue) {
+        return ResponseEntity.ok(snackSedeService.catalogoAdmin(idVenue));
+    }
+
+    @GetMapping("/{idSnack}/sedes-count")
+    @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
+    public ResponseEntity<Long> contarSedes(@PathVariable Integer idSnack) {
+        return ResponseEntity.ok(snackSedeService.contarSedes(idSnack));
+    }
+
+    @PatchMapping("/{idSnack}/venue/{idVenue}/habilitar")
+    @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
+    public ResponseEntity<Void> habilitar(@PathVariable Integer idSnack, @PathVariable Integer idVenue) {
+        snackSedeService.cambiarEstado(idSnack, idVenue, true);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{idSnack}/venue/{idVenue}/inhabilitar")
+    @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
+    public ResponseEntity<Void> inhabilitar(@PathVariable Integer idSnack, @PathVariable Integer idVenue) {
+        snackSedeService.cambiarEstado(idSnack, idVenue, false);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{idSnack}/venue/{idVenue}/stock")
+    @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
+    public ResponseEntity<Void> actualizarStock(
+            @PathVariable Integer idSnack, @PathVariable Integer idVenue, @RequestParam Integer stock) {
+        snackSedeService.actualizarStock(idSnack, idVenue, stock);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{idSnack}/venue/{idVenue}/agregar")
+    @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
+    public ResponseEntity<Void> agregarASede(
+            @PathVariable Integer idSnack, @PathVariable Integer idVenue, @RequestParam Integer stock) {
+        snackSedeService.agregarASede(idSnack, idVenue, stock);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/{idSnack}/venue/todas/agregar")
+    @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
+    public ResponseEntity<Void> agregarATodas(@PathVariable Integer idSnack, @RequestParam Integer stock) {
+        snackSedeService.agregarATodas(idSnack, stock);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("/{idSnack}/venue/{idVenue}")
+    @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
+    public ResponseEntity<Void> quitarDeSede(@PathVariable Integer idSnack, @PathVariable Integer idVenue) {
+        snackSedeService.quitarDeSede(idSnack, idVenue);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{idSnack}/venue/todas")
+    @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
+    public ResponseEntity<Void> eliminarDeTodo(@PathVariable Integer idSnack) {
+        snackSedeService.eliminarDeTodo(idSnack);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping
