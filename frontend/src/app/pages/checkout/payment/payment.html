@@ -30,8 +30,8 @@
 
       <!-- Cabecera morada -->
       <div class="ticket-header">
-        <p class="ticket-movie">{{ resumenSnapshot?.pelicula?.nombre }}</p>
-        <p class="ticket-meta">{{ resumenSnapshot?.pelicula?.formato }}</p>
+        <p class="ticket-movie">{{ resumenSnapshot?.pelicula?.nombre || 'Pedido de confitería' }}</p>
+        <p class="ticket-meta" *ngIf="resumenSnapshot?.idShowtime">{{ resumenSnapshot?.pelicula?.formato }}</p>
         <p class="ticket-venue">{{ resumenSnapshot?.cine }}</p>
       </div>
 
@@ -40,11 +40,9 @@
 
         <!-- QR -->
         <div class="text-center mb-4">
-          <img [src]="qrImageUrl"
-               alt="Código QR"
-               class="ticket-qr"
-               (error)="qrFallback($event)">
-          <p class="ticket-qr-hint mt-2">Muestre este QR al ingresar</p>
+          <img *ngIf="qrDataUrl" [src]="qrDataUrl" alt="Código QR" class="ticket-qr">
+          <p *ngIf="!qrDataUrl" class="fw-bold">{{ transaccionRespuesta?.qrCodeData }}</p>
+          <p class="ticket-qr-hint mt-2">{{ resumenSnapshot?.idShowtime ? 'Muestre este QR al ingresar' : 'Muestre este QR en la dulcería' }}</p>
         </div>
 
         <!-- Perforación -->
@@ -55,7 +53,7 @@
         </div>
 
         <!-- Info de la función -->
-        <div class="ticket-info-grid mt-3">
+        <div class="ticket-info-grid mt-3" *ngIf="resumenSnapshot?.idShowtime">
           <div class="ticket-info-item">
             <span class="ticket-info-label">FECHA</span>
             <span class="ticket-info-val">{{ resumenSnapshot?.fechaHora?.split(' ')?.[0] }}</span>
@@ -250,17 +248,19 @@
         <div class="p-4 rounded-4 summary-card shadow sticky-top" style="top:80px;">
           <h4 class="fw-bold mb-4 text-white">RESUMEN</h4>
 
+          <ng-container *ngIf="resumen?.idShowtime">
           <h6 class="text-uppercase fw-bold summary-label mb-2">Película</h6>
           <div class="d-flex gap-3 mb-4 align-items-center">
-            <img [src]="resumen?.pelicula?.poster" alt="Póster" width="65" class="rounded-3 shadow">
+            <img [src]="resumen?.pelicula?.poster || 'Imagenes/poster-generico.svg'" alt="Póster" width="65" class="rounded-3 shadow">
             <div>
               <p class="mb-1 fw-bold text-white lh-sm fs-5">{{ resumen?.pelicula?.nombre }}</p>
               <span class="badge py-1 px-2 pastel-badge">{{ resumen?.pelicula?.formato }}</span>
             </div>
           </div>
           <hr class="border-secondary mb-4 opacity-50">
+          </ng-container>
 
-          <h6 class="text-uppercase fw-bold summary-label mb-2">Cine, Día y Función</h6>
+          <h6 class="text-uppercase fw-bold summary-label mb-2">{{ resumen?.idShowtime ? 'Cine, Día y Función' : 'Sede de recojo' }}</h6>
           <div class="d-flex align-items-center gap-3 mb-4">
             <div class="icon-box"><i class="fa-regular fa-calendar text-white fs-5"></i></div>
             <div>
@@ -270,6 +270,7 @@
           </div>
           <hr class="border-secondary mb-4 opacity-50">
 
+          <ng-container *ngIf="resumen?.idShowtime">
           <h6 class="text-uppercase fw-bold summary-label mb-2">Asientos</h6>
           <div class="d-flex align-items-center gap-3 mb-4">
             <div class="icon-box"><i class="fa-solid fa-couch text-white fs-5"></i></div>
@@ -284,6 +285,7 @@
               <span>S/ {{ t.subtotal | number:'1.2-2' }}</span>
             </div>
           </div>
+          </ng-container>
 
           <ng-container *ngIf="resumen?.snacks?.length">
             <hr class="border-secondary mb-4 opacity-50">

@@ -7,7 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "sale_transaction")
@@ -58,4 +60,26 @@ public class SaleTransaction {
 
     @Column(name = "qr_code_data", length = 250)
     private String qrCodeData;
+
+    // Datos de la función y del lugar tal como eran al comprar (ver V6).
+    @Column(name = "id_showtime", length = 24)
+    private String idShowtime;
+
+    @Column(name = "id_venue")
+    private Integer idVenue;
+
+    @Column(name = "movie_title", length = 150)
+    private String movieTitle;
+
+    @Column(name = "show_date")
+    private LocalDate showDate;
+
+    @Column(name = "start_time")
+    private LocalTime startTime;
+
+    @Column(name = "room_name", length = 100)
+    private String roomName;
+
+    @Column(name = "venue_name", length = 150)
+    private String venueName;
 }

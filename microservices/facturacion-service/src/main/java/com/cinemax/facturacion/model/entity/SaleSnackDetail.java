@@ -29,6 +29,9 @@ public class SaleSnackDetail {
     @Column(name = "id_snack", nullable = false)
     private Integer idSnack;
 
+    @Column(name = "snack_name", length = 100)
+    private String snackName;
+
     @Column(nullable = false)
     private Integer quantity;
 

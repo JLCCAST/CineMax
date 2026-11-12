@@ -35,6 +35,10 @@ public class SaleTicketDetail {
     @Column(name = "id_seat", nullable = false)
     private Integer idSeat;
 
+    // Fila y número ("C5"), guardados al comprar.
+    @Column(name = "seat_code", length = 10)
+    private String seatCode;
+
     @Column(name = "ticket_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal ticketPrice;
 

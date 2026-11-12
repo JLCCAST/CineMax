@@ -8,6 +8,8 @@ import java.util.List;
 @Data
 public class CotizacionRequestDTO {
     private String idShowtime;
+    // Solo en un pedido de confitería sin función: la sede donde se recoge.
+    private Integer idVenue;
     private List<Ticket> tickets;
     private List<Snack> snacks;
     private String promotionCode;

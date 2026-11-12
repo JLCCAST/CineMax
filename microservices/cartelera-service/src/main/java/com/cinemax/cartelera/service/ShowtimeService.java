@@ -131,6 +131,7 @@ public class ShowtimeService {
                 .idRoom(showtime.getIdRoom())
                 .idVenue(showtime.getIdVenue())
                 .movieId(showtime.getMovieId())
+                .movieTitle(movie != null ? movie.getTitleMovie() : null)
                 .releaseDate(movie != null ? movie.getReleaseDate() : null)
                 .fares(getFares(id))
                 .build();

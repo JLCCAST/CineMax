@@ -7,6 +7,7 @@ import { BookingService } from '../../../services/booking';
 import { AuthService } from '../../../services/auth.service';
 import { SaleTransactionService, SaleTransactionRequestDTO, SaleTransactionResponseDTO } from '../../../services/sale-transaction.service';
 import { environment } from '../../../environments/environment';
+import { toDataURL } from 'qrcode';
 
 type MetodoPago = 'tarjeta' | 'yape';
 
@@ -126,6 +127,7 @@ ngOnInit(): void {
   private cotizar(cupon: string | null, alTerminar?: (res: any) => void): void {
     this.http.post<any>(`${this.apiUrl}/promotions/preview`, {
       idShowtime:    this.resumen.idShowtime,
+      idVenue:       this.resumen.idVenue,
       tickets:       this.resumen.tickets.map((t: any) => ({ categoryCode: t.categoryCode, cantidad: t.cantidad })),
       snacks:        (this.resumen.snacks ?? []).map((s: any) => ({ idSnack: s.idSnack, cantidad: s.cantidad })),
       promotionCode: cupon
@@ -231,6 +233,7 @@ ngOnInit(): void {
 
     const request: SaleTransactionRequestDTO = {
       idShowtime:     this.resumen.idShowtime,
+      idVenue:        this.resumen.idVenue,
       asientosIds:    this.resumen.asientosIds,
 
       tickets: this.resumen.tickets.map((t: any) => ({
@@ -255,6 +258,7 @@ ngOnInit(): void {
         this.procesando           = false;
         this.pagoExitoso          = true;
         this.bookingService.limpiar();
+        this.generarQr(res.qrCodeData);
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -272,18 +276,21 @@ ngOnInit(): void {
   }
 
   // ── Helpers de la pantalla de éxito ──────────────────────────────────────
-  get qrImageUrl(): string {
-    const data = this.transaccionRespuesta?.qrCodeData ?? '';
-    return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(data)}`;
+  // El QR se dibuja en el navegador: el código de la compra no sale a servicios de terceros.
+  qrDataUrl = '';
+
+  private generarQr(codigo: string): void {
+    toDataURL(codigo, { width: 512, margin: 1 })
+      .then(url => { this.qrDataUrl = url; this.cdr.detectChanges(); })
+      .catch(() => { this.qrDataUrl = ''; this.cdr.detectChanges(); });
   }
 
   descargarTicket(): void {
-    window.open(this.qrImageUrl + '&format=png', '_blank');
-  }
-
-  qrFallback(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    img.style.display = 'none';
+    if (!this.qrDataUrl) return;
+    const enlace = document.createElement('a');
+    enlace.href = this.qrDataUrl;
+    enlace.download = `cinemax-${this.transaccionRespuesta?.qrCodeData ?? 'ticket'}.png`;
+    enlace.click();
   }
 
   volverAlInicio(): void {

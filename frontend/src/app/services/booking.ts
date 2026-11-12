@@ -100,6 +100,13 @@ export class BookingService {
     this.persistir();
   }
 
+  // Pedido solo de confitería: no hay función, solo la sede donde se recoge.
+  guardarSede(idVenue: number, cine: string): void {
+    this.reserva.idVenue = idVenue;
+    this.reserva.cine    = cine;
+    this.persistir();
+  }
+
   // ── Paso 3: Tickets ───────────────────────────────────────────────────────
   guardarTickets(tickets: TicketEntry[]): void {
     this.reserva.tickets      = tickets.filter(t => t.cantidad > 0);

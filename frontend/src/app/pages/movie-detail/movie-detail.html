@@ -15,7 +15,7 @@
 
   <!-- HERO -->
   <div class="hero-banner">
-    <div class="hero-bg" [style.backgroundImage]="'url(' + movie.posterUrl + ')'"></div>
+    <div class="hero-bg" [style.backgroundImage]="'url(' + (movie.posterUrl || 'Imagenes/poster-generico.svg') + ')'"></div>
     <div class="hero-overlay"></div>
     <div class="container hero-content">
       <button class="btn-back" (click)="volver()">
@@ -24,7 +24,7 @@
       <div class="row align-items-end g-4 mt-2">
         <div class="col-auto">
           <div class="poster-wrap">
-            <img [src]="movie.posterUrl" [alt]="movie.titleMovie" class="poster-img">
+            <img [src]="movie.posterUrl || 'Imagenes/poster-generico.svg'" [alt]="movie.titleMovie" class="poster-img">
             <span class="badge-status">{{ movie.status ?? 'Cartelera' }}</span>
           </div>
         </div>
@@ -104,7 +104,7 @@
                     class="hora-btn"
                     [class.hora-activa]="showtimeSeleccionado === h.idShowtime"
                     (click)="seleccionarHorario(h.idShowtime, f.formato)">
-                    {{ h.hora }}
+                    <span class="hora-dia">{{ h.dia }}</span> {{ h.hora }}
                   </button>
                 </div>
               </div>
@@ -117,7 +117,7 @@
       <!-- DERECHA: CTA -->
       <div class="col-lg-4">
         <div class="cta-card">
-          <img [src]="movie.posterUrl" [alt]="movie.titleMovie" class="cta-poster">
+          <img [src]="movie.posterUrl || 'Imagenes/poster-generico.svg'" [alt]="movie.titleMovie" class="cta-poster">
           <div class="cta-body">
             <h5 class="cta-title">{{ movie.titleMovie }}</h5>
             <p class="cta-meta">{{ movie.durationMinutes }} min · {{ movie.classification?.nameClassification }}</p>

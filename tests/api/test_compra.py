@@ -1,5 +1,7 @@
 """Compra de entradas y "mis compras"."""
 
+from datetime import date, timedelta
+
 import httpx
 import pytest
 
@@ -33,20 +35,50 @@ def _free_seat(api: httpx.Client, showtime: dict) -> dict:
     return free[0]
 
 
-def _schedulable(showtimes: list[dict]) -> dict:
-    candidates = [s for s in showtimes if s["status"] == "Programada" and s["idRoom"]]
-    assert candidates, "No hay funciones programadas: ¿se cargó el seed de MongoDB?"
-    return candidates[0]
-
-
 def _stock(api: httpx.Client, headers: dict, snack_id: int, venue_id: int) -> int:
     rows = api.get("/snack-venue-stock", headers=headers, params={"snackId": snack_id}).json()
     return next(r["stock"] for r in rows if r["snackId"] == snack_id and r["idVenue"] == venue_id)
 
 
 @pytest.fixture(scope="module")
-def showtime(showtimes) -> dict:
-    return _schedulable(showtimes)
+def showtime(api, staff_headers, movies) -> dict:
+    """Una función futura propia: las del seed pueden haber empezado ya hoy."""
+    response = api.post("/showtimes", headers=staff_headers, json={
+        "showDate": (date.today() + timedelta(days=10)).isoformat(),
+        "startTime": "21:00:00",
+        "endTime": "23:30:00",
+        "languageFormat": "Subtitulada",
+        "baseTicketPrice": 20,
+        "status": "Programada",
+        "movieId": movies[0]["idMovie"],
+        "idRoom": 1,
+    })
+    assert response.status_code == 201, response.text
+    created = response.json()
+    yield created
+    api.delete(f"/showtimes/{created['idShowtime']}", headers=staff_headers)
+
+
+def test_no_se_vende_una_funcion_que_ya_empezo(api, client_headers, staff_headers, movies):
+    ayer = api.post("/showtimes", headers=staff_headers, json={
+        "showDate": (date.today() - timedelta(days=1)).isoformat(),
+        "startTime": "20:00:00",
+        "endTime": "22:00:00",
+        "languageFormat": "Doblada",
+        "baseTicketPrice": 20,
+        "status": "Programada",
+        "movieId": movies[0]["idMovie"],
+        "idRoom": 1,
+    })
+    assert ayer.status_code == 201, ayer.text
+    funcion = ayer.json()
+    try:
+        seat = _free_seat(api, funcion)
+        response = api.post("/sale-transactions", headers=client_headers, json=_purchase_body(funcion, seat["idSeat"]))
+        assert response.status_code == 400
+        assert "ya empezó" in response.text
+    finally:
+        api.delete(f"/showtimes/{funcion['idShowtime']}", headers=staff_headers)
 
 
 @pytest.fixture(scope="module")
@@ -161,3 +193,87 @@ def test_el_mapa_es_publico(settings, showtime):
 
 def test_el_mapa_de_una_funcion_inexistente_responde_404(api):
     assert api.get(f"/availability/showtimes/{MISSING_MONGO_ID}/seats").status_code == 404
+
+
+# ---- mis compras guarda los datos de la venta ---------------------------------
+
+def test_mis_compras_muestra_pelicula_sala_butaca_y_snacks(api, client_headers, showtime):
+    seat = _free_seat(api, showtime)
+    body = _purchase_body(showtime, seat["idSeat"])
+    body["snacks"] = [{"idSnack": GASEOSA, "cantidad": 2}]
+    compra = api.post("/sale-transactions", headers=client_headers, json=body)
+    assert compra.status_code == 200, compra.text
+
+    historial = api.get("/sale-transactions/my-purchases", headers=client_headers).json()
+    # La más reciente va primero (la fecha de pago se guarda en UTC, como las anteriores).
+    assert historial[0]["idTransaction"] == compra.json()["idTransaction"]
+    item = historial[0]
+    assert item["movieTitle"] == showtime["movieTitle"]
+    assert item["venueName"] == showtime["nameVenue"]
+    assert item["roomName"] == showtime["nameRoom"]
+    assert item["date"] == showtime["showDate"]
+    assert item["time"] == showtime["startTime"][:5]
+    assert item["seats"] == f"{seat['rowLetter']}{seat['columnNumber']}"
+    assert item["snacks"] == ["2x Gaseosa Grande"]
+
+
+def test_el_historial_no_cambia_si_se_borra_la_funcion(api, client_headers, staff_headers, movies):
+    funcion = api.post("/showtimes", headers=staff_headers, json={
+        "showDate": (date.today() + timedelta(days=11)).isoformat(),
+        "startTime": "19:00:00", "endTime": "21:00:00", "languageFormat": "Doblada",
+        "baseTicketPrice": 20, "status": "Programada", "movieId": movies[0]["idMovie"], "idRoom": 1,
+    }).json()
+    compra = api.post("/sale-transactions", headers=client_headers,
+                      json=_purchase_body(funcion, _free_seat(api, funcion)["idSeat"]))
+    assert compra.status_code == 200, compra.text
+    api.delete(f"/showtimes/{funcion['idShowtime']}", headers=staff_headers)
+
+    historial = api.get("/sale-transactions/my-purchases", headers=client_headers).json()
+    item = next(h for h in historial if h["idTransaction"] == compra.json()["idTransaction"])
+    assert item["movieTitle"] == funcion["movieTitle"]
+    assert item["time"] == "19:00"
+
+
+# ---- pedido solo de confitería -------------------------------------------------
+
+def _pedido_confiteria(id_venue: int | None, cantidad: int = 1) -> dict:
+    return {"idShowtime": None, "idVenue": id_venue, "asientosIds": [], "tickets": [],
+            "snacks": [{"idSnack": GASEOSA, "cantidad": cantidad}], "paymentMethod": "YAPE"}
+
+
+def test_pedido_solo_de_confiteria(api, client_headers):
+    sede = 1
+    antes = _stock(api, client_headers, GASEOSA, sede)
+
+    vista = api.post("/promotions/preview", json={"idVenue": sede, "tickets": [],
+                                                  "snacks": [{"idSnack": GASEOSA, "cantidad": 1}]})
+    assert vista.status_code == 200, vista.text
+    assert vista.json()["subtotal"] == pytest.approx(8.5)
+
+    compra = api.post("/sale-transactions", headers=client_headers, json=_pedido_confiteria(sede))
+    assert compra.status_code == 200, compra.text
+    assert compra.json()["totalAmount"] == pytest.approx(8.5)
+    assert _stock(api, client_headers, GASEOSA, sede) == antes - 1
+
+    historial = api.get("/sale-transactions/my-purchases", headers=client_headers).json()
+    item = next(h for h in historial if h["idTransaction"] == compra.json()["idTransaction"])
+    assert item["movieTitle"] is None
+    assert item["venueName"] == "CineMax Villa María del Triunfo"
+    assert item["seats"] == ""
+    assert item["snacks"] == ["1x Gaseosa Grande"]
+
+
+@pytest.mark.parametrize("cuerpo, mensaje", [
+    ({**_pedido_confiteria(None)}, "sede"),
+    ({**_pedido_confiteria(1), "tickets": [{"categoryCode": "ADULTO", "cantidad": 1}]}, "función"),
+    ({**_pedido_confiteria(1), "snacks": []}, "producto"),
+])
+def test_pedidos_de_confiteria_invalidos(api, client_headers, cuerpo, mensaje):
+    response = api.post("/sale-transactions", headers=client_headers, json=cuerpo)
+    assert response.status_code == 400
+    assert mensaje in response.text
+
+
+def test_pedido_de_confiteria_en_una_sede_inexistente(api, client_headers):
+    response = api.post("/sale-transactions", headers=client_headers, json=_pedido_confiteria(9999))
+    assert response.status_code in (404, 409)
