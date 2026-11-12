@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Data
 @Builder
@@ -81,4 +82,34 @@ public class Promotion {
 
     @Column(name = "image_url_promotion", length = 250)
     private String imageUrlPromotion;
+
+    // ---- Condiciones y alcance de las promociones automáticas ----
+
+    @Builder.Default
+    @Column(name = "applies_to", nullable = false, length = 20)
+    @Pattern(regexp = "ENTRADAS|CONFITERIA|TODO", message = "El alcance debe ser ENTRADAS, CONFITERIA o TODO")
+    private String appliesTo = "TODO";
+
+    @Column(name = "start_time_from")
+    private LocalTime startTimeFrom;
+
+    // La función debe empezar antes de esta hora.
+    @Column(name = "start_time_to")
+    private LocalTime startTimeTo;
+
+    // Categoría de confitería (otra base, sin clave foránea).
+    @Column(name = "required_snack_category_id")
+    private Integer requiredSnackCategoryId;
+
+    @Column(name = "customer_condition", length = 20)
+    @Pattern(regexp = "CUMPLEANOS", message = "La única condición del cliente es CUMPLEANOS")
+    private String customerCondition;
+
+    // Usos por cliente dentro del año calendario.
+    @Column(name = "max_uses_per_user")
+    private Integer maxUsesPerUser;
+
+    @Builder.Default
+    @Column(name = "priority", nullable = false)
+    private Integer priority = 0;
 }
