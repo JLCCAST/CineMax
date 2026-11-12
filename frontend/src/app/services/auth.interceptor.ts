@@ -1,7 +1,14 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { SESION_VENCIDA, tokenVencido } from './auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = localStorage.getItem('cinemax_token');
+  let token = localStorage.getItem('cinemax_token');
+  // Si venció con la página abierta, se descarta y los layouts piden iniciar sesión otra vez.
+  if (token && tokenVencido(token)) {
+    localStorage.removeItem('cinemax_token');
+    token = null;
+    window.dispatchEvent(new CustomEvent(SESION_VENCIDA));
+  }
   const hasToken = token && token.trim() !== '' && token !== 'null' && token !== 'undefined';
 
   const esRutaPublica = 

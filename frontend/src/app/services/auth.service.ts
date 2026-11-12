@@ -4,6 +4,18 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../environments/environment';
 
+// Evento que avisa a los layouts que la sesión venció con la página abierta.
+export const SESION_VENCIDA = 'cinemax-sesion-vencida';
+
+export function tokenVencido(token: string): boolean {
+  try {
+    const { exp } = jwtDecode<{ exp?: number }>(token);
+    return exp !== undefined && exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -22,8 +34,15 @@ export class AuthService {
     );
   }
 
-  getToken() {
-    return localStorage.getItem('cinemax_token');
+  // El token dura una hora. Vencido, la API lo trata como anónimo (403), así
+  // que se descarta y la app vuelve a pedir el inicio de sesión.
+  getToken(): string | null {
+    const token = localStorage.getItem('cinemax_token');
+    if (token && tokenVencido(token)) {
+      localStorage.removeItem('cinemax_token');
+      return null;
+    }
+    return token;
   }
 
   isLoggedIn(): boolean {
