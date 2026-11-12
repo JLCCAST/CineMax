@@ -3,9 +3,12 @@ package com.cinemax.confiteria.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.cinemax.confiteria.dto.MovimientoStockDTO;
 import com.cinemax.confiteria.dto.SnackVenueStockRequestDTO;
 import com.cinemax.confiteria.dto.SnackVenueStockResponseDTO;
 import com.cinemax.confiteria.dto.StockDescontarRequestDTO;
@@ -109,6 +112,29 @@ public class SnackVenueStockService {
 
         stock.setStock(stock.getStock() - dto.getQuantity());
         return toResponseDTO(snackVenueStockRepository.save(stock));
+    }
+
+    // Todo o nada: si un snack no alcanza, se deshacen los que ya se habían restado.
+    @Transactional
+    public void descontarLote(MovimientoStockDTO movimiento) {
+        for (MovimientoStockDTO.Item item : movimiento.getItems()) {
+            if (snackVenueStockRepository.descontar(movimiento.getIdVenue(), item.getIdSnack(), item.getCantidad()) == 0) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "No hay stock suficiente de " + nombreSnack(item.getIdSnack()) + " en esta sede.");
+            }
+        }
+    }
+
+    // Compensación: devuelve el stock de una venta que no se completó.
+    @Transactional
+    public void reponerLote(MovimientoStockDTO movimiento) {
+        for (MovimientoStockDTO.Item item : movimiento.getItems()) {
+            snackVenueStockRepository.reponer(movimiento.getIdVenue(), item.getIdSnack(), item.getCantidad());
+        }
+    }
+
+    private String nombreSnack(Integer idSnack) {
+        return snackRepository.findById(idSnack).map(Snack::getNameSnack).orElse("el snack " + idSnack);
     }
 
     public void delete(Integer id) {

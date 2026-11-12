@@ -38,4 +38,11 @@ public class InternalShowtimeController {
         showtimeService.decreaseAvailableSeats(id, cantidad);
         return ResponseEntity.noContent().build();
     }
+
+    // Llamado por facturacion-service para devolver las butacas si la venta no se completó.
+    @PostMapping("/{id}/increase-seats")
+    public ResponseEntity<Void> increaseAvailableSeats(@PathVariable String id, @RequestParam int cantidad) {
+        showtimeService.increaseAvailableSeats(id, cantidad);
+        return ResponseEntity.noContent().build();
+    }
 }

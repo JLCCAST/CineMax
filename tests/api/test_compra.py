@@ -89,7 +89,7 @@ def test_no_se_puede_comprar_una_butaca_vendida(api, client_headers, showtime, p
         "/sale-transactions", headers=client_headers,
         json=_purchase_body(showtime, purchase["seat"]["idSeat"]),
     )
-    assert again.status_code == 400
+    assert again.status_code == 409
     assert "ya fue reservado" in again.text
 
 

@@ -24,4 +24,8 @@ public interface CarteleraClient {
     // Ruta interna: no pasa por el gateway y exige el token de servicio.
     @PostMapping("/internal/showtimes/{id}/decrease-seats")
     void decreaseAvailableSeats(@PathVariable("id") String id, @RequestParam("cantidad") int cantidad);
+
+    // Compensación: devuelve las butacas si la venta no se completó.
+    @PostMapping("/internal/showtimes/{id}/increase-seats")
+    void increaseAvailableSeats(@PathVariable("id") String id, @RequestParam("cantidad") int cantidad);
 }

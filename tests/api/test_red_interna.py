@@ -35,6 +35,7 @@ INTERNAL_SEAT = "http://sucursales-service:8083/internal/seats/1"
 # nombre -> (url, usa POST)
 INTERNAL_ENDPOINTS = {
     "sucursales: butaca": (INTERNAL_SEAT, False),
+    "sucursales: butacas por lote": ("http://sucursales-service:8083/internal/seats?ids=1,2", False),
     "sucursales: sala": ("http://sucursales-service:8083/internal/rooms/1", False),
     "sucursales: salas por lote": ("http://sucursales-service:8083/internal/rooms?ids=1,2", False),
     "usuarios: validar credenciales": (
@@ -45,8 +46,13 @@ INTERNAL_ENDPOINTS = {
     "cartelera: descontar butacas": (
         "http://cartelera-service:8082/internal/showtimes/{showtime}/decrease-seats?cantidad=0",
         True),
-    "confitería: actualizar stock": (
-        "http://confiteria-service:8084/internal/snack-venue-stock/1", False),
+    "cartelera: devolver butacas": (
+        "http://cartelera-service:8082/internal/showtimes/{showtime}/increase-seats?cantidad=0",
+        True),
+    "confitería: descontar stock": (
+        "http://confiteria-service:8084/internal/snack-venue-stock/descontar", True),
+    "confitería: reponer stock": (
+        "http://confiteria-service:8084/internal/snack-venue-stock/reponer", True),
 }
 
 
@@ -72,13 +78,16 @@ def _internal(name: str, showtimes: list[dict]) -> tuple[str, bool]:
     "path",
     [
         "/internal/seats/1",
+        "/internal/seats?ids=1",
         "/internal/rooms/1",
         "/internal/rooms?ids=1",
         "/internal/users/validate-credentials",
         "/internal/showtimes/x/decrease-seats",
+        "/internal/showtimes/x/increase-seats",
         "/internal/showtimes/x/contexto-venta",
         "/internal/snacks?ids=1",
-        "/internal/snack-venue-stock/1",
+        "/internal/snack-venue-stock/descontar",
+        "/internal/snack-venue-stock/reponer",
     ],
 )
 def test_el_gateway_no_enruta_internal(settings, path):
@@ -165,11 +174,27 @@ def test_descontar_butacas_funciona_como_operacion_interna(
     assert api.get(f"/showtimes/{showtime_id}").json()["availableSeats"] == seats_before
 
 
-def test_actualizar_stock_existe_como_operacion_interna(internal_network, showtimes, tokens):
-    """Es un PUT y el wget del contenedor solo sabe GET y POST.
+def test_devolver_butacas_funciona_como_operacion_interna(
+    api, internal_network, showtimes, tokens
+):
+    showtime_id = showtimes[0]["idShowtime"]
+    seats_before = api.get(f"/showtimes/{showtime_id}").json()["availableSeats"]
 
-    Con el token, un GET llega al controlador y responde 405 (método no
-    permitido); sin el token no pasaría del filtro (403).
-    """
-    url, _ = _internal("confitería: actualizar stock", showtimes)
-    assert internal_network.request(url, tokens["internal"]).status == 405
+    url, post = _internal("cartelera: devolver butacas", showtimes)
+    assert internal_network.request(url, tokens["internal"], post=post).status == 204
+    assert api.get(f"/showtimes/{showtime_id}").json()["availableSeats"] == seats_before
+
+
+@pytest.mark.parametrize("name", ["confitería: descontar stock", "confitería: reponer stock"])
+def test_el_stock_se_mueve_solo_como_operacion_interna(internal_network, showtimes, tokens, name):
+    """El wget del contenedor no manda JSON: con el token, la petición pasa el
+    filtro y el controlador la rechaza por el formato (400 o 415), no por
+    permisos (403)."""
+    url, post = _internal(name, showtimes)
+    assert internal_network.request(url, tokens["internal"], post=post).status in (400, 415)
+
+
+def test_ya_no_se_puede_fijar_el_stock_desde_la_red_interna(internal_network, tokens):
+    """Facturación ya no pisa el stock con un valor absoluto: esa ruta desapareció."""
+    url = "http://confiteria-service:8084/internal/snack-venue-stock/1"
+    assert internal_network.request(url, tokens["internal"]).status in (404, 405)
