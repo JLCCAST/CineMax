@@ -53,6 +53,14 @@
       </a>
     </li>
 
+    <!-- Promociones: GERENTE_GENERAL y GERENTE_DE_MARKETING -->
+    <li class="nav-item mb-2" *ngIf="tiene('MANAGE_PROMOTIONS')">
+      <a class="nav-link text-white d-flex align-items-center rounded hover-effect p-3"
+         routerLink="/admin/promociones" routerLinkActive="bg-primary fw-bold shadow-sm">
+        <i class="fa-solid fa-tags fs-5 me-3 text-info"></i> Promociones
+      </a>
+    </li>
+
     <!-- Usuarios: solo ADMIN -->
     <li class="nav-item mb-2" *ngIf="tiene('MANAGE_USERS')">
       <a class="nav-link text-white d-flex align-items-center rounded hover-effect p-3"

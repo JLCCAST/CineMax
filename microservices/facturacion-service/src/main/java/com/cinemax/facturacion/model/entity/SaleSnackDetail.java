@@ -38,4 +38,8 @@ public class SaleSnackDetail {
     @Builder.Default
     @Column(name = "is_delivered")
     private Boolean isDelivered = false;
+
+    @Builder.Default
+    @Column(name = "discount_amount", nullable = false, precision = 10, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
 }

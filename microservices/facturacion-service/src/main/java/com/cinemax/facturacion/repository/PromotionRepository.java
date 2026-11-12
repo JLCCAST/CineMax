@@ -9,4 +9,10 @@ import java.util.List;
 @Repository
 public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
     List<Promotion> findByStatus(String status);
+
+    List<Promotion> findAllByOrderByIdPromotionAsc();
+
+    boolean existsByPromotionCodeIgnoreCase(String promotionCode);
+
+    boolean existsByPromotionCodeIgnoreCaseAndIdPromotionNot(String promotionCode, Integer idPromotion);
 }

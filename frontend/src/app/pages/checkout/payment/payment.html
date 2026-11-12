@@ -18,7 +18,11 @@
     <div class="text-center mb-5">
       <div class="success-icon mb-3"><i class="fa-solid fa-circle-check"></i></div>
       <h2 class="fw-bold text-white mb-1">RESERVA EXITOSA</h2>
-      <p class="text-secondary">Tu pago de <strong class="text-white">S/ {{ resumenSnapshot?.totalPagar | number:'1.2-2' }}</strong> ha sido procesado.</p>
+      <p class="text-secondary">Tu pago de <strong class="text-white">S/ {{ transaccionRespuesta?.totalAmount | number:'1.2-2' }}</strong> ha sido procesado.</p>
+      <p *ngIf="transaccionRespuesta?.namePromotion" class="small" style="color:#00e676;">
+        <i class="fa-solid fa-tag me-1"></i>{{ transaccionRespuesta?.namePromotion }}: ahorraste
+        S/ {{ transaccionRespuesta?.discountAmount | number:'1.2-2' }}
+      </p>
     </div>
 
     <!-- ── TARJETA DE TICKET ──────────────────────────────────────────────── -->
@@ -293,8 +297,16 @@
           </ng-container>
           <hr class="border-secondary mb-4 opacity-50">
 
+          <div *ngIf="promoAplicada" class="promo-badge mb-3 d-flex justify-content-between align-items-center">
+            <div>
+              <i class="fa-solid fa-tag me-2" style="color:#00e676;"></i>
+              <span class="text-white fw-bold small">{{ promoAplicada.namePromotion }}</span>
+            </div>
+            <button *ngIf="cuponAplicado" class="btn-remove-promo" (click)="quitarPromo()"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
           <h6 class="text-uppercase fw-bold summary-label mb-2">Código de descuento</h6>
-          <div *ngIf="!promoAplicada" class="d-flex gap-2 mb-3">
+          <div *ngIf="!cuponAplicado" class="d-flex gap-2 mb-3">
             <input type="text" class="field-input flex-grow-1" placeholder="CÓDIGO PROMO"
                    [(ngModel)]="codigoPromo" style="text-transform:uppercase;font-size:0.85rem;"
                    (keyup.enter)="aplicarPromo()">
@@ -305,13 +317,6 @@
           </div>
           <div *ngIf="promoError" class="text-danger small mb-2">
             <i class="fa-solid fa-triangle-exclamation me-1"></i>{{ promoError }}
-          </div>
-          <div *ngIf="promoAplicada" class="promo-badge mb-3 d-flex justify-content-between align-items-center">
-            <div>
-              <i class="fa-solid fa-tag me-2" style="color:#00e676;"></i>
-              <span class="text-white fw-bold small">{{ promoAplicada.namePromotion }}</span>
-            </div>
-            <button class="btn-remove-promo" (click)="quitarPromo()"><i class="fa-solid fa-xmark"></i></button>
           </div>
 
           <div class="total-box p-3 rounded-3">

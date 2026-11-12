@@ -11,18 +11,13 @@ GASEOSA = 1
 
 
 def _purchase_body(showtime: dict, seat_id: int) -> dict:
-    """Mismo contrato que envía el frontend (sale-transaction.service.ts)."""
-    price = showtime["baseTicketPrice"]
+    """Mismo contrato que envía el frontend. Los precios los pone el servidor."""
     return {
         "idShowtime": showtime["idShowtime"],
         "asientosIds": [seat_id],
-        "tickets": [{"categoryCode": "ADULTO", "cantidad": 1, "precioUnitario": price}],
+        "tickets": [{"categoryCode": "ADULTO", "cantidad": 1}],
         "snacks": [],
-        "subtotal": price,
-        "discountAmount": 0,
-        "totalAmount": price,
         "paymentMethod": "TARJETA",
-        "idPromotion": None,
     }
 
 
@@ -101,13 +96,32 @@ def test_no_se_puede_comprar_una_butaca_vendida(api, client_headers, showtime, p
 def test_compra_con_snack_descuenta_el_stock_de_la_sede_de_la_funcion(api, client_headers, showtime):
     before = _stock(api, client_headers, GASEOSA, showtime["idVenue"])
     body = _purchase_body(showtime, _free_seat(api, showtime)["idSeat"])
-    body["snacks"] = [{"idSnack": GASEOSA, "cantidad": 1, "unitPrice": 8.5}]
-    body["subtotal"] = body["totalAmount"] = showtime["baseTicketPrice"] + 8.5
+    body["snacks"] = [{"idSnack": GASEOSA, "cantidad": 1}]
 
     response = api.post("/sale-transactions", headers=client_headers, json=body)
 
     assert response.status_code == 200, response.text
     assert _stock(api, client_headers, GASEOSA, showtime["idVenue"]) == before - 1
+    # Precio del servidor: la entrada adulta más la gaseosa (S/ 8.50 en el seed).
+    assert response.json()["subtotal"] == pytest.approx(showtime["baseTicketPrice"] + 8.5)
+
+
+def test_la_compra_ignora_los_precios_que_manda_el_cliente(api, client_headers, showtime):
+    body = _purchase_body(showtime, _free_seat(api, showtime)["idSeat"])
+    body["tickets"][0]["precioUnitario"] = 0.01
+    body["subtotal"] = body["discountAmount"] = 0
+
+    response = api.post("/sale-transactions", headers=client_headers, json=body)
+
+    assert response.status_code == 200, response.text
+    assert response.json()["subtotal"] == pytest.approx(showtime["baseTicketPrice"])
+
+
+def test_un_tipo_de_entrada_inexistente_se_rechaza(api, client_headers, showtime):
+    body = _purchase_body(showtime, _free_seat(api, showtime)["idSeat"])
+    body["tickets"][0]["categoryCode"] = "VIP_GRATIS"
+    response = api.post("/sale-transactions", headers=client_headers, json=body)
+    assert response.status_code == 400
 
 
 def test_compra_exige_iniciar_sesion(api, showtimes):

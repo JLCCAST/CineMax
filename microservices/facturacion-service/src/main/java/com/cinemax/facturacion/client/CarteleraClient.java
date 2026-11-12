@@ -1,5 +1,6 @@
 package com.cinemax.facturacion.client;
 
+import com.cinemax.facturacion.dto.external.SaleContextDTO;
 import com.cinemax.facturacion.dto.external.ShowtimeDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +10,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "cartelera-service")
 public interface CarteleraClient {
+
+    // Fecha, hora, estreno y tarifas de una función, para cotizar una compra.
+    @GetMapping("/internal/showtimes/{id}/contexto-venta")
+    SaleContextDTO getSaleContext(@PathVariable("id") String id);
 
     // Ruta real confirmada en ShowtimeController: /api/showtimes/{id} (sin /v1, el gateway reescribe internamente)
     // idShowtime es String porque cartelera-service usa MongoDB (ObjectId), no un id numerico autoincremental.

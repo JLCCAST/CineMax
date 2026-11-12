@@ -1,0 +1,176 @@
+<div class="container mt-5 text-white">
+
+  <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+    <h2 class="fw-bold text-uppercase" style="color: var(--primary-color);">Gestión de Promociones</h2>
+    <button class="btn btn-success fw-bold" (click)="nueva()" [disabled]="formularioAbierto()">
+      <i class="fa-solid fa-plus me-2"></i>Nueva Promoción
+    </button>
+  </div>
+
+  <p class="text-secondary small mb-4">
+    Las promociones se aplican solas cuando la compra cumple sus condiciones. Si varias aplican,
+    gana la que da más descuento al cliente.
+  </p>
+
+  <div *ngIf="mensaje()" class="alert alert-success py-2">{{ mensaje() }}</div>
+  <div *ngIf="error()" class="alert alert-danger py-2">{{ error() }}</div>
+
+  <!-- Formulario -->
+  <div *ngIf="formularioAbierto()" class="bg-dark border border-secondary rounded p-4 mb-4">
+    <h5 class="fw-bold mb-3">{{ form.idPromotion ? 'Editar promoción' : 'Nueva promoción' }}</h5>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label small fw-bold">Nombre</label>
+        <input class="form-control bg-dark text-white border-secondary" [(ngModel)]="form.namePromotion">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Beneficio</label>
+        <select class="form-select bg-dark text-white border-secondary" [(ngModel)]="form.promotionType">
+          <option *ngFor="let t of tipos()" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Aplica a</label>
+        <select class="form-select bg-dark text-white border-secondary" [(ngModel)]="form.appliesTo">
+          <option value="ENTRADAS">Entradas</option>
+          <option value="CONFITERIA">Confitería</option>
+          <option value="TODO">Todo</option>
+        </select>
+      </div>
+
+      <div class="col-md-3" *ngIf="form.promotionType === 'PORCENTAJE'">
+        <label class="form-label small fw-bold">Porcentaje (%)</label>
+        <input type="number" class="form-control bg-dark text-white border-secondary" [(ngModel)]="form.discountPercentage">
+      </div>
+      <div class="col-md-3" *ngIf="form.promotionType === 'MONTO_FIJO'">
+        <label class="form-label small fw-bold">Monto fijo (S/)</label>
+        <input type="number" class="form-control bg-dark text-white border-secondary" [(ngModel)]="form.discountFixedAmount">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Tope de descuento (S/)</label>
+        <input type="number" class="form-control bg-dark text-white border-secondary" [(ngModel)]="form.maxDiscountAmount">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Cupón (opcional)</label>
+        <input class="form-control bg-dark text-white border-secondary text-uppercase" [(ngModel)]="form.promotionCode">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Prioridad en empates</label>
+        <input type="number" class="form-control bg-dark text-white border-secondary" [(ngModel)]="form.priority">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Desde</label>
+        <input type="date" class="form-control bg-dark text-white border-secondary" [(ngModel)]="form.startDate">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Hasta</label>
+        <input type="date" class="form-control bg-dark text-white border-secondary" [(ngModel)]="form.endDate">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Funciones desde (hora)</label>
+        <input type="time" class="form-control bg-dark text-white border-secondary" [(ngModel)]="form.startTimeFrom">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Funciones antes de (hora)</label>
+        <input type="time" class="form-control bg-dark text-white border-secondary" [(ngModel)]="form.startTimeTo">
+      </div>
+
+      <div class="col-12">
+        <label class="form-label small fw-bold d-block">Días de la función (vacío = todos)</label>
+        <div class="d-flex flex-wrap gap-2">
+          <button type="button" *ngFor="let d of dias" class="btn btn-sm"
+                  [class.btn-primary]="diaMarcado(d.n)" [class.btn-outline-secondary]="!diaMarcado(d.n)"
+                  (click)="alternarDia(d.n)">{{ d.nombre }}</button>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Entradas mínimas</label>
+        <input type="number" class="form-control bg-dark text-white border-secondary" [(ngModel)]="form.minimumTicketQuantity">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Compra mínima (S/)</label>
+        <input type="number" class="form-control bg-dark text-white border-secondary" [(ngModel)]="form.minimumPurchaseAmount">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Exige snack de</label>
+        <select class="form-select bg-dark text-white border-secondary" [(ngModel)]="form.requiredSnackCategoryId">
+          <option [ngValue]="null">— Ninguna categoría —</option>
+          <option *ngFor="let c of categorias()" [ngValue]="c.idSnackCategory">{{ c.nameCategory }}</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Usos por cliente al año</label>
+        <input type="number" class="form-control bg-dark text-white border-secondary" [(ngModel)]="form.maxUsesPerUser"
+               placeholder="Sin límite">
+      </div>
+
+      <div class="col-md-4 form-check ms-2">
+        <input class="form-check-input" type="checkbox" id="sinEstrenos" [(ngModel)]="form.excludePremiereMovies">
+        <label class="form-check-label small" for="sinEstrenos">No aplica a estrenos (primeros 7 días)</label>
+      </div>
+      <div class="col-md-4 form-check ms-2">
+        <input class="form-check-input" type="checkbox" id="cumple" [ngModel]="esCumpleanos()"
+               (ngModelChange)="alternarCumpleanos($event)">
+        <label class="form-check-label small" for="cumple">Solo el día del cumpleaños del cliente</label>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
+      <button class="btn btn-outline-light" (click)="cancelar()">Cancelar</button>
+      <button class="btn btn-success fw-bold" (click)="guardar()" [disabled]="guardando()">
+        <span *ngIf="guardando()" class="spinner-border spinner-border-sm me-2"></span>Guardar
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="cargando()" class="text-center my-5">
+    <div class="spinner-border text-info" role="status"></div>
+  </div>
+
+  <!-- Lista -->
+  <div *ngIf="!cargando()" class="table-responsive">
+    <table class="table table-dark table-hover align-middle">
+      <thead>
+        <tr class="small text-uppercase text-secondary">
+          <th>Promoción</th>
+          <th>Beneficio</th>
+          <th>Condiciones</th>
+          <th>Vigencia</th>
+          <th>Estado</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of promociones()">
+          <td class="fw-semibold">{{ p.namePromotion }}<div class="small text-secondary">{{ p.appliesTo }}</div></td>
+          <td>{{ beneficio(p) }}</td>
+          <td>
+            <span *ngFor="let c of condiciones(p)" class="badge bg-secondary me-1 mb-1">{{ c }}</span>
+          </td>
+          <td class="small">{{ p.startDate }} a {{ p.endDate }}</td>
+          <td>
+            <span class="badge" [class.bg-success]="p.status === 'Activo'" [class.bg-secondary]="p.status !== 'Activo'">
+              {{ p.status }}
+            </span>
+          </td>
+          <td class="text-end text-nowrap">
+            <button class="btn btn-sm btn-outline-warning me-2" title="Editar" (click)="editar(p)">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button class="btn btn-sm" [class.btn-outline-danger]="p.status === 'Activo'"
+                    [class.btn-outline-success]="p.status !== 'Activo'" (click)="alternarEstado(p)"
+                    [title]="p.status === 'Activo' ? 'Desactivar' : 'Activar'">
+              <i class="fa-solid" [class.fa-ban]="p.status === 'Activo'" [class.fa-check]="p.status !== 'Activo'"></i>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!promociones().length">
+          <td colspan="6" class="text-center text-secondary py-4">No hay promociones.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -41,4 +41,12 @@ public class SaleTicketDetail {
     @Builder.Default
     @Column(name = "is_used")
     private Boolean isUsed = false;
+
+    // ADULTO, NINO, ADULTO_MAYOR o DISCAPACITADO.
+    @Column(name = "fare_category", length = 20)
+    private String fareCategory;
+
+    @Builder.Default
+    @Column(name = "discount_amount", nullable = false, precision = 10, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
 }

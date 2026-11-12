@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.cinemax.cartelera.client.SucursalesClient;
+import com.cinemax.cartelera.dto.SaleContextDTO;
 import com.cinemax.cartelera.dto.ShowtimeRequestDTO;
 import com.cinemax.cartelera.dto.ShowtimeResponseDTO;
 import com.cinemax.cartelera.dto.ShowtimeSummaryDTO;
@@ -108,6 +109,22 @@ public class ShowtimeService {
                 new TicketFareDTO("NINO", "Niño", conDescuento(base, DESCUENTO_NINO)),
                 new TicketFareDTO("ADULTO_MAYOR", "Adulto Mayor", conDescuento(base, DESCUENTO_REDUCIDA)),
                 new TicketFareDTO("DISCAPACITADO", "Personas Discapacitadas", conDescuento(base, DESCUENTO_REDUCIDA)));
+    }
+
+    public SaleContextDTO getSaleContext(String id) {
+        Showtime showtime = buscarFuncion(id);
+        Movie movie = movieRepository.findById(showtime.getMovieId()).orElse(null);
+        return SaleContextDTO.builder()
+                .idShowtime(showtime.getIdShowtime())
+                .status(showtime.getStatus())
+                .showDate(showtime.getShowDate())
+                .startTime(showtime.getStartTime())
+                .idRoom(showtime.getIdRoom())
+                .idVenue(showtime.getIdVenue())
+                .movieId(showtime.getMovieId())
+                .releaseDate(movie != null ? movie.getReleaseDate() : null)
+                .fares(getFares(id))
+                .build();
     }
 
     public ShowtimeResponseDTO create(ShowtimeRequestDTO dto) {

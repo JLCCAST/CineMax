@@ -2,6 +2,8 @@ package com.cinemax.facturacion.dto.external;
 
 import lombok.Data;
 
+import java.time.LocalDate;
+
 /**
  * Copia local de lo que necesitamos del usuario autenticado.
  * Se llena con la respuesta de GET /api/v1/users/profile (usuarios-service),
@@ -13,4 +15,5 @@ public class UserDTO {
     private String email;
     private String firstName;
     private Integer idVenue;
+    private LocalDate datebirth;
 }

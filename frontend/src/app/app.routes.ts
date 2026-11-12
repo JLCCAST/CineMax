@@ -20,6 +20,7 @@ import { Rooms } from './pages/admin/rooms/rooms';
 import { AdminMovies } from './pages/admin/movies/movies';
 import { AdminShowtimes } from './pages/admin/showtimes/showtimes';
 import { Confiteria } from './pages/admin/confiteria/confiteria';
+import { AdminPromotions } from './pages/admin/promotions/promotions';
 import { Confiteria as ConfiteriaPublica } from './pages/confiteria/confiteria';
 
 export const routes: Routes = [
@@ -92,6 +93,14 @@ export const routes: Routes = [
         component: Confiteria,
         canActivate: [authGuard],
         data: { expectedPermissions: ['MANAGE_CONFITERIA'] }
+      },
+
+      // Promociones: GERENTE_GENERAL y GERENTE_DE_MARKETING
+      {
+        path: 'promociones',
+        component: AdminPromotions,
+        canActivate: [authGuard],
+        data: { expectedPermissions: ['MANAGE_PROMOTIONS'] }
       },
 
       // Usuarios: solo ADMIN
