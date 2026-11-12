@@ -83,6 +83,6 @@ spring:
         - id: facturacion-service
           uri: lb://facturacion-service
           predicates:
-            - Path=/api/v1/sale-transactions/**,/api/v1/promotions/**
+            - Path=/api/v1/sale-transactions/**,/api/v1/promotions/**,/api/v1/availability/**
           filters:
             - RewritePath=/api/v1/(?<segment>.*), /api/${segment}

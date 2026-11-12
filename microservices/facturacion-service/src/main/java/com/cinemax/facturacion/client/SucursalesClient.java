@@ -6,6 +6,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.List;
+
 @FeignClient(name = "sucursales-service")
 public interface SucursalesClient {
 
@@ -14,4 +16,7 @@ public interface SucursalesClient {
 
     @GetMapping("/internal/rooms/{idRoom}")
     RoomVenueDTO getRoomWithVenue(@PathVariable("idRoom") Integer idRoom);
+
+    @GetMapping("/internal/rooms/{idRoom}/seats")
+    List<SeatDTO> getSeatsByRoom(@PathVariable("idRoom") Integer idRoom);
 }

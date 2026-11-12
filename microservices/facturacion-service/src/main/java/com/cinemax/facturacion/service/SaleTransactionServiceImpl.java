@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -154,16 +155,18 @@ public class SaleTransactionServiceImpl implements SaleTransactionService {
 
         // 8. Snacks: validar y descontar stock vía confiteria-service.
         //    idSnackVenueStock (el registro) es distinto de idSnack (el producto) -
-        //    hay que buscarlo primero filtrando por snack + sucursal del usuario.
+        //    hay que buscarlo primero filtrando por snack + sede. La sede es la de la
+        //    función; sin función (solo confitería), la del usuario.
+        Integer idVenueVenta = showtime != null ? showtime.getIdVenue() : user.getIdVenue();
         if (request.getSnacks() != null) {
             for (var linea : request.getSnacks()) {
 
                 List<SnackStockDTO> registros = confiteriaClient.findBySnack(linea.getIdSnack());
                 SnackStockDTO stock = registros.stream()
-                        .filter(r -> r.getIdVenue().equals(user.getIdVenue()))
+                        .filter(r -> Objects.equals(r.getIdVenue(), idVenueVenta))
                         .findFirst()
                         .orElseThrow(() -> new IllegalStateException(
-                                "El snack " + linea.getIdSnack() + " no está disponible en tu sucursal."));
+                                "El snack " + linea.getIdSnack() + " no está disponible en esta sede."));
 
                 if (stock.getStock() < linea.getCantidad()) {
                     throw new IllegalStateException("Stock insuficiente para el snack " + linea.getIdSnack());
