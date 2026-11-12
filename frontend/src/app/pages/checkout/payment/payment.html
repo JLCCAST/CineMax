@@ -54,16 +54,16 @@
         <div class="ticket-info-grid mt-3">
           <div class="ticket-info-item">
             <span class="ticket-info-label">FECHA</span>
-            <span class="ticket-info-val">{{ resumenSnapshot?.fechaHora | slice:0:8 }}</span>
+            <span class="ticket-info-val">{{ resumenSnapshot?.fechaHora?.split(' ')?.[0] }}</span>
           </div>
           <div class="ticket-info-item text-end">
             <span class="ticket-info-label">HORA</span>
-            <span class="ticket-info-val">{{ resumenSnapshot?.fechaHora | slice:9 }}</span>
+            <span class="ticket-info-val">{{ resumenSnapshot?.fechaHora?.split(' ')?.[1] | slice:0:5 }}</span>
           </div>
           <ng-container *ngIf="resumenSnapshot?.pelicula?.nombre">
   <div class="ticket-info-item">
     <span class="ticket-info-label">SALA</span>
-    <span class="ticket-info-val" style="color:#8a2be2;">{{ transaccionRespuesta?.qrCodeData | slice:4:6 }}</span>
+    <span class="ticket-info-val" style="color:#8a2be2;">{{ resumenSnapshot?.sala }}</span>
   </div>
   <div class="ticket-info-item text-end">
     <span class="ticket-info-label">ASIENTOS</span>

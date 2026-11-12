@@ -41,7 +41,7 @@ export class AdminShowtimes implements OnInit {
   formEnviado = false;
 
   isEditMode = false;
-  currentShowtimeId: number | null = null;
+  currentShowtimeId: string | null = null;
   horaFinEstimada = '';
 
   form!: FormGroup;
@@ -132,7 +132,7 @@ export class AdminShowtimes implements OnInit {
   // ── Hora fin estimada ─────────────────────────────────────────────────────
 
   calcularHoraFin(): void {
-    const movie = this.movies.find(m => m.idMovie === +this.ctrl('idMovie').value);
+    const movie = this.movies.find(m => m.idMovie === this.ctrl('idMovie').value);
     const startTime = this.ctrl('startTime').value;
     if (!movie || !startTime) { this.horaFinEstimada = ''; return; }
 
@@ -228,7 +228,7 @@ export class AdminShowtimes implements OnInit {
     this.mensajeExito = '';
     this.formEnviado = false;
     this.form.setValue({
-      idMovie:         f.idMovie,
+      idMovie:         f.movieId,
       idRoom:          f.idRoom,
       showDate:        f.showDate,
       startTime:       f.startTime,
@@ -248,10 +248,14 @@ export class AdminShowtimes implements OnInit {
     if (this.form.invalid) return;
 
     this.guardando = true;
+    this.calcularHoraFin();
     const payload = {
-      ...this.form.value,
-      idMovie:         +this.ctrl('idMovie').value,
+      movieId:         this.ctrl('idMovie').value,
       idRoom:          +this.ctrl('idRoom').value,
+      showDate:        this.ctrl('showDate').value,
+      startTime:       this.ctrl('startTime').value,
+      endTime:         this.horaFinEstimada,
+      languageFormat:  this.ctrl('languageFormat').value,
       baseTicketPrice: +this.ctrl('baseTicketPrice').value
     };
 
@@ -271,7 +275,7 @@ export class AdminShowtimes implements OnInit {
   }
 
   cancelarFuncion(f: any): void {
-    if (!confirm(`¿Cancelar la función de "${f.titleMovie}" el ${f.showDate} a las ${f.startTime}?`)) return;
+    if (!confirm(`¿Cancelar la función de "${f.movieTitle}" el ${f.showDate} a las ${f.startTime}?`)) return;
     this.showtimeService.cancelShowtime(f.idShowtime).subscribe({
       next: () => { this.mensajeExito = 'Función cancelada.'; this.cargarFunciones(); },
       error: err => this.mostrarError(this.extraerMensaje(err, 'Error al cancelar.'))

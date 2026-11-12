@@ -65,7 +65,7 @@ export class Snacks implements OnInit {
   cargando = true;
   error = '';
 
-  private readonly apiUrl = '${environment.apiUrl}';
+  private readonly apiUrl = environment.apiUrl;
 
   constructor(
     private router: Router,
@@ -99,7 +99,11 @@ export class Snacks implements OnInit {
       }
     });
 
-    this.http.get<any[]>(`${this.apiUrl}/snacks`).subscribe({
+    // Solo lo que vende la sede de la función: la compra descuenta el stock de esa sede.
+    const url = this.resumen.idVenue
+      ? `${this.apiUrl}/snacks/venue/${this.resumen.idVenue}`
+      : `${this.apiUrl}/snacks`;
+    this.http.get<any[]>(url).subscribe({
       next: (res) => {
         this.snacks = res
           .filter(s => s.status === 'Activo')

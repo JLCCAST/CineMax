@@ -18,9 +18,11 @@ export interface SnackEntry {
 }
 
 export interface BookingResumen {
-  idShowtime: number | null;
+  idShowtime: string | null;
   pelicula: { nombre: string; formato: string; poster: string };
   cine: string;
+  sala: string;
+  idVenue: number | null;
   fechaHora: string;
   asientos: string[];
   asientosIds: number[];
@@ -45,7 +47,7 @@ export class BookingService {
     }
   }
 
-  iniciarReserva(idShowtime: number): void {
+  iniciarReserva(idShowtime: string): void {
     this.reserva = { ...this.reservaVacia(), idShowtime };
     this.persistir();
   }
@@ -59,7 +61,7 @@ export class BookingService {
     return this.reserva;
   }
 
-  get idShowtime(): number | null {
+  get idShowtime(): string | null {
     return this.reserva.idShowtime;
   }
 
@@ -88,10 +90,12 @@ export class BookingService {
   // ── Paso 2: Info película ────────────────────────────────────────────────
   guardarInfoShowtime(data: {
     nombre: string; formato: string; poster: string;
-    cine: string; fechaHora: string;
+    cine: string; sala: string; idVenue: number | null; fechaHora: string;
   }): void {
     this.reserva.pelicula  = { nombre: data.nombre, formato: data.formato, poster: data.poster };
     this.reserva.cine      = data.cine;
+    this.reserva.sala      = data.sala;
+    this.reserva.idVenue   = data.idVenue;
     this.reserva.fechaHora = data.fechaHora;
     this.persistir();
   }
@@ -125,7 +129,7 @@ export class BookingService {
     return {
       idShowtime: null,
       pelicula: { nombre: '', formato: '', poster: '' },
-      cine: '', fechaHora: '',
+      cine: '', sala: '', idVenue: null, fechaHora: '',
       asientos: [], asientosIds: [],
       tickets: [], totalTickets: 0,
       snacks: [], totalSnacks: 0,

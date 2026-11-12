@@ -20,7 +20,7 @@ export class MovieDetail implements OnInit {
 
   horarios: any[] = [];
   sedesAgrupadas: any[] = [];
-  showtimeSeleccionado: number | null = null;
+  showtimeSeleccionado: string | null = null;
   formatoSeleccionado: string | null = null;
 
   constructor(
@@ -95,7 +95,7 @@ export class MovieDetail implements OnInit {
     }));
   }
 
-  seleccionarHorario(idShowtime: number, formato: string) {
+  seleccionarHorario(idShowtime: string, formato: string) {
     this.showtimeSeleccionado = idShowtime;
     this.formatoSeleccionado = formato;
   }

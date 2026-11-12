@@ -11,8 +11,9 @@ export class SeatService {
 
   constructor(private http: HttpClient) {}
 
-  getSeatsStatusByShowtime(idShowtime: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}?idShowtime=${idShowtime}`);
+  // El mapa de butacas de una función lo arma facturación (sabe qué butacas se vendieron).
+  getSeatsStatusByShowtime(idShowtime: string): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/availability/showtimes/${idShowtime}/seats`);
   }
 
   getSeatsByRoom(idRoom: number): Observable<any[]> {
