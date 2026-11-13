@@ -1,287 +1,190 @@
-<div class="container my-5 text-white" style="min-height: 70vh;">
-  
-  <div class="mb-4 border-bottom border-secondary pb-3">
-    <h2 class="fw-bold text-uppercase" style="color: var(--primary-color);">Mi Panel de Control</h2>
-    <p class="text-secondary small mb-0">Administra tus datos, revisa tus entradas y gestiona tu seguridad en CineMax.</p>
-    <button *ngIf="esAdmin" class="btn btn-sm btn-outline-secondary mt-3" (click)="volver()">
-      <i class="fa-solid fa-arrow-left me-2"></i>Volver al panel
-    </button>
-  </div>
-
-  <div *ngIf="cargando" class="text-center my-5">
-    <div class="spinner-border text-info" style="width: 3rem; height: 3rem;" role="status">
-      <span class="visually-hidden">Cargando...</span>
+<div class="pagina-clara" [class.sin-cabecera]="esAdmin">
+  <div class="container">
+    <div class="titulo">
+      <h1 class="checkout-titulo">Mi cuenta</h1>
+      @if (esAdmin) {
+        <button type="button" class="btn-cine-secundario" (click)="volver()"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
+      }
     </div>
-    <h5 class="mt-3 text-secondary">Sincronizando información...</h5>
-  </div>
 
-  <div class="row g-4" *ngIf="!cargando">
-    
-    <div class="col-md-4 col-lg-3">
-      <div class="p-2 rounded shadow-lg" style="background-color: #161619; border: 1px solid #333;">
-        <div class="list-group list-group-flush">
-          
-          <button (click)="cambiarPestana('datos')" 
-                  class="list-group-item list-group-item-action border-0 rounded text-white py-3 px-4 mb-1 d-flex align-items-center bg-transparent btn-menu-profile"
-                  [style.backgroundColor]="pestanaActiva === 'datos' ? '#2a2a32' : 'transparent'"
-                  [style.color]="pestanaActiva === 'datos' ? 'var(--primary-color)' : 'white'">
-            <i class="fa-solid fa-user-gear me-3 fs-5" [style.color]="pestanaActiva === 'datos' ? 'var(--primary-color)' : '#999'"></i>
-            <span class="fw-semibold">Mis Datos</span>
-          </button>
+    @if (cargando) {
+      <p class="cargando">Cargando tu cuenta…</p>
+    } @else {
+      <div class="cuenta">
+        <aside class="menu">
+          <div class="usuario">
+            <span class="avatar">
+              @if (imagenPrevia || perfilSoloLectura.imageUrl) {
+                <img [src]="imagenPrevia || perfilSoloLectura.imageUrl" alt="">
+              } @else { {{ inicialNombre }}{{ inicialApellido }} }
+            </span>
+            <div>
+              <strong>{{ datosForm.get('firstName')?.value }} {{ datosForm.get('lastName')?.value }}</strong>
+              <small>{{ perfilSoloLectura.email }}</small>
+            </div>
+          </div>
+          <nav>
+            <button type="button" [class.activo]="pestanaActiva === 'datos'" (click)="cambiarPestana('datos')">
+              <i class="fa-solid fa-user"></i> Mis datos</button>
+            @if (!esAdmin) {
+              <button type="button" [class.activo]="pestanaActiva === 'compras'" (click)="cambiarPestana('compras')">
+                <i class="fa-solid fa-ticket"></i> Mis compras</button>
+            }
+            <button type="button" [class.activo]="pestanaActiva === 'seguridad'" (click)="cambiarPestana('seguridad')">
+              <i class="fa-solid fa-lock"></i> Contraseña</button>
+            <button type="button" class="peligro" [class.activo]="pestanaActiva === 'eliminar'" (click)="cambiarPestana('eliminar')">
+              <i class="fa-solid fa-user-xmark"></i> Eliminar cuenta</button>
+          </nav>
+        </aside>
 
-          <button *ngIf="!esAdmin" (click)="cambiarPestana('compras')" 
-                  class="list-group-item list-group-item-action border-0 rounded text-white py-3 px-4 mb-1 d-flex align-items-center bg-transparent btn-menu-profile"
-                  [style.backgroundColor]="pestanaActiva === 'compras' ? '#2a2a32' : 'transparent'"
-                  [style.color]="pestanaActiva === 'compras' ? 'var(--primary-color)' : 'white'">
-            <i class="fa-solid fa-ticket me-3 fs-5" [style.color]="pestanaActiva === 'compras' ? 'var(--primary-color)' : '#999'"></i>
-            <span class="fw-semibold">Mis Compras</span>
-          </button>
+        <section class="panel contenido">
+          @if (mensaje) {
+            <div class="aviso" [class.error]="esError" role="status">{{ mensaje }}</div>
+          }
 
-          <button (click)="cambiarPestana('seguridad')" 
-                  class="list-group-item list-group-item-action border-0 rounded text-white py-3 px-4 mb-1 d-flex align-items-center bg-transparent btn-menu-profile"
-                  [style.backgroundColor]="pestanaActiva === 'seguridad' ? '#2a2a32' : 'transparent'"
-                  [style.color]="pestanaActiva === 'seguridad' ? 'var(--primary-color)' : 'white'">
-            <i class="fa-solid fa-shield-halved me-3 fs-5" [style.color]="pestanaActiva === 'seguridad' ? 'var(--primary-color)' : '#999'"></i>
-            <span class="fw-semibold">Seguridad</span>
-          </button>
+          @switch (pestanaActiva) {
+            @case ('compras') {
+              <h2 class="font-display">Mis compras</h2>
+              @if (cargandoCompras) {
+                <p class="cargando">Cargando tus compras…</p>
+              } @else if (!misCompras.length) {
+                <div class="vacio">
+                  <p>Todavía no tienes compras.</p>
+                  <a routerLink="/movies" class="btn-cine">Ver la cartelera</a>
+                </div>
+              } @else {
+                <ul class="compras">
+                  @for (compra of misCompras.slice(0, comprasVisibles); track compra.idTransaction) {
+                    <li>
+                      <div class="compra-datos">
+                        <strong>{{ compra.movieTitle || 'Pedido de confitería' }}</strong>
+                        @if (compra.venueName) {
+                          <span>{{ compra.venueName }}{{ compra.roomName ? ' · ' + compra.roomName : '' }}</span>
+                        }
+                        <span>{{ fechaCompra(compra.date) }} · {{ compra.time }}@if (compra.seats) { · Butacas {{ compra.seats }} }</span>
+                        @if (compra.snacks?.length) { <span>{{ compra.snacks.join(', ') }}</span> }
+                      </div>
+                      <div class="compra-total">
+                        <strong>S/ {{ compra.totalAmount | number:'1.2-2' }}</strong>
+                        <small>N.° {{ compra.idTransaction }}</small>
+                      </div>
+                    </li>
+                  }
+                </ul>
+                @if (misCompras.length > comprasVisibles) {
+                  <button type="button" class="btn-cine-secundario ver-mas" (click)="comprasVisibles = comprasVisibles + 10">
+                    Ver más ({{ misCompras.length - comprasVisibles }})
+                  </button>
+                }
+              }
+            }
 
-          <button (click)="cambiarPestana('eliminar')" 
-                  class="list-group-item list-group-item-action border-0 rounded py-3 px-4 d-flex align-items-center bg-transparent btn-menu-profile text-danger"
-                  [style.backgroundColor]="pestanaActiva === 'eliminar' ? 'rgba(220, 53, 69, 0.1)' : 'transparent'">
-            <i class="fa-solid fa-user-xmark me-3 fs-5"></i>
-            <span class="fw-bold">Eliminar Cuenta</span>
-          </button>
+            @case ('seguridad') {
+              <h2 class="font-display">Cambiar contraseña</h2>
+              <form [formGroup]="seguridadForm" (ngSubmit)="actualizarContrasena()" novalidate class="formulario">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label" for="claveActual">Contraseña actual</label>
+                    <input id="claveActual" type="password" class="form-control" formControlName="oldPassword"
+                           [class.is-invalid]="campoSeguridadInvalido('oldPassword')" autocomplete="current-password">
+                    <div class="invalid-feedback">Escribe tu contraseña actual.</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="claveNueva">Nueva contraseña</label>
+                    <input id="claveNueva" type="password" class="form-control" formControlName="newPassword"
+                           [class.is-invalid]="campoSeguridadInvalido('newPassword')" autocomplete="new-password">
+                    <div class="invalid-feedback">
+                      @if (seguridadForm.get('newPassword')?.hasError('required')) { Escribe la nueva contraseña. }
+                      @else { Usa al menos 8 caracteres, con letras y números. }
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="claveConfirmar">Repite la nueva contraseña</label>
+                    <input id="claveConfirmar" type="password" class="form-control" formControlName="confirmPassword"
+                           [class.is-invalid]="campoSeguridadInvalido('confirmPassword') || confirmPasswordNoCoincide" autocomplete="new-password">
+                    <div class="invalid-feedback">
+                      {{ confirmPasswordNoCoincide ? 'Las contraseñas no coinciden.' : 'Repite la nueva contraseña.' }}
+                    </div>
+                  </div>
+                </div>
+                <button type="submit" class="btn-cine" [disabled]="guardando">
+                  {{ guardando ? 'Guardando…' : 'Cambiar contraseña' }}
+                </button>
+              </form>
+            }
 
-        </div>
+            @case ('eliminar') {
+              <h2 class="font-display">Eliminar cuenta</h2>
+              <p class="texto">Se cerrará tu sesión y se darán de baja tus datos y tu historial de compras.
+                No se puede deshacer.</p>
+              <button type="button" class="btn-peligro" (click)="eliminarCuenta()" [disabled]="guardando">
+                {{ guardando ? 'Eliminando…' : 'Eliminar mi cuenta' }}
+              </button>
+            }
+
+            @default {
+              <h2 class="font-display">Mis datos</h2>
+              <form [formGroup]="datosForm" (ngSubmit)="guardarDatosPersonales()" novalidate class="formulario">
+                <div class="foto">
+                  <span class="avatar grande">
+                    @if (imagenPrevia || perfilSoloLectura.imageUrl) {
+                      <img [src]="imagenPrevia || perfilSoloLectura.imageUrl" alt="">
+                    } @else { {{ inicialNombre }}{{ inicialApellido }} }
+                  </span>
+                  <div>
+                    <label for="avatarUpload" class="btn-cine-secundario">Cambiar foto</label>
+                    <input type="file" id="avatarUpload" class="d-none" (change)="onFileSelected($event)" accept="image/*">
+                    <small>JPG, PNG o WEBP, de preferencia cuadrada.</small>
+                  </div>
+                </div>
+
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label" for="nombre">Nombres</label>
+                    <input id="nombre" type="text" class="form-control" formControlName="firstName"
+                           [class.is-invalid]="campoDatosInvalido('firstName')">
+                    <div class="invalid-feedback">Escribe al menos 2 letras.</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="apellidos">Apellidos</label>
+                    <input id="apellidos" type="text" class="form-control" formControlName="lastName"
+                           [class.is-invalid]="campoDatosInvalido('lastName')">
+                    <div class="invalid-feedback">Escribe al menos 2 letras.</div>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label" for="correo">Correo</label>
+                    <input id="correo" type="email" class="form-control" [value]="perfilSoloLectura.email" disabled>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label" for="tipoDoc">Documento</label>
+                    <input id="tipoDoc" type="text" class="form-control" disabled
+                           [value]="perfilSoloLectura.idDocumentType === 2 ? 'Carné de extranjería' : 'DNI'">
+                  </div>
+                  <div class="col-md-8">
+                    <label class="form-label" for="numDoc">Número de documento</label>
+                    <input id="numDoc" type="text" class="form-control" [value]="perfilSoloLectura.documentNumber" disabled>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="telefono">Celular <span class="opcional">(opcional)</span></label>
+                    <input id="telefono" type="tel" class="form-control" formControlName="phone" placeholder="987654321"
+                           [class.is-invalid]="campoDatosInvalido('phone')">
+                    <div class="invalid-feedback">Usa de 7 a 9 dígitos, solo números.</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="nacimiento">Fecha de nacimiento <span class="opcional">(opcional)</span></label>
+                    <input id="nacimiento" type="date" class="form-control" formControlName="datebirth"
+                           [class.is-invalid]="campoDatosInvalido('datebirth')">
+                    <div class="invalid-feedback">La fecha no puede ser futura.</div>
+                  </div>
+                </div>
+                <button type="submit" class="btn-cine" [disabled]="guardando">
+                  {{ guardando ? 'Guardando…' : 'Guardar cambios' }}
+                </button>
+              </form>
+            }
+          }
+        </section>
       </div>
-    </div>
-
-    <div class="col-md-8 col-lg-9">
-      <div class="p-4 rounded shadow-lg h-100" style="background-color: #161619; border: 1px solid #333;">
-        
-        <div *ngIf="mensaje" class="alert small py-2 d-flex align-items-center mb-4 shadow-sm" 
-             [ngClass]="esError ? 'alert-danger' : 'alert-success'" style="border-radius: 8px;">
-          <i class="fa-solid me-2" [ngClass]="esError ? 'fa-triangle-exclamation' : 'fa-circle-check'"></i>
-          <div>{{ mensaje }}</div>
-        </div>
-
-        <!-- DATOS -->
-        <div *ngIf="pestanaActiva === 'datos'">
-          <h4 class="fw-bold mb-4" style="color: var(--primary-color);">Información Personal</h4>
-          <form [formGroup]="datosForm" (ngSubmit)="guardarDatosPersonales()" novalidate>
-            <div class="d-flex align-items-center mb-4 pb-3 border-bottom border-secondary" style="border-color: #333 !important;">
-              <div class="position-relative me-4">
-                <div class="rounded-circle shadow d-flex align-items-center justify-content-center overflow-hidden" 
-                     style="width: 100px; height: 100px; background-color: #2a2a32; font-size: 2.5rem; color: white; border: 2px solid #555;">
-                  <img *ngIf="imagenPrevia || perfilSoloLectura.imageUrl" [src]="imagenPrevia || perfilSoloLectura.imageUrl" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
-                  <span *ngIf="!imagenPrevia && !perfilSoloLectura.imageUrl">{{ inicialNombre }}{{ inicialApellido }}</span>
-                </div>
-                <label for="avatarUpload" class="position-absolute bottom-0 end-0 rounded-circle shadow d-flex justify-content-center align-items-center" 
-                       style="cursor: pointer; right: -5px; bottom: 0px; background-color: var(--primary-color); border: 3px solid #161619; width: 34px; height: 34px; transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                  <i class="fa-solid fa-camera text-white" style="font-size: 0.85rem;"></i>
-                </label>
-                <input type="file" id="avatarUpload" class="d-none" (change)="onFileSelected($event)" accept="image/*">
-              </div>
-              <div>
-                <h5 class="fw-bold text-white mb-1">Tu Foto de Perfil</h5>
-                <p class="small text-secondary mb-0">Recomendado: 1:1 (Cuadrado).<br>Formatos admitidos: JPG, PNG, WEBP.</p>
-              </div>
-            </div>
-
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label text-secondary fw-semibold small">Nombre <span class="text-danger">*</span></label>
-                <input type="text" class="form-control bg-dark text-white border-secondary"
-                       formControlName="firstName"
-                       [class.is-invalid]="campoDatosInvalido('firstName')">
-                <div class="invalid-feedback" *ngIf="campoDatosInvalido('firstName')">
-                  <span *ngIf="datosForm.get('firstName')?.hasError('required')">El nombre es obligatorio.</span>
-                  <span *ngIf="datosForm.get('firstName')?.hasError('minlength')">Debe tener al menos 2 caracteres.</span>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label text-secondary fw-semibold small">Apellidos <span class="text-danger">*</span></label>
-                <input type="text" class="form-control bg-dark text-white border-secondary"
-                       formControlName="lastName"
-                       [class.is-invalid]="campoDatosInvalido('lastName')">
-                <div class="invalid-feedback" *ngIf="campoDatosInvalido('lastName')">
-                  <span *ngIf="datosForm.get('lastName')?.hasError('required')">El apellido es obligatorio.</span>
-                  <span *ngIf="datosForm.get('lastName')?.hasError('minlength')">Debe tener al menos 2 caracteres.</span>
-                </div>
-              </div>
-              <div class="col-md-12">
-                <label class="form-label text-secondary fw-semibold small">Correo Electrónico (No modificable)</label>
-                <input type="email" class="form-control bg-dark text-secondary border-secondary" [value]="perfilSoloLectura.email" disabled style="cursor: not-allowed;">
-              </div>
-              <div class="col-md-4">
-                <label class="form-label text-secondary fw-semibold small">Tipo Documento</label>
-                <select class="form-select bg-dark text-secondary border-secondary" [ngModel]="perfilSoloLectura.idDocumentType" [ngModelOptions]="{standalone: true}" disabled style="cursor: not-allowed;">
-                  <option [ngValue]="1">DNI</option>
-                  <option [ngValue]="2">Carnet de Extranjería</option>
-                </select>
-              </div>
-              <div class="col-md-8">
-                <label class="form-label text-secondary fw-semibold small">N° de Documento</label>
-                <input type="text" class="form-control bg-dark text-secondary border-secondary" [value]="perfilSoloLectura.documentNumber" disabled style="cursor: not-allowed;">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label text-secondary fw-semibold small">Teléfono / Celular <span class="text-muted small">(opcional)</span></label>
-                <input type="text" class="form-control bg-dark text-white border-secondary"
-                       formControlName="phone"
-                       [class.is-invalid]="campoDatosInvalido('phone')"
-                       placeholder="Ej: 987654321">
-                <div class="invalid-feedback" *ngIf="campoDatosInvalido('phone')">
-                  Ingresa un número válido (7 a 9 dígitos, solo números).
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label text-secondary fw-semibold small">Fecha de Nacimiento <span class="text-muted small">(opcional)</span></label>
-                <input type="date" class="form-control bg-dark text-white border-secondary"
-                       formControlName="datebirth"
-                       [class.is-invalid]="campoDatosInvalido('datebirth')">
-                <div class="invalid-feedback" *ngIf="campoDatosInvalido('datebirth')">
-                  La fecha de nacimiento no puede ser futura.
-                </div>
-              </div>
-            </div>
-            
-            <button type="submit" class="btn btn-success fw-bold text-white px-4 mt-4" 
-                    [disabled]="guardando" 
-                    style="border-radius: 8px; background-color: #d63384; border: none; min-width: 180px;">
-              <div class="d-flex align-items-center justify-content-center">
-                <span *ngIf="guardando" class="spinner-border spinner-border-sm me-2"></span>
-                <span *ngIf="!guardando"><i class="fa-solid fa-floppy-disk me-2"></i>Guardar Cambios</span>
-                <span *ngIf="guardando">Guardando...</span>
-              </div>
-            </button>
-          </form>
-        </div>
-
-        <!-- COMPRAS -->
-        <div *ngIf="pestanaActiva === 'compras' && !esAdmin">
-          <h4 class="fw-bold mb-4" style="color: var(--primary-color);">Historial de Compras</h4>
-          
-          <div *ngIf="cargandoCompras" class="text-center py-4">
-            <div class="spinner-border text-info" role="status"></div>
-          </div>
-
-          <div *ngIf="!cargandoCompras && misCompras.length === 0" class="text-center py-5">
-            <i class="fa-solid fa-receipt fs-1 text-secondary mb-3" style="opacity: 0.3;"></i>
-            <p class="text-muted">Aún no has realizado ninguna compra en CineMax.</p>
-          </div>
-
-          <div class="row g-3" *ngIf="!cargandoCompras && misCompras.length > 0">
-            <div class="col-12" *ngFor="let compra of misCompras">
-              <div class="p-3 rounded border border-secondary d-flex justify-content-between align-items-center flex-wrap gap-3" style="background-color: #0d0d11;">
-                <div>
-                  <!-- Título: la película, o "Pedido de confitería" si solo hubo snacks -->
-                  <h5 class="fw-bold mb-1 text-white">
-                    {{ compra.movieTitle || 'Pedido de confitería' }}
-                  </h5>
-
-                  <!-- Sede y sala (en un pedido de confitería, la sede de recojo) -->
-                  <p *ngIf="compra.venueName" class="mb-1 small text-secondary">
-                    <i class="fa-solid me-2" [ngClass]="compra.roomName ? 'fa-film' : 'fa-location-dot'"></i>{{ compra.venueName }}{{ compra.roomName ? ' — ' + compra.roomName : '' }}
-                  </p>
-
-                  <p *ngIf="compra.snacks?.length" class="mb-1 small text-secondary">
-                    <i class="fa-solid fa-cookie-bite me-2"></i>{{ compra.snacks.join(', ') }}
-                  </p>
-
-                  <!-- Fecha y hora -->
-                  <p class="mb-0 small text-secondary">
-                    <i class="fa-solid fa-calendar-day me-2"></i>{{ compra.date }} a las {{ compra.time }}
-                    <!-- Asientos: solo si hay película -->
-                    <span *ngIf="compra.seats">
-                      | <i class="fa-solid fa-chair ms-1 me-2"></i>Asientos: <strong>{{ compra.seats }}</strong>
-                    </span>
-                  </p>
-                </div>
-
-                <div class="text-md-end border-start border-secondary ps-3">
-                  <span class="badge bg-success mb-2 d-block">Compra Exitosa</span>
-                  <small class="text-muted d-block mb-1">Ticket ID: #{{ compra.idTransaction }}</small>
-                  <strong style="color: var(--primary-color); font-size: 1.1rem;">S/. {{ compra.totalAmount | number:'1.2-2' }}</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SEGURIDAD -->
-        <div *ngIf="pestanaActiva === 'seguridad'">
-          <h4 class="fw-bold mb-4" style="color: var(--primary-color);">Actualizar Contraseña</h4>
-          <form [formGroup]="seguridadForm" (ngSubmit)="actualizarContrasena()" novalidate>
-            <div class="row g-3">
-              <div class="col-md-12">
-                <label class="form-label text-secondary fw-semibold small">Contraseña Actual <span class="text-danger">*</span></label>
-                <input type="password" class="form-control bg-dark text-white border-secondary"
-                       formControlName="oldPassword"
-                       [class.is-invalid]="campoSeguridadInvalido('oldPassword')"
-                       autocomplete="current-password">
-                <div class="invalid-feedback" *ngIf="campoSeguridadInvalido('oldPassword')">
-                  Ingresa tu contraseña actual.
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label text-secondary fw-semibold small">Nueva Contraseña <span class="text-danger">*</span></label>
-                <input type="password" class="form-control bg-dark text-white border-secondary"
-                       formControlName="newPassword"
-                       [class.is-invalid]="campoSeguridadInvalido('newPassword')"
-                       autocomplete="new-password">
-                <div class="invalid-feedback" *ngIf="campoSeguridadInvalido('newPassword')">
-                  <span *ngIf="seguridadForm.get('newPassword')?.hasError('required')">La nueva contraseña es obligatoria.</span>
-                  <span *ngIf="seguridadForm.get('newPassword')?.hasError('pattern')">Mínimo 8 caracteres, con al menos una letra y un número.</span>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label text-secondary fw-semibold small">Confirmar Nueva Contraseña <span class="text-danger">*</span></label>
-                <input type="password" class="form-control bg-dark text-white border-secondary"
-                       formControlName="confirmPassword"
-                       [class.is-invalid]="campoSeguridadInvalido('confirmPassword') || confirmPasswordNoCoincide"
-                       autocomplete="new-password">
-                <div class="invalid-feedback" *ngIf="campoSeguridadInvalido('confirmPassword') && !confirmPasswordNoCoincide">
-                  Debes confirmar la nueva contraseña.
-                </div>
-                <div class="invalid-feedback" *ngIf="confirmPasswordNoCoincide">
-                  Las contraseñas no coinciden.
-                </div>
-              </div>
-            </div>
-            <button type="submit" class="btn btn-warning fw-bold text-dark px-4 mt-4" 
-                    [disabled]="guardando" 
-                    style="border-radius: 8px; font-weight: 700; min-width: 220px;">
-              <div class="d-flex align-items-center justify-content-center">
-                <span *ngIf="guardando" class="spinner-border spinner-border-sm me-2"></span>
-                <span *ngIf="!guardando"><i class="fa-solid fa-key me-2"></i>Modificar Contraseña</span>
-                <span *ngIf="guardando">Procesando...</span>
-              </div>
-            </button>
-          </form>
-        </div>
-
-        <!-- ELIMINAR CUENTA -->
-        <div *ngIf="pestanaActiva === 'eliminar'">
-          <h4 class="fw-bold text-danger mb-3">Eliminar Cuenta</h4>
-          <div class="p-3 rounded mb-4" style="background-color: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3);">
-            <h5 class="fw-bold text-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i>¿Qué significa borrar tu cuenta?</h5>
-            <p class="mb-0 small text-secondary" style="line-height: 1.5;">
-              Al hacer clic en el botón de abajo, solicitarás la baja de tu cuenta en CineMax. Se cerrará tu sesión de inmediato y tus datos personales e historial de compras serán desactivados de nuestra base de datos. Esta acción no se puede deshacer.
-            </p>
-          </div>
-          <button type="button" (click)="eliminarCuenta()" 
-                  class="btn btn-danger fw-bold px-4 shadow-sm" 
-                  [disabled]="guardando"
-                  style="min-width: 250px;">
-            <div class="d-flex align-items-center justify-content-center">
-              <span *ngIf="guardando" class="spinner-border spinner-border-sm me-2"></span>
-              <span *ngIf="!guardando"><i class="fa-solid fa-user-xmark me-2"></i>Eliminar mi Cuenta</span>
-              <span *ngIf="guardando">Eliminando...</span>
-            </div>
-          </button>
-        </div>
-
-      </div>
-    </div>
+    }
   </div>
 </div>
