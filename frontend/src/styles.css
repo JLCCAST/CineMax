@@ -118,17 +118,12 @@ body {
     outline-offset: 2px;
 }
 
-/* Fondo de las páginas rediseñadas. Terminan pegadas al pie (las antiguas dejan su margen). */
+/* Fondo claro de las páginas del cliente. */
 .pagina-clara {
     min-height: 60vh;
     padding: 2.5rem 0 4rem;
     background: var(--page-bg);
     color: var(--ink);
-}
-
-main:has(> app-home) + footer,
-main:has(.pagina-clara) + footer {
-    margin-top: 0 !important;
 }
 
 .btn-cine-secundario {

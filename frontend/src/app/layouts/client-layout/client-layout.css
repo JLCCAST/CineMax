@@ -1,5 +1,4 @@
-
-   .cabecera {
+.cabecera {
     background-color: var(--header-bg);
     border-bottom: 1px solid #222;
 }
@@ -53,99 +52,325 @@
     }
 }
 
-.b-perfil {
-    width: 2.8rem;
-    height: 2.8rem;
-    border-radius: 0.8rem;
-    filter: brightness(0) invert(1);
-    transition: 0.3s;
-}
-.b-perfil:hover {
-    transform: scale(1.1);
-    border: 2px solid var(--primary-color);
-    filter: invert(92%) sepia(10%) saturate(836%) hue-rotate(215deg) brightness(101%) contrast(97%);
+/* Cuenta del usuario en la cabecera */
+.zona-usuario {
+    position: relative;
 }
 
-/* =========================================
-   2. FOOTER (PIE DE PÁGINA)
-   ========================================= */
-.footer-cine {
-    background-color: var(--header-bg);
-    border-top: 1px solid #222;
-    color: var(--text-light);
-    margin-top: 5rem;
-    padding: 2rem 0;
+.btn-ingresar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid #3a3a40;
+    border-radius: var(--radius);
+    background: none;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
-.footer-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
+
+.btn-ingresar:hover {
+    border-color: #fff;
 }
-.footer-links a {
-    color: #b0b0b0;
-    text-decoration: none;
-    transition: 0.3s;
-    font-size: 0.9rem;
-}
-.footer-links a:hover { 
-    color: var(--primary-color); 
-    padding-left: 5px; 
-}
-.social-icon {
-    width: 40px;
-    height: 40px;
-    background-color: var(--background-color);
-    color: white;
+
+.avatar {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    overflow: hidden;
+    border: 2px solid #3a3a40;
     border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 700;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.menu-usuario {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 1050;
+    width: 250px;
+    padding: 0.4rem 0;
+    border-radius: var(--radius-card);
+    background: #fff;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 25%);
+}
+
+.menu-cabecera {
+    padding: 0.6rem 1rem 0.75rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.menu-cabecera strong,
+.menu-cabecera small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.menu-cabecera strong {
+    color: var(--ink);
+}
+
+.menu-cabecera small {
+    color: var(--ink-muted);
+}
+
+.menu-usuario a,
+.menu-usuario button {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 0.7rem;
+    width: 100%;
+    padding: 0.55rem 1rem;
+    border: none;
+    background: none;
+    color: var(--ink);
+    font-size: 0.92rem;
+    text-align: left;
     text-decoration: none;
-    transition: 0.3s;
-}
-.social-icon:hover { 
-    background-color: var(--primary-color); 
 }
 
-/* =========================================
-   3. PANEL DE LOGIN (OFFCANVAS)
-   ========================================= */
-.login-panel {
-    background-color: #242424; 
-    border-left: 1px solid var(--surface-color);
-    width: 400px; 
+.menu-usuario a:hover,
+.menu-usuario button:hover {
+    background: #f4f3f7;
 }
-.custom-input-group {
-    border: 1px solid #555;
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: #242424;
+
+.menu-usuario i {
+    width: 1rem;
+    color: var(--ink-muted);
 }
-.custom-input-group .form-control {
-    background-color: transparent;
-    border: none;
-    color: white;
-    padding: 14px 15px;
+
+.menu-usuario .salir {
+    margin-top: 0.3rem;
+    border-top: 1px solid var(--line);
+    color: var(--danger);
+}
+
+.menu-usuario .salir i {
+    color: var(--danger);
+}
+
+/* Pie de página */
+.pie {
+    padding: 3rem 0 1.5rem;
+    background: var(--header-bg);
+    color: #b9b7c2;
     font-size: 0.9rem;
 }
-.custom-input-group .form-control::placeholder {
-    color: #888;
+
+.pie-columnas {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #26262b;
 }
-.custom-input-group .input-group-text {
-    background-color: transparent;
-    border: none;
-    color: white;
+
+.pie h2 {
+    margin: 0 0 1rem;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
-.btn-login {
-    background-color: #9b59b6; 
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    transition: 0.3s;
+
+.pie nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
 }
-.btn-login:hover {
-    background-color: #8e44ad;
+
+.pie a {
+    color: #b9b7c2;
+    text-decoration: none;
 }
-.login-links {
+
+.pie a:hover {
+    color: #fff;
+}
+
+.redes {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+}
+
+.redes a {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid #3a3a40;
+    border-radius: 50%;
+}
+
+.redes a:hover {
+    border-color: #fff;
+}
+
+.tiendas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tiendas img {
+    height: 36px;
+}
+
+.pie-legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    padding-top: 1.25rem;
+    font-size: 0.82rem;
+}
+
+.pie-legal span {
+    margin-right: auto;
+}
+
+@media (max-width: 991px) {
+    .pie-columnas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 576px) {
+    .pie-columnas {
+        grid-template-columns: 1fr;
+    }
+
+    .pie-legal span {
+        width: 100%;
+    }
+}
+
+/* Panel de acceso (inicio de sesión, registro y recuperación) */
+.panel-acceso {
+    --bs-offcanvas-width: 420px;
+    background: #fff;
+    color: var(--ink);
+}
+
+.panel-acceso .offcanvas-header {
+    padding: 1.5rem 1.75rem 0.5rem;
+}
+
+.panel-acceso .offcanvas-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.panel-acceso .offcanvas-body {
+    padding: 0.5rem 1.75rem 2rem;
+}
+
+.intro {
+    margin-bottom: 1.5rem;
+    color: var(--ink-muted);
+}
+
+.campo {
+    margin-bottom: 1rem;
+}
+
+.campo label {
+    margin-bottom: 0.35rem;
+    color: var(--ink-muted);
     font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.panel-acceso .form-control,
+.panel-acceso .form-select {
+    padding: 0.65rem 0.8rem;
+    border-color: #cfcdd6;
+    border-radius: var(--radius);
+}
+
+.panel-acceso .form-control:focus,
+.panel-acceso .form-select:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 0.2rem var(--brand-tint);
+}
+
+.tipo-doc {
+    flex: 0 0 90px;
+}
+
+.ver-clave {
+    padding: 0 0.85rem;
+    border: 1px solid #cfcdd6;
+    border-left: none;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    background: #fff;
+    color: var(--ink-muted);
+}
+
+.ayuda {
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--ink-muted);
+}
+
+.aviso {
+    margin-bottom: 1.25rem;
+    padding: 0.7rem 0.9rem;
+    border-left: 4px solid var(--success);
+    background: #e8f6ee;
+    color: #155c34;
+    font-size: 0.9rem;
+}
+
+.aviso.error {
+    border-left-color: var(--danger);
+    background: #fdecec;
+    color: #8a1c1c;
+}
+
+.olvide,
+.cambio button {
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--brand);
+    font-weight: 600;
+}
+
+.olvide {
+    display: block;
+    margin: -0.25rem 0 1.25rem;
+    font-size: 0.88rem;
+}
+
+.enviar {
+    width: 100%;
+    padding: 0.75rem;
+}
+
+.cambio {
+    margin: 1.5rem 0 0;
+    color: var(--ink-muted);
+    text-align: center;
 }

@@ -1,6 +1,5 @@
 // client-layout.ts
 import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Offcanvas } from 'bootstrap';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -14,7 +13,7 @@ import { environment } from '../../environments/environment';
   selector: 'app-client-layout',
   standalone: true,
   // ReactiveFormsModule en lugar de FormsModule
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [RouterModule, ReactiveFormsModule],
   templateUrl: './client-layout.html',
   styleUrl: './client-layout.css',
 })
@@ -32,6 +31,7 @@ export class ClientLayout implements OnInit {
   cineElegido: number | null = Number(localStorage.getItem('cinemax_cine')) || null;
   userEmail: string = '';
   menuAbierto: boolean = false;
+  readonly anio = new Date().getFullYear();
   vistaActiva: string = 'login';
 
   userFullName: string = 'Usuario';
@@ -288,11 +288,9 @@ export class ClientLayout implements OnInit {
     this.authService.logout();
     this.isLogged = false;
     this.cdr.detectChanges();
-    alert('Sesión cerrada correctamente.');
-    this.recargarPagina(); // Llamamos al método interno
+    this.recargarPagina();
   }
 
-  // Envolvemos el comando en una función propia del componente
   recargarPagina() {
     window.location.reload();
   }

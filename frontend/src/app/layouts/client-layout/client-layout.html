@@ -1,4 +1,3 @@
-<!-- BARRA DE NAVEGACIÓN -->
 <nav class="navbar navbar-expand-lg sticky-top navbar-dark cabecera">
   <div class="container-fluid px-4">
     <a class="navbar-brand logo d-flex align-items-center" routerLink="/">
@@ -20,63 +19,35 @@
       <form class="selector-cine ms-lg-auto me-lg-4 my-3 my-lg-0" (submit)="$event.preventDefault(); verCartelera()">
         <select aria-label="Elige tu cine" (change)="elegirCine($any($event.target).value)">
           <option value="">Todos los cines</option>
-          <option *ngFor="let c of cines" [value]="c.idVenue" [selected]="c.idVenue === cineElegido">{{ c.nameVenue }}</option>
+          @for (c of cines; track c.idVenue) {
+            <option [value]="c.idVenue" [selected]="c.idVenue === cineElegido">{{ c.nameVenue }}</option>
+          }
         </select>
         <button type="submit" class="btn-cine">Ver cartelera</button>
       </form>
       
-      <div class="zona-perfil-manual d-flex align-items-center" style="position: relative; z-index: 999999;">
-        
-        <div *ngIf="!isLogged" (click)="cambiarVista('login')" style="cursor: pointer;" data-bs-toggle="offcanvas" data-bs-target="#authOffcanvas">
-          <img class="b-perfil" src="/Imagenes/Imagen sesion.png" alt="Mi perfil" style="width: 40px; height: 40px;">
-        </div>
-        
-        <ng-container *ngIf="isLogged">
-          <div (click)="toggleMenu($event)" class="shadow-sm" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background-color: var(--primary-color); color: white; font-weight: bold; font-size: 1.1rem; border: 2px solid #d63384; user-select: none;">
-            <img *ngIf="userImageUrl" [src]="userImageUrl" alt="Mi perfil" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
-            <span *ngIf="!userImageUrl">{{ userInitials }}</span>
-          </div>
-          
-          <div [style.display]="menuAbierto ? 'block' : 'none'" class="shadow-lg p-0 rounded text-white" style="position: absolute; top: 55px; right: 0; width: 260px; background-color: #161619; border: 1px solid #333; z-index: 1050; overflow: hidden; border-radius: 12px;">
-            
-            <div class="d-flex align-items-center p-3" style="background-color: #1e1e24; border-bottom: 1px solid #333;">
-              <div class="me-3 d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 45px; height: 45px; border-radius: 50%; background-color: var(--primary-color); color: white; font-weight: bold; font-size: 1.2rem;">
-                <span *ngIf="!userImageUrl">{{ userInitials }}</span>
-                <img *ngIf="userImageUrl" [src]="userImageUrl" alt="Mi perfil" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+      <div class="zona-usuario">
+        @if (!isLogged) {
+          <button type="button" class="btn-ingresar" (click)="cambiarVista('login')" data-bs-toggle="offcanvas" data-bs-target="#authOffcanvas">
+            <i class="fa-regular fa-user"></i> Ingresar
+          </button>
+        } @else {
+          <button type="button" class="avatar" (click)="toggleMenu($event)" [attr.aria-expanded]="menuAbierto" aria-label="Menú de mi cuenta">
+            @if (userImageUrl) { <img [src]="userImageUrl" alt=""> } @else { {{ userInitials }} }
+          </button>
+          @if (menuAbierto) {
+            <div class="menu-usuario" (click)="$event.stopPropagation()">
+              <div class="menu-cabecera">
+                <strong>{{ userFullName }}</strong>
+                <small>{{ userEmail }}</small>
               </div>
-              <div style="overflow: hidden;">
-                <strong class="d-block text-truncate mb-1" style="font-size: 0.95rem; color: #fff; letter-spacing: 0.3px;">{{ userFullName }}</strong>
-                <small class="d-block text-truncate" style="color: #999; font-size: 0.75rem;">{{ userEmail }}</small>
-              </div>
+              <a routerLink="/profile" [queryParams]="{ tab: 'compras' }" (click)="menuAbierto = false"><i class="fa-solid fa-ticket"></i> Mis compras</a>
+              <a routerLink="/profile" [queryParams]="{ tab: 'datos' }" (click)="menuAbierto = false"><i class="fa-solid fa-user"></i> Mis datos</a>
+              <a routerLink="/profile" [queryParams]="{ tab: 'seguridad' }" (click)="menuAbierto = false"><i class="fa-solid fa-lock"></i> Contraseña</a>
+              <button type="button" class="salir" (click)="cerrarSesion()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</button>
             </div>
-
-            <div class="p-2">
-              <a (click)="menuAbierto = false" routerLink="/profile" class="text-decoration-none d-flex align-items-center py-2 px-3 text-white rounded mb-1" style="transition: background-color 0.2s ease; cursor: pointer;" onmouseover="this.style.backgroundColor='#2a2a32'" onmouseout="this.style.backgroundColor=''">
-                <i class="fa-solid fa-ticket me-3" style="width: 20px; text-align: center; color: var(--primary-color);"></i>
-                <span style="font-size: 0.9rem; font-weight: 500;">Mis Entradas</span>
-              </a>
-              
-              <a (click)="menuAbierto = false" routerLink="/profile" class="text-decoration-none d-flex align-items-center py-2 px-3 text-white rounded mb-1" style="transition: background-color 0.2s ease; cursor: pointer;" onmouseover="this.style.backgroundColor='#2a2a32'" onmouseout="this.style.backgroundColor=''">
-                <i class="fa-solid fa-gear me-3" style="width: 20px; text-align: center; color: var(--primary-color);"></i>
-                <span style="font-size: 0.9rem; font-weight: 500;">Configuración de Cuenta</span>
-              </a>
-              
-              <a (click)="menuAbierto = false" routerLink="/profile" class="text-decoration-none d-flex align-items-center py-2 px-3 text-white rounded" style="transition: background-color 0.2s ease; cursor: pointer;" onmouseover="this.style.backgroundColor='#2a2a32'" onmouseout="this.style.backgroundColor=''">
-                <i class="fa-solid fa-shield-halved me-3" style="width: 20px; text-align: center; color: var(--primary-color);"></i>
-                <span style="font-size: 0.9rem; font-weight: 500;">Seguridad</span>
-              </a>
-            </div>
-
-            <div class="p-2" style="border-top: 1px solid #333;">
-              <a href="#" (click)="$event.preventDefault(); cerrarSesion()" class="text-decoration-none d-flex align-items-center py-2 px-3 text-danger rounded fw-bold" style="transition: background-color 0.2s ease; cursor: pointer;" onmouseover="this.style.backgroundColor='#3a1c1e'" onmouseout="this.style.backgroundColor=''">
-                <i class="fa-solid fa-power-off me-3" style="width: 20px; text-align: center;"></i>
-                <span style="font-size: 0.9rem;">Cerrar Sesión</span>
-              </a>
-            </div>
-
-          </div>
-        </ng-container>
-        
+          }
+        }
       </div>
     </div>
   </div>
@@ -84,253 +55,170 @@
 
 <main><router-outlet></router-outlet></main>
 
-<!-- PIE DE PÁGINA -->
-<footer class="footer-cine py-5">
+<footer class="pie">
   <div class="container">
-    <div class="row gy-4 mb-5">
-      <div class="col-md-4 border-end-purple">
-        <h5 class="footer-title">ACERCA DE NOSOTROS</h5>
-        <ul class="list-unstyled footer-links">
-          <li><a href="#">Sobre CineMax.</a></li>
-          <li><a href="#">Trabaja con nosotros.</a></li>
-          <li><a href="#">Ventas corporativas (Para empresas).</a></li>
-          <li><a href="#">Nuestras Sedes.</a></li>
-        </ul>
-      </div>
-      <div class="col-md-4 border-end-purple ps-md-5">
-        <h5 class="footer-title">AYUDA</h5>
-        <ul class="list-unstyled footer-links">
-          <li><a href="#">Preguntas Frecuentes (FAQ).</a></li>
-          <li><a href="#">Protocolos de Seguridad.</a></li>
-          <li><a href="#">Comprobantes Electrónicos.</a></li>
-          <li><a href="#">Contacto / WhatsApp de atención.</a></li>
-        </ul>
-      </div>
-      <div class="col-md-4 ps-md-5">
-        <h5 class="footer-title">SIGUENOS</h5>
-        <div class="row align-items-center">
-          <div class="col-6">
-            <div class="d-flex flex-wrap gap-3">
-              <a href="#" class="social-icon"><i class="fa-brands fa-facebook-f"></i></a>
-              <a href="#" class="social-icon"><i class="fa-brands fa-youtube"></i></a>
-              <a href="#" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
-              <a href="#" class="social-icon"><i class="fa-brands fa-x-twitter"></i></a>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="d-flex flex-column gap-2">
-              <a href="#"><img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" class="app-badge" alt="Google Play"></a>
-              <a href="#"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" class="app-badge" alt="App Store"></a>
-            </div>
-          </div>
+    <div class="pie-columnas">
+      <nav aria-label="CineMax">
+        <h2>CineMax</h2>
+        <a routerLink="/movies">Películas</a>
+        <a routerLink="/sedes">Nuestros cines</a>
+        <a routerLink="/confiteria">Confitería</a>
+        <a routerLink="/" fragment="promociones">Promociones</a>
+      </nav>
+      <nav aria-label="Acerca de nosotros">
+        <h2>Acerca de nosotros</h2>
+        <a href="#">Sobre CineMax</a>
+        <a href="#">Trabaja con nosotros</a>
+        <a href="#">Ventas corporativas</a>
+      </nav>
+      <nav aria-label="Ayuda">
+        <h2>Ayuda</h2>
+        <a href="#">Preguntas frecuentes</a>
+        <a href="#">Protocolos de seguridad</a>
+        <a href="#">Comprobantes electrónicos</a>
+        <a href="#">Contacto y WhatsApp</a>
+      </nav>
+      <div>
+        <h2>Síguenos</h2>
+        <div class="redes">
+          <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
+        </div>
+        <div class="tiendas">
+          <a href="#"><img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play"></a>
+          <a href="#"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store"></a>
         </div>
       </div>
     </div>
-    <div class="border-top-purple pt-4">
-      <div class="d-flex flex-wrap justify-content-between gap-3 text-center">
-        <a href="#" class="legal-link">TERMINOS Y CONDICIONES</a>
-        <a href="#" class="legal-link">POLITICA Y PRIVACIDAD</a>
-        <a href="#" class="legal-link">POLITICA Y USO DE COOKIES</a>
-        <a href="#" class="legal-link">LIBRO DE RECLAMACIONES</a>
-      </div>
+    <div class="pie-legal">
+      <span>© {{ anio }} CineMax</span>
+      <a href="#">Términos y condiciones</a>
+      <a href="#">Política de privacidad</a>
+      <a href="#">Uso de cookies</a>
+      <a href="#">Libro de reclamaciones</a>
     </div>
   </div>
 </footer>
 
-<!-- PANEL DE AUTENTICACIÓN (LOGIN / REGISTRO / RECUPERAR) -->
-<div class="offcanvas offcanvas-end login-panel" tabindex="-1" id="authOffcanvas">
-  <div class="offcanvas-header justify-content-end">
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" id="btn-cerrar-panel"></button>
+<div class="offcanvas offcanvas-end panel-acceso" tabindex="-1" id="authOffcanvas" aria-labelledby="tituloAcceso">
+  <div class="offcanvas-header">
+    <h2 class="offcanvas-title" id="tituloAcceso">
+      @switch (vistaActiva) {
+        @case ('registro') { Crea tu cuenta }
+        @case ('recuperar') { Recupera tu contraseña }
+        @default { Inicia sesión }
+      }
+    </h2>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" id="btn-cerrar-panel" aria-label="Cerrar"></button>
   </div>
-  
-  <div class="offcanvas-body d-flex flex-column align-items-center px-4 pt-0">
-    <img src="Imagenes/logo_CINEMAX.jpeg" alt="CINEMAX" class="mb-4" style="width: 120px;">
-    
-    <!-- INICIO DE SESIÓN -->
-    <div class="w-100" *ngIf="vistaActiva === 'login'">
-      <h3 class="text-center login-title mb-4 text-white fw-bold">¡Hola! Qué bueno verte por acá.</h3>
-      
-      <div *ngIf="mensajeAuth" class="alert small py-2 w-100 d-flex align-items-center mb-4 shadow-sm" 
-           [ngClass]="esErrorAuth ? 'alert-danger' : 'alert-success'" style="border-radius: 8px;">
-        <i class="fa-solid me-2" [ngClass]="esErrorAuth ? 'fa-triangle-exclamation' : 'fa-circle-check'"></i>
-        <div>{{ mensajeAuth }}</div>
-      </div>
 
-      <form class="w-100" [formGroup]="loginForm" (ngSubmit)="iniciarSesion()">
-        <div class="input-group mb-2 custom-input-group">
-          <input type="email" class="form-control"
-                placeholder="CORREO ELECTRÓNICO"
-                formControlName="email">
-          <span class="input-group-text"><i class="fa-regular fa-envelope"></i></span>
-        </div>
-        <div *ngIf="lf['email'].invalid && lf['email'].touched"
-            class="text-danger small mb-3 ps-1">
-          <span *ngIf="lf['email'].errors?.['required']">El correo es obligatorio.</span>
-          <span *ngIf="lf['email'].errors?.['email']">Ingresa un correo válido (ej: usuario@correo.com).</span>
-        </div>
-
-        <div class="input-group mb-2 custom-input-group" [class.mt-4]="lf['email'].valid || lf['email'].untouched">
-          <input [type]="mostrarPassword ? 'text' : 'password'"
-                class="form-control"
-                placeholder="CONTRASEÑA"
-                formControlName="password">
-          <span class="input-group-text" style="cursor: pointer;" (click)="toggleMostrarPassword()">
-            <i class="fa-regular" [ngClass]="mostrarPassword ? 'fa-eye' : 'fa-eye-slash'"></i>
-          </span>
-        </div>
-        <div *ngIf="lf['password'].invalid && lf['password'].touched"
-            class="text-danger small mb-3 ps-1">
-          <span *ngIf="lf['password'].errors?.['required']">La contraseña es obligatoria.</span>
-          <span *ngIf="lf['password'].errors?.['minlength']">Mínimo 6 caracteres.</span>
-        </div>
-
-        <button type="submit" class="btn btn-login w-100 text-white fw-bold fs-5 d-flex align-items-center justify-content-center gap-2 mt-4"
-                [disabled]="cargandoLogin" style="height: 50px;">
-          <span *ngIf="!cargandoLogin">INICIAR SESIÓN</span>
-          <span *ngIf="cargandoLogin" class="d-flex align-items-center gap-2">
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            VALIDANDO...
-          </span>
-        </button>
-      </form>
-      <div class="mt-5 text-center login-links">
-        <span style="cursor: pointer; display: block; color: #999; margin-bottom: 1rem;" (click)="cambiarVista('recuperar', $event)">¿OLVIDASTE TU CONTRASEÑA?</span>
-        <span class="small" style="color: #999;">¿NO TIENES UNA CUENTA? </span>
-        <span style="cursor: pointer; color: var(--primary-color); font-weight: bold;" (click)="cambiarVista('registro', $event)">REGÍSTRATE</span>
-      </div>
-    </div>
-
-    <!-- REGISTRO -->
-    <div class="w-100" *ngIf="vistaActiva === 'registro'">
-      <h3 class="text-center login-title mb-3" style="color: var(--primary-color); font-weight: bold;">Crea tu cuenta</h3>
-      
-      <div *ngIf="mensajeAuth" class="alert small py-2 w-100 d-flex align-items-center mb-3 shadow-sm" 
-           [ngClass]="esErrorAuth ? 'alert-danger' : 'alert-success'" style="border-radius: 8px;">
-        <i class="fa-solid me-2" [ngClass]="esErrorAuth ? 'fa-triangle-exclamation' : 'fa-circle-check'"></i>
-        <div>{{ mensajeAuth }}</div>
-      </div>
-
-      <form class="w-100" [formGroup]="registerForm" (ngSubmit)="registrarse()">
-        <div class="input-group mb-1 custom-input-group">
-          <input type="text" class="form-control" placeholder="NOMBRE" formControlName="firstName"
-                [class.is-invalid]="rf['firstName'].invalid && rf['firstName'].touched">
-        </div>
-        <div *ngIf="rf['firstName'].invalid && rf['firstName'].touched"
-            class="text-danger small mb-2 ps-1">
-          <span *ngIf="rf['firstName'].errors?.['required']">El nombre es obligatorio.</span>
-          <span *ngIf="rf['firstName'].errors?.['minlength']">Mínimo 2 caracteres.</span>
-        </div>
-
-        <div class="input-group mb-1 custom-input-group mt-2">
-          <input type="text" class="form-control" placeholder="APELLIDOS" formControlName="lastName"
-                [class.is-invalid]="rf['lastName'].invalid && rf['lastName'].touched">
-        </div>
-        <div *ngIf="rf['lastName'].invalid && rf['lastName'].touched"
-            class="text-danger small mb-2 ps-1">
-          <span *ngIf="rf['lastName'].errors?.['required']">El apellido es obligatorio.</span>
-          <span *ngIf="rf['lastName'].errors?.['minlength']">Mínimo 2 caracteres.</span>
-        </div>
-
-        <div class="row mb-1 mt-2">
-          <div class="col-4 pe-1">
-            <div class="input-group custom-input-group h-100">
-              <select class="form-control" formControlName="idDocumentType" style="cursor: pointer;"
-                      [class.is-invalid]="rf['idDocumentType'].invalid && rf['idDocumentType'].touched">
+  <div class="offcanvas-body">
+    @switch (vistaActiva) {
+      @case ('registro') {
+        @if (mensajeAuth) { <div class="aviso" [class.error]="esErrorAuth">{{ mensajeAuth }}</div> }
+        <form [formGroup]="registerForm" (ngSubmit)="registrarse()" novalidate>
+          <div class="campo">
+            <label for="regNombre">Nombres</label>
+            <input id="regNombre" type="text" class="form-control" formControlName="firstName" autocomplete="given-name"
+                   [class.is-invalid]="rf['firstName'].invalid && rf['firstName'].touched">
+            <div class="invalid-feedback">Escribe al menos 2 letras.</div>
+          </div>
+          <div class="campo">
+            <label for="regApellidos">Apellidos</label>
+            <input id="regApellidos" type="text" class="form-control" formControlName="lastName" autocomplete="family-name"
+                   [class.is-invalid]="rf['lastName'].invalid && rf['lastName'].touched">
+            <div class="invalid-feedback">Escribe al menos 2 letras.</div>
+          </div>
+          <div class="campo">
+            <label for="regDocumento">Documento</label>
+            <div class="input-group has-validation">
+              <select class="form-select tipo-doc" formControlName="idDocumentType" aria-label="Tipo de documento">
                 <option value="1">DNI</option>
                 <option value="2">CE</option>
               </select>
+              <input id="regDocumento" type="text" class="form-control" formControlName="documentNumber" inputmode="numeric"
+                     [class.is-invalid]="rf['documentNumber'].invalid && rf['documentNumber'].touched">
+              <div class="invalid-feedback">Usa de 8 a 12 dígitos.</div>
             </div>
           </div>
-          <div class="col-8 ps-1">
-            <div class="input-group custom-input-group h-100">
-              <input type="text" class="form-control" placeholder="N° DOCUMENTO" formControlName="documentNumber"
-                    [class.is-invalid]="rf['documentNumber'].invalid && rf['documentNumber'].touched">
+          <div class="campo">
+            <label for="regCorreo">Correo</label>
+            <input id="regCorreo" type="email" class="form-control" formControlName="email" autocomplete="email"
+                   [class.is-invalid]="rf['email'].invalid && rf['email'].touched">
+            <div class="invalid-feedback">Revisa el correo.</div>
+          </div>
+          <div class="campo">
+            <label for="regClave">Contraseña</label>
+            <div class="input-group has-validation">
+              <input id="regClave" [type]="mostrarPasswordReg ? 'text' : 'password'" class="form-control" formControlName="password"
+                     autocomplete="new-password" [class.is-invalid]="rf['password'].invalid && rf['password'].touched">
+              <button type="button" class="ver-clave" (click)="toggleMostrarPasswordReg()"
+                      [attr.aria-label]="mostrarPasswordReg ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                <i class="fa-regular" [class.fa-eye]="mostrarPasswordReg" [class.fa-eye-slash]="!mostrarPasswordReg"></i></button>
+              <div class="invalid-feedback">Usa al menos 8 caracteres, con letras y números.</div>
+            </div>
+            <small class="ayuda">Al menos 8 caracteres, con letras y números.</small>
+          </div>
+          <button type="submit" class="btn-cine enviar">Crear cuenta</button>
+        </form>
+        <p class="cambio">¿Ya tienes cuenta? <button type="button" (click)="cambiarVista('login', $event)">Inicia sesión</button></p>
+      }
+
+      @case ('recuperar') {
+        <p class="intro">Escribe tu correo y te enviaremos un enlace para crear una contraseña nueva.</p>
+        @if (mensajeRecuperacion) {
+          <div class="aviso" [class.error]="mensajeRecuperacion.tipo !== 'success'">{{ mensajeRecuperacion.texto }}</div>
+        }
+        <form [formGroup]="recuperarForm" (ngSubmit)="solicitarRecuperacion()" novalidate>
+          <div class="campo">
+            <label for="recCorreo">Correo</label>
+            <input id="recCorreo" type="email" class="form-control" formControlName="correoRecuperacion" autocomplete="email"
+                   [class.is-invalid]="rec['correoRecuperacion'].invalid && rec['correoRecuperacion'].touched">
+            <div class="invalid-feedback">Revisa el correo.</div>
+          </div>
+          <button type="submit" class="btn-cine enviar" [disabled]="loadingRecuperacion">
+            {{ loadingRecuperacion ? 'Enviando…' : 'Enviar enlace' }}
+          </button>
+        </form>
+        @if (!loadingRecuperacion) {
+          <p class="cambio"><button type="button" (click)="cambiarVista('login', $event)">Volver a iniciar sesión</button></p>
+        }
+      }
+
+      @default {
+        <p class="intro">Compra tus entradas más rápido y revisa tus compras en un solo lugar.</p>
+        @if (mensajeAuth) { <div class="aviso" [class.error]="esErrorAuth">{{ mensajeAuth }}</div> }
+        <form [formGroup]="loginForm" (ngSubmit)="iniciarSesion()" novalidate>
+          <div class="campo">
+            <label for="loginCorreo">Correo</label>
+            <input id="loginCorreo" type="email" class="form-control" formControlName="email" autocomplete="email"
+                   [class.is-invalid]="lf['email'].invalid && lf['email'].touched">
+            <div class="invalid-feedback">
+              {{ lf['email'].errors?.['required'] ? 'Escribe tu correo.' : 'Revisa el correo (ej.: nombre@correo.com).' }}
             </div>
           </div>
-        </div>
-        <div *ngIf="rf['documentNumber'].invalid && rf['documentNumber'].touched"
-            class="text-danger small mb-2 ps-1">
-          <span *ngIf="rf['documentNumber'].errors?.['required']">El documento es obligatorio.</span>
-          <span *ngIf="rf['documentNumber'].errors?.['minlength']">Mínimo 8 dígitos.</span>
-          <span *ngIf="rf['documentNumber'].errors?.['maxlength']">Máximo 12 dígitos.</span>
-        </div>
-
-        <div class="input-group mb-1 custom-input-group mt-2">
-          <input type="email" class="form-control" placeholder="CORREO ELECTRÓNICO" formControlName="email"
-                [class.is-invalid]="rf['email'].invalid && rf['email'].touched">
-        </div>
-        <div *ngIf="rf['email'].invalid && rf['email'].touched"
-            class="text-danger small mb-2 ps-1">
-          <span *ngIf="rf['email'].errors?.['required']">El correo es obligatorio.</span>
-          <span *ngIf="rf['email'].errors?.['email']">Ingresa un correo válido.</span>
-        </div>
-
-        <div class="input-group mb-1 custom-input-group mt-2">
-          <input [type]="mostrarPasswordReg ? 'text' : 'password'"
-                class="form-control" placeholder="CONTRASEÑA" formControlName="password"
-                [class.is-invalid]="rf['password'].invalid && rf['password'].touched">
-          <span class="input-group-text" style="cursor: pointer;" (click)="toggleMostrarPasswordReg()">
-            <i class="fa-regular" [ngClass]="mostrarPasswordReg ? 'fa-eye' : 'fa-eye-slash'"></i>
-          </span>
-        </div>
-        <div *ngIf="rf['password'].invalid && rf['password'].touched"
-            class="text-danger small mb-1 ps-1">
-          <span *ngIf="rf['password'].errors?.['required']">La contraseña es obligatoria.</span>
-          <span *ngIf="rf['password'].errors?.['pattern']">
-            Mínimo 8 caracteres, al menos 1 letra y 1 número.
-          </span>
-        </div>
-
-        <small class="text-start d-block text-white mb-3 mt-1 w-100 ps-1" style="font-size: 12px;">
-          <i class="fa-solid fa-circle-info me-1 text-warning"></i> Mínimo 8 caracteres, al menos 1 letra y 1 número.
-        </small>
-
-        <button type="submit" class="btn btn-login w-100 text-white fw-bold fs-5">CREAR CUENTA</button>
-      </form>
-      <div class="mt-4 text-center login-links">
-        <span class="small" style="color: #999;">¿YA TIENES CUENTA? </span>
-        <span style="cursor: pointer; color: var(--primary-color); font-weight: bold;" (click)="cambiarVista('login', $event)">INICIA SESIÓN AQUÍ</span>
-      </div>
-    </div>
-
-    <!-- RECUPERAR CONTRASEÑA -->
-    <div class="w-100" *ngIf="vistaActiva === 'recuperar'">
-      <h3 class="text-center login-title mb-4" style="color: var(--primary-color);">Recuperar Acceso</h3>
-      <p class="text-center text-secondary mb-4" style="font-size: 0.9rem;">Ingresa tu correo y te enviaremos un enlace seguro.</p>
-
-      <div *ngIf="mensajeRecuperacion" class="alert alert-{{ mensajeRecuperacion.tipo }} small py-2 d-flex align-items-center mb-3" role="alert">
-        <i class="fa-solid me-2" [ngClass]="mensajeRecuperacion.tipo === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'"></i>
-        <div>{{ mensajeRecuperacion.texto }}</div>
-      </div>
-
-      <form class="w-100" [formGroup]="recuperarForm" (ngSubmit)="solicitarRecuperacion()">
-        <div class="input-group mb-1 custom-input-group">
-          <input type="email" class="form-control"
-                placeholder="CORREO ELECTRÓNICO"
-                formControlName="correoRecuperacion"
-                [class.is-invalid]="rec['correoRecuperacion'].invalid && rec['correoRecuperacion'].touched"
-                [disabled]="loadingRecuperacion">
-          <span class="input-group-text"><i class="fa-regular fa-envelope"></i></span>
-        </div>
-        <div *ngIf="rec['correoRecuperacion'].invalid && rec['correoRecuperacion'].touched"
-            class="text-danger small mb-3 ps-1">
-          <span *ngIf="rec['correoRecuperacion'].errors?.['required']">El correo es obligatorio.</span>
-          <span *ngIf="rec['correoRecuperacion'].errors?.['email']">Ingresa un correo válido.</span>
-        </div>
-
-        <button type="submit" class="btn btn-login w-100 text-white fw-bold fs-5 mb-3 mt-4"
-                [disabled]="loadingRecuperacion">
-          <span *ngIf="!loadingRecuperacion">ENVIAR ENLACE</span>
-          <span *ngIf="loadingRecuperacion">
-            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            ENVIANDO...
-          </span>
-        </button>
-      </form>
-
-      <div class="mt-3 text-center login-links">
-        <span style="cursor: pointer; color: #999; font-weight: bold;" (click)="cambiarVista('login', $event)" *ngIf="!loadingRecuperacion">VOLVER AL LOGIN</span>
-      </div>
-    </div>
+          <div class="campo">
+            <label for="loginClave">Contraseña</label>
+            <div class="input-group has-validation">
+              <input id="loginClave" [type]="mostrarPassword ? 'text' : 'password'" class="form-control" formControlName="password"
+                     autocomplete="current-password" [class.is-invalid]="lf['password'].invalid && lf['password'].touched">
+              <button type="button" class="ver-clave" (click)="toggleMostrarPassword()"
+                      [attr.aria-label]="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                <i class="fa-regular" [class.fa-eye]="mostrarPassword" [class.fa-eye-slash]="!mostrarPassword"></i></button>
+              <div class="invalid-feedback">
+                {{ lf['password'].errors?.['required'] ? 'Escribe tu contraseña.' : 'Usa al menos 6 caracteres.' }}
+              </div>
+            </div>
+          </div>
+          <button type="button" class="olvide" (click)="cambiarVista('recuperar', $event)">¿Olvidaste tu contraseña?</button>
+          <button type="submit" class="btn-cine enviar" [disabled]="cargandoLogin">
+            {{ cargandoLogin ? 'Validando…' : 'Iniciar sesión' }}
+          </button>
+        </form>
+        <p class="cambio">¿No tienes cuenta? <button type="button" (click)="cambiarVista('registro', $event)">Regístrate</button></p>
+      }
+    }
   </div>
 </div>
