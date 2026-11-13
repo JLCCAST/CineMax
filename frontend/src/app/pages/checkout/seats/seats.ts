@@ -6,7 +6,7 @@ import { AuthService } from '../../../services/auth.service';
 import { ShowtimeService } from '../../../services/showtime.service';
 import { SeatService } from '../../../services/seat.service';
 
-declare const bootstrap: any;
+import { Offcanvas } from 'bootstrap';
 
 interface SeatCell {
   idSeat: number;
@@ -198,7 +198,7 @@ export class Seats implements OnInit {
     if (!this.authService.isLoggedIn()) {
       const offcanvasEl = document.getElementById('authOffcanvas');
       if (offcanvasEl) {
-        const offcanvas = new bootstrap.Offcanvas(offcanvasEl);
+        const offcanvas = Offcanvas.getOrCreateInstance(offcanvasEl);
         offcanvas.show();
       }
       return;
