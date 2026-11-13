@@ -1,17 +1,47 @@
+/* Tokens de diseño. Las páginas usan estas variables en vez de colores escritos a mano. */
 :root {
-    /* Colores Principales */
-    --primary-color: #b25fce;      /* morado principal */
-    --primary-dark: #5a189a;       /* morado más fuerte */
-    --secondary-color: #cabedf;    /* morado claro */
+    /* Marca: el violeta y el lavanda del logo */
+    --brand: #8b5cf6;
+    --brand-strong: #6d28d9;
+    --brand-soft: rgba(139, 92, 246, 0.16);
+    --brand-light: #c4b5fd;
+    --accent: #f5c451;            /* destacados: promociones, precios */
 
-    /* Fondo */
-    --background-color: #131313;   /* negro suave */
-    --surface-color: #434242c3;      /* gris oscuro */
-    --white: #ffffff;
+    /* Superficies */
+    --bg: #0b0a10;
+    --surface: #15131d;
+    --surface-2: #1e1b29;
+    --border: rgba(255, 255, 255, 0.08);
 
     /* Texto */
-    --text-light: #ffffff;
+    --text: #f5f3fa;
+    --text-muted: #a9a3b8;
     --text-dark: #121212;
+
+    /* Estados */
+    --success: #22c55e;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+
+    /* Forma */
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+    --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.45);
+
+    /* Tipografía */
+    --font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display: 'Outfit Variable', 'Inter Variable', system-ui, sans-serif;
+
+    /* Nombres anteriores: las páginas que aún no se rediseñan siguen funcionando. */
+    --primary-color: var(--brand-light);
+    --primary-dark: var(--brand-strong);
+    --secondary-color: #ddd6fe;
+    --background-color: var(--bg);
+    --surface-color: var(--surface-2);
+    --white: #ffffff;
+    --text-light: var(--text);
 }
 
 *, *::before, *::after {
@@ -23,7 +53,154 @@ html {
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-light);
+    font-family: var(--font-body);
+    background-color: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+}
+
+/* Botones de la marca, para usar en cualquier página. */
+.btn-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    border: none;
+    border-radius: 999px;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.btn-brand:hover:not(:disabled) {
+    background: var(--brand-strong);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.btn-brand:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: var(--text);
+}
+
+/* Título de sección con el subrayado de la marca. */
+.section-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+    margin: 0;
+}
+
+.section-title::after {
+    content: '';
+    display: block;
+    width: 48px;
+    height: 4px;
+    margin-top: 0.5rem;
+    border-radius: 2px;
+    background: var(--brand);
+}
+
+:focus-visible {
+    outline: 2px solid var(--brand-light);
+    outline-offset: 2px;
+}
+
+/* Piezas comunes: etiquetas, clasificación, chips de selección y enlaces. */
+.etiqueta {
+    display: inline-block;
+    padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+    background: var(--brand-soft);
+    border: 1px solid rgba(139, 92, 246, 0.45);
+    color: var(--brand-light);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.clasificacion {
+    padding: 0.1rem 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.45rem;
+}
+
+.chip {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-weight: 600;
+    text-transform: capitalize;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.chip small {
+    margin-left: 0.25rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: none;
+}
+
+.chip:hover {
+    border-color: rgba(139, 92, 246, 0.6);
+}
+
+.chip.activo {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+}
+
+.vacio {
+    margin: 0;
+    color: var(--text-muted);
+}
+
+.enlace {
+    color: var(--brand-light);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.enlace:hover {
+    color: #fff;
 }

@@ -28,6 +28,8 @@
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/@fontsource-variable/inter/index.css",
+              "node_modules/@fontsource-variable/outfit/index.css",
               "src/styles.css"
             ],
             "scripts": [

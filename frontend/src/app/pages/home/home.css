@@ -1,348 +1,547 @@
-/* Control de pantallas */
-
-.screen { 
-    display: none; width: 100%; 
-}
-.screen.active { 
-    display: block; 
-}
-
-/* Cabecera (Navbar) */
-
-.bg-dark-custom { 
-    background-color: var(--background-color) 
+/* ── Portada destacada ─────────────────────────────────────────────────── */
+.hero {
+    position: relative;
+    min-height: 560px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: radial-gradient(circle at 70% 30%, #2a1452 0%, var(--bg) 60%);
 }
 
-.border-bottom-custom { 
-    border-bottom: 0.2rem solid var(--surface-color); 
+/* Sin póster: la imagen de la portada; si falta, queda el degradado de .hero. */
+.hero-fondo {
+    position: absolute;
+    inset: 0;
+    background: url('/Imagenes/Portada/hero.jpg') center / cover no-repeat;
+    opacity: 0.55;
 }
 
-.logo {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--secondary-color);
+.hero-fondo.difuminado {
+    background-position: center;
+    background-size: cover;
+    filter: blur(32px) saturate(1.2);
+    transform: scale(1.15);
+    opacity: 0.5;
 }
 
-.b-header {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: var(--text-light);
-    transition: color 0.3s;
+.hero-velo {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(90deg, var(--bg) 0%, rgba(11, 10, 16, 0.85) 40%, rgba(11, 10, 16, 0.35) 100%),
+        linear-gradient(0deg, var(--bg) 0%, transparent 35%);
 }
 
-.b-header:hover { 
-    color: var(--secondary-color); 
-}
-
-.b-perfil {
-    width: 2.8rem;
-    height: 2.8rem;
-    border-radius: 0.8rem;
-    filter: brightness(0) invert(1);
-    transition: 0.3s;
-}
-
-.b-perfil:hover {
-    transform: scale(1.1);
-    border: 2px solid var(--primary-color);
-    filter: invert(92%) sepia(10%) saturate(836%) hue-rotate(215deg) brightness(101%) contrast(97%);
-}
-
-/* Carrusel de banners */
-
-.carousel-inner {
-    border: 2px solid var(--primary-color);
-    height: 500px;
-    border-radius: 15px;
-    height: 420px
-}
-
-.carousel-item img {
-    height: 500px;
-    width: 100%;
-    object-fit: cover;
-    object-position: center;
-    height: 420px
-}
-
-/* Láminas de películas en el carrusel */
-.slide-pelicula {
-    height: 420px;
+.hero-contenido {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 2.5rem;
-    padding: 2rem 5rem;
-    background: linear-gradient(120deg, #2a1145 0%, #0d0618 100%);
-    color: white;
+    justify-content: space-between;
+    gap: 3rem;
+    padding-top: 3.5rem;
+    padding-bottom: 5.5rem;
 }
 
-.carousel-item img.slide-poster {
-    height: 340px;
-    width: auto;
-    aspect-ratio: 2 / 3;
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+.hero-texto {
+    max-width: 600px;
 }
 
-.slide-texto {
-    max-width: 560px;
-}
-
-.slide-texto p {
-    color: rgba(255, 255, 255, 0.75);
-}
-
-.slide-etiqueta {
-    display: inline-block;
-    margin-bottom: 0.75rem;
-    padding: 0.2rem 0.8rem;
-    border-radius: 999px;
-    background-color: var(--primary-dark);
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
-@media (max-width: 768px) {
-    .slide-pelicula {
-        gap: 1.25rem;
-        padding: 1.5rem;
-    }
-
-    .carousel-item img.slide-poster {
-        height: 220px;
-    }
-}
-
-/* Caja de filtros */
-
-.filtro {
-    background-color: var(--background-color);
-    border-radius: 12px;
-    border: 1px solid var(--surface-color);
-    overflow: hidden;
-}
-
-.label-filtro {
-    display: block;
-    font-size: 1.1rem;
+.hero-titulo {
+    margin: 1rem 0 0.75rem;
+    font-size: clamp(2.4rem, 5.5vw, 4.2rem);
     font-weight: 800;
-    color: var(--primary-color);
-    margin-bottom: 0;
-    padding-left: 0.8rem;
+    line-height: 1.02;
 }
 
-.select-minimal {
-    border: none;
-    background-color: transparent;
-    font-size: 1.4rem;
-    color: #b0b0b0;
-    box-shadow: none;
-    font-size: 1.2rem;  
+.hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.95rem;
 }
 
-.border-end-custom { 
-    border-right: 1px solid var(--surface-color); 
-}
-
-.btn-filtrar-redondeado {
-    background-color: var(--secondary-color);
-    color: var(--text-dark);
-    border-radius: 50px;
-    padding: 0.6rem 2rem;
-    font-weight: bold;
-    border: none;
-    transition: 0.3s;
-    font-size: 1.2rem
-}
-
-.btn-filtrar-redondeado:hover {
-    background-color: var(--primary-color);
-    color: var(--text-light);
-    transform: scale(1.05);
-}
-
-/* Cartelera (Mosaico) */
-
-.border-bottom-purple { 
-    border-bottom: 1px solid var(--surface-color); 
-}
-
-.poster-container {
-    position: relative;
-    border-radius: 8px;
+.hero-sinopsis {
+    margin: 1rem 0 1.75rem;
+    color: #d6d1e2;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    background-color: var(--surface-color);
-    transition: all 0.3s ease;
-    min-height: 250px; 
 }
 
-.img-mosaico {
-    width: 100%;
-    height: 100%;
+.hero-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.hero-poster {
+    flex-shrink: 0;
+    width: 270px;
+    aspect-ratio: 2 / 3;
     object-fit: cover;
-    display: block;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg), 0 0 0 1px var(--border);
 }
 
-/* Título sobre el póster genérico, cuando la película aún no tiene imagen. */
-.titulo-mosaico {
+.hero-puntos {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
-    padding: 1rem;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
-    color: white;
+    bottom: 4.25rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.hero-puntos button {
+    width: 28px;
+    height: 5px;
+    padding: 0;
+    border: none;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.25);
+    transition: background-color 0.3s, width 0.3s;
+}
+
+.hero-puntos button.activo {
+    width: 48px;
+    background: var(--brand);
+}
+
+/* ── Compra rápida ─────────────────────────────────────────────────────── */
+.compra-rapida {
+    position: relative;
+    margin-top: -3rem;
+    padding: 1.5rem 1.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: rgba(21, 19, 29, 0.92);
+    backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-lg);
+}
+
+.compra-titulo {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+}
+
+.compra-titulo > i {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--brand-soft);
+    color: var(--brand-light);
+}
+
+.compra-titulo h2 {
+    margin: 0;
+    font-size: 1.25rem;
     font-weight: 700;
-    font-size: 1.3rem;
 }
 
-.badge-estreno {
-    position: absolute;
-    top: 15px;
-    left: -35px;
-    background-color: var(--primary-dark);
-    color: white;
-    padding: 5px 40px;
-    transform: rotate(-45deg);
-    font-size: 1.1rem;
-    font-weight: bold;
-    z-index: 2;
+.compra-titulo p {
+    margin: 0.15rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
 }
 
-.ver-mas-card {
-    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-dark) 100%);
-    border-radius: 8px;
-    transition: 0.3s;
+.compra-campos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
 }
 
-.poster-container:hover, .ver-mas-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 10px 25px var(--primary-dark);
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
 }
 
-/* Carrusel Promos */
-
-.img-promo {
-    height: 250px;
-    object-fit: cover;
-    border-radius: 15px;
+.campo span,
+.paso-titulo {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
-/* Pie de pagina */
-
-.footer-cine {
-    background-color: var(--surface-color);
-    color: var(--text-light);
-    margin-top: 5rem;
-    padding: 2rem 0;
+.campo select {
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--text);
+    font: inherit;
 }
 
-.footer-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
+.campo select:disabled {
+    opacity: 0.5;
 }
 
-.footer-links a {
-    color: #b0b0b0;
+.compra-paso {
+    margin-top: 1.1rem;
+}
+
+.compra-final {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1.25rem;
+}
+
+/* ── Secciones ─────────────────────────────────────────────────────────── */
+.seccion {
+    margin-top: 4.5rem;
+}
+
+.seccion-final {
+    margin-bottom: 4.5rem;
+}
+
+.seccion-cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+}
+
+.seccion-nota {
+    margin: 0;
+    color: var(--text-muted);
+}
+
+.pestanas {
+    display: flex;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+}
+
+.pestanas button {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 0.5rem 1.1rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.pestanas button.activa {
+    background: var(--brand);
+    color: #fff;
+}
+
+/* ── Películas ─────────────────────────────────────────────────────────── */
+.grilla-peliculas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 1.75rem 1.25rem;
+}
+
+.pelicula {
+    color: var(--text);
     text-decoration: none;
-    transition: 0.3s;
+}
+
+.pelicula-poster {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    aspect-ratio: 2 / 3;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.pelicula-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s;
+}
+
+.pelicula-poster .clasificacion {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.etiqueta-poster {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+}
+
+.pelicula-cta {
+    position: absolute;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    padding: 0.6rem;
+    border-radius: 999px;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 600;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.25s, transform 0.25s;
+}
+
+.pelicula:hover .pelicula-poster img,
+.pelicula:focus-visible .pelicula-poster img {
+    transform: scale(1.05);
+}
+
+.pelicula:hover .pelicula-cta,
+.pelicula:focus-visible .pelicula-cta {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.pelicula h3 {
+    margin: 0.8rem 0 0.2rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.pelicula p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+}
+
+/* ── Promociones ───────────────────────────────────────────────────────── */
+.grilla-promos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+.promo {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    transition: transform 0.25s, border-color 0.25s;
+}
+
+.promo:hover {
+    transform: translateY(-4px);
+    border-color: rgba(139, 92, 246, 0.4);
+}
+
+/* Si la imagen no existe, queda el degradado con el ícono. */
+.promo-media,
+.confiteria-media,
+.sede-media {
+    position: relative;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: linear-gradient(135deg, #3b1d78 0%, #1b1430 100%);
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.promo-media {
+    aspect-ratio: 16 / 9;
+    font-size: 2.6rem;
+}
+
+.promo-media[data-alcance='CONFITERIA'] {
+    background: linear-gradient(135deg, #7a3e12 0%, #2a1610 100%);
+}
+
+.promo-media[data-alcance='TODO'] {
+    background: linear-gradient(135deg, #1d4f6e 0%, #121a2c 100%);
+}
+
+.promo-media img,
+.confiteria-media img,
+.sede-media img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.promo-cuerpo {
+    padding: 1.1rem 1.25rem 1.3rem;
+}
+
+.promo-cuerpo h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.promo-cuerpo p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.93rem;
+    line-height: 1.5;
+}
+
+.codigo {
+    display: inline-block;
+    margin-top: 0.85rem;
+    padding: 0.3rem 0.75rem;
+    border: 1px dashed var(--accent);
+    border-radius: var(--radius-sm);
+    color: var(--accent);
+    font-size: 0.85rem;
+}
+
+/* ── Confitería ────────────────────────────────────────────────────────── */
+.confiteria {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+}
+
+.confiteria-media {
+    min-height: 300px;
+    font-size: 4rem;
+    background: linear-gradient(135deg, #7a3e12 0%, #2a1610 100%);
+}
+
+.confiteria-texto {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.9rem;
+    padding: 2.5rem;
+}
+
+.confiteria-texto h2 {
+    margin: 0;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 800;
+}
+
+.confiteria-texto p {
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+/* ── Sedes ─────────────────────────────────────────────────────────────── */
+.grilla-sedes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+}
+
+.sede {
+    display: flex;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+}
+
+.sede-media {
+    flex: 0 0 120px;
+    font-size: 2rem;
+}
+
+.sede-cuerpo {
+    padding: 1.1rem 1.25rem;
+}
+
+.sede-cuerpo h3 {
+    margin: 0 0 0.3rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.sede-cuerpo p {
+    margin: 0 0 0.75rem;
+    color: var(--text-muted);
     font-size: 0.9rem;
 }
 
-.footer-links a:hover { 
-    color: var(--primary-color); padding-left: 5px; 
-}
+/* ── Celular ───────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .hero {
+        min-height: 0;
+    }
 
-.social-icon {
-    width: 40px;
-    height: 40px;
-    background-color: var(--background-color);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    transition: 0.3s;
-}
-.social-icon:hover { 
-    background-color: var(--primary-color); 
-}
+    .hero-contenido {
+        flex-direction: column-reverse;
+        align-items: flex-start;
+        gap: 1.5rem;
+        padding-top: 2rem;
+        padding-bottom: 5rem;
+    }
 
-.app-badge { 
-    height: 38px; 
-    border-radius: 6px; 
-}
+    .hero-poster {
+        width: 120px;
+    }
 
-.border-top-purple { 
-    border-top: 2px solid var(--primary-dark); 
-}
+    .hero-acciones a {
+        padding: 0.6rem 1.1rem;
+        font-size: 0.95rem;
+    }
 
-.legal-link { 
-    color: white; 
-    text-decoration: none; 
-    font-size: 0.9rem; 
-}
+    .hero-puntos {
+        bottom: 3.5rem;
+    }
 
-.legal-link:hover { 
-    color: var(--primary-color); 
-}
+    .compra-rapida {
+        padding: 1.25rem;
+    }
 
-/* ESTILOS DEL PANEL DE LOGIN */
-.login-panel {
-  background-color: #242424; /* Fondo gris oscuro */
-  border-left: 1px solid var(--surface-color);
-  width: 400px; /* Ancho del panel */
-}
+    .compra-campos {
+        grid-template-columns: 1fr;
+    }
 
-.login-logo {
-  max-width: 180px;
-}
+    .compra-final .btn-brand {
+        width: 100%;
+        justify-content: center;
+    }
 
-.custom-input-group {
-  border: 1px solid #555;
-  border-radius: 8px;
-  overflow: hidden;
-  background-color: #242424;
-}
+    .grilla-peliculas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.25rem 0.9rem;
+    }
 
-.custom-input-group .form-control {
-  background-color: transparent;
-  border: none;
-  color: white;
-  padding: 14px 15px;
-  font-size: 0.9rem;
-}
+    .confiteria {
+        grid-template-columns: 1fr;
+    }
 
-.custom-input-group .form-control::placeholder {
-  color: #888;
-}
+    .confiteria-media {
+        min-height: 200px;
+    }
 
-.custom-input-group .form-control:focus {
-  box-shadow: none;
-  background-color: transparent;
-}
+    .confiteria-texto {
+        padding: 1.75rem;
+    }
 
-.custom-input-group .input-group-text {
-  background-color: transparent;
-  border: none;
-  color: white;
-}
-
-.btn-login {
-  background-color: #9b59b6; /* Tu morado */
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  transition: 0.3s;
-}
-
-.btn-login:hover {
-  background-color: #8e44ad;
-}
-
-.login-links {
-  font-size: 0.85rem;
+    .seccion {
+        margin-top: 3rem;
+    }
 }
