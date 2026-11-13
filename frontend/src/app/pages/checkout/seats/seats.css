@@ -121,3 +121,32 @@
     color: var(--ink-muted);
     font-size: 0.85rem;
 }
+
+@media (max-width: 576px) {
+    .sala {
+        padding: 1.25rem 0.75rem;
+    }
+
+    .fila {
+        gap: 0.35rem;
+    }
+
+    .butacas {
+        gap: 0.2rem;
+    }
+
+    .butaca,
+    .pasillo {
+        width: 24px;
+    }
+
+    .butaca {
+        height: 23px;
+        font-size: 0.6rem;
+    }
+
+    .fila-letra {
+        width: 0.9rem;
+        font-size: 0.8rem;
+    }
+}
