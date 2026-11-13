@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.Min;
@@ -19,6 +20,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "showtimes")
+// Las búsquedas de la cartelera: por película, por sede y por sala, siempre con la fecha.
+@CompoundIndex(name = "pelicula_fecha", def = "{'movieId': 1, 'showDate': 1}")
+@CompoundIndex(name = "sede_fecha", def = "{'idVenue': 1, 'showDate': 1}")
+@CompoundIndex(name = "sala_fecha", def = "{'idRoom': 1, 'showDate': 1}")
 public class Showtime {
 
     @Id
@@ -36,6 +41,10 @@ public class Showtime {
     private BigDecimal baseTicketPrice;
 
     private Integer availableSeats;
+
+    // Butacas vendidas (sube con cada venta y baja si se devuelve). Las ventas viven en
+    // facturación; este contador basta para saber si la función ya vendió entradas.
+    private Integer soldSeats;
 
     @Builder.Default
     @Pattern(regexp = "Programada|En Curso|Finalizada|Cancelada", message = "El estado debe ser: Programada, En Curso, Finalizada o Cancelada")

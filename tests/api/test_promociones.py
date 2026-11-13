@@ -10,7 +10,7 @@ from datetime import date, timedelta
 import httpx
 import pytest
 
-from support import MISSING_MONGO_ID, unique
+from support import MISSING_MONGO_ID, retirar_funcion, unique
 
 FIN_DE_VIGENCIA = date(2027, 12, 31)  # de las promociones semilla (V7)
 SALA = 2
@@ -31,7 +31,7 @@ def funciones(api, staff_headers, movies):
     if pelicula is None:
         pytest.skip("Falta Interestelar en el seed de MongoDB.")
 
-    creadas = {}
+    creadas, respuestas = {}, []
     for nombre, fecha, hora in [
         ("miercoles", _proximo(3), "19:00:00"),
         ("martes", _proximo(2), "20:00:00"),
@@ -50,11 +50,12 @@ def funciones(api, staff_headers, movies):
         })
         assert response.status_code == 201, response.text
         creadas[nombre] = response.json()["idShowtime"]
+        respuestas.append(response.json())
 
     yield creadas
 
-    for id_showtime in creadas.values():
-        api.delete(f"/showtimes/{id_showtime}", headers=staff_headers)
+    for funcion in respuestas:
+        retirar_funcion(api, staff_headers, funcion)
 
 
 def _preview(api: httpx.Client, id_showtime: str, tickets: dict, snacks: dict | None = None,

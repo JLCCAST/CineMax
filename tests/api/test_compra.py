@@ -5,7 +5,7 @@ from datetime import date, timedelta
 import httpx
 import pytest
 
-from support import MISSING_MONGO_ID
+from support import MISSING_MONGO_ID, retirar_funcion
 
 # Capacidad de cada sala en el seed de sucursales.
 ROOM_CAPACITY = {1: 80, 2: 60, 3: 40, 4: 100, 5: 70, 6: 30}
@@ -56,29 +56,18 @@ def showtime(api, staff_headers, movies) -> dict:
     assert response.status_code == 201, response.text
     created = response.json()
     yield created
-    api.delete(f"/showtimes/{created['idShowtime']}", headers=staff_headers)
+    retirar_funcion(api, staff_headers, created)
 
 
-def test_no_se_vende_una_funcion_que_ya_empezo(api, client_headers, staff_headers, movies):
-    ayer = api.post("/showtimes", headers=staff_headers, json={
+def test_no_se_crea_una_funcion_en_el_pasado(api, staff_headers, movies):
+    """Que no se venda una función que ya empezó lo prueba CotizacionServiceTest."""
+    response = api.post("/showtimes", headers=staff_headers, json={
         "showDate": (date.today() - timedelta(days=1)).isoformat(),
-        "startTime": "20:00:00",
-        "endTime": "22:00:00",
-        "languageFormat": "Doblada",
-        "baseTicketPrice": 20,
-        "status": "Programada",
-        "movieId": movies[0]["idMovie"],
-        "idRoom": 1,
+        "startTime": "20:00:00", "endTime": "22:00:00", "languageFormat": "Doblada",
+        "baseTicketPrice": 20, "status": "Programada", "movieId": movies[0]["idMovie"], "idRoom": 1,
     })
-    assert ayer.status_code == 201, ayer.text
-    funcion = ayer.json()
-    try:
-        seat = _free_seat(api, funcion)
-        response = api.post("/sale-transactions", headers=client_headers, json=_purchase_body(funcion, seat["idSeat"]))
-        assert response.status_code == 400
-        assert "ya empezó" in response.text
-    finally:
-        api.delete(f"/showtimes/{funcion['idShowtime']}", headers=staff_headers)
+    assert response.status_code == 400
+    assert "futuras" in response.json()["message"]
 
 
 @pytest.fixture(scope="module")
@@ -217,21 +206,35 @@ def test_mis_compras_muestra_pelicula_sala_butaca_y_snacks(api, client_headers, 
     assert item["snacks"] == ["2x Gaseosa Grande"]
 
 
-def test_el_historial_no_cambia_si_se_borra_la_funcion(api, client_headers, staff_headers, movies):
-    funcion = api.post("/showtimes", headers=staff_headers, json={
+def test_una_funcion_con_entradas_vendidas_no_se_borra_ni_cambia_de_sala(
+        api, client_headers, staff_headers, movies):
+    datos = {
         "showDate": (date.today() + timedelta(days=11)).isoformat(),
         "startTime": "19:00:00", "endTime": "21:00:00", "languageFormat": "Doblada",
         "baseTicketPrice": 20, "status": "Programada", "movieId": movies[0]["idMovie"], "idRoom": 1,
-    }).json()
+    }
+    funcion = api.post("/showtimes", headers=staff_headers, json=datos).json()
     compra = api.post("/sale-transactions", headers=client_headers,
                       json=_purchase_body(funcion, _free_seat(api, funcion)["idSeat"]))
     assert compra.status_code == 200, compra.text
-    api.delete(f"/showtimes/{funcion['idShowtime']}", headers=staff_headers)
+    try:
+        borrar = api.delete(f"/showtimes/{funcion['idShowtime']}", headers=staff_headers)
+        assert borrar.status_code == 409
+        assert "Cancelada" in borrar.json()["message"]
 
-    historial = api.get("/sale-transactions/my-purchases", headers=client_headers).json()
-    item = next(h for h in historial if h["idTransaction"] == compra.json()["idTransaction"])
-    assert item["movieTitle"] == funcion["movieTitle"]
-    assert item["time"] == "19:00"
+        mover = api.put(f"/showtimes/{funcion['idShowtime']}", headers=staff_headers, json={**datos, "idRoom": 2})
+        assert mover.status_code == 409
+
+        # Cambiar la hora sí se puede, y el historial conserva la de la compra.
+        cambio = api.put(f"/showtimes/{funcion['idShowtime']}", headers=staff_headers,
+                         json={**datos, "startTime": "20:30:00", "endTime": "22:30:00"})
+        assert cambio.status_code == 200, cambio.text
+        historial = api.get("/sale-transactions/my-purchases", headers=client_headers).json()
+        item = next(h for h in historial if h["idTransaction"] == compra.json()["idTransaction"])
+        assert item["movieTitle"] == funcion["movieTitle"]
+        assert item["time"] == "19:00"
+    finally:
+        retirar_funcion(api, staff_headers, funcion)
 
 
 # ---- pedido solo de confitería -------------------------------------------------
