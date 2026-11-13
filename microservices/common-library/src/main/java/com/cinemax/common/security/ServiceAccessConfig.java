@@ -6,13 +6,6 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Registra el control de acceso entre servicios.
- *
- * Los servicios que escanean {@code com.cinemax} lo cargan solos. Un servicio
- * que no lo haga (auth-service) debe importarlo con
- * {@code @Import(ServiceAccessConfig.class)}.
- */
 @Configuration
 public class ServiceAccessConfig {
 
@@ -38,6 +31,12 @@ public class ServiceAccessConfig {
         public InternalTokenFeignInterceptor internalTokenFeignInterceptor(
                 @Value("${cinemax.security.internal-token:}") String internalToken) {
             return new InternalTokenFeignInterceptor(internalToken);
+        }
+
+        // Los tiempos máximos de cada llamada están en application.yml (config-server).
+        @Bean
+        public feign.Retryer reintentoDeLecturas() {
+            return new ReintentoDeLecturas();
         }
     }
 }

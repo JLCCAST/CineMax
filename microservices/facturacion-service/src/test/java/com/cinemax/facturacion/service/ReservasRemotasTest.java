@@ -1,6 +1,7 @@
 package com.cinemax.facturacion.service;
 
 import com.cinemax.facturacion.client.CarteleraClient;
+import com.cinemax.facturacion.client.Circuitos;
 import com.cinemax.facturacion.client.ConfiteriaClient;
 import com.cinemax.facturacion.dto.external.MovimientoStockDTO;
 import com.cinemax.facturacion.promociones.CotizacionService.LineaSnack;
@@ -39,7 +40,7 @@ class ReservasRemotasTest {
 
     private final CarteleraClient cartelera = mock(CarteleraClient.class);
     private final ConfiteriaClient confiteria = mock(ConfiteriaClient.class);
-    private final ReservasRemotas reservas = new ReservasRemotas(cartelera, confiteria);
+    private final ReservasRemotas reservas = new ReservasRemotas(cartelera, confiteria, new Circuitos());
 
     @BeforeEach
     void abrirTransaccion() {
