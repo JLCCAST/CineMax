@@ -74,6 +74,12 @@ public class PromotionAdminDTO {
     @Pattern(regexp = "Activo|Inactivo", message = "El estado debe ser Activo o Inactivo")
     private String status;
 
+    @Size(max = 300, message = "La descripción admite hasta 300 caracteres")
+    private String description;
+
+    @Size(max = 250, message = "La ruta de la imagen admite hasta 250 caracteres")
+    private String imageUrlPromotion;
+
     public static PromotionAdminDTO from(Promotion p) {
         PromotionAdminDTO dto = new PromotionAdminDTO();
         dto.setIdPromotion(p.getIdPromotion());
@@ -97,6 +103,8 @@ public class PromotionAdminDTO {
         dto.setAppliesTo(p.getAppliesTo());
         dto.setPriority(p.getPriority());
         dto.setStatus(p.getStatus());
+        dto.setDescription(p.getDescription());
+        dto.setImageUrlPromotion(p.getImageUrlPromotion());
         return dto;
     }
 }

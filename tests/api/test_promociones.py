@@ -243,3 +243,26 @@ def test_promociones_invalidas_se_rechazan(api, staff_headers, cambios):
 
 def test_promocion_inexistente_responde_404(api, staff_headers):
     assert api.get("/promotions/999999", headers=staff_headers).status_code == 404
+
+
+# ---- Portada --------------------------------------------------------------------
+
+def test_las_promociones_vigentes_son_publicas_y_traen_texto_e_imagen(api):
+    response = api.get("/promotions/vigentes")
+    assert response.status_code == 200
+    vigentes = {p["namePromotion"]: p for p in response.json()}
+    assert {"Miércoles de cine", "Martes 2x1", "Matiné", "Combo + película",
+            "Cumpleañero", "Cupón de la app"} <= set(vigentes)
+    miercoles = vigentes["Miércoles de cine"]
+    assert "50 %" in miercoles["description"]
+    assert miercoles["imageUrl"] == "Imagenes/Promos/miercoles-de-cine.jpg"
+    assert vigentes["Cupón de la app"]["promotionCode"] == "APP10"
+    # Sin reglas internas: la portada no necesita límites ni porcentajes.
+    assert "maxUsesPerUser" not in miercoles and "discountPercentage" not in miercoles
+
+
+def test_una_promocion_inactiva_no_sale_en_la_portada(api, staff_headers):
+    nombre = unique("oculta")
+    creada = api.post("/promotions", headers=staff_headers, json=_nueva_promocion(namePromotion=nombre))
+    assert creada.status_code == 201, creada.text
+    assert nombre not in {p["namePromotion"] for p in api.get("/promotions/vigentes").json()}

@@ -5,6 +5,7 @@ import com.cinemax.facturacion.dto.external.UserDTO;
 import com.cinemax.facturacion.dto.request.CotizacionRequestDTO;
 import com.cinemax.facturacion.dto.request.PromotionAdminDTO;
 import com.cinemax.facturacion.dto.response.CotizacionResponseDTO;
+import com.cinemax.facturacion.dto.response.PromocionPublicaDTO;
 import com.cinemax.facturacion.promociones.CotizacionService;
 import com.cinemax.facturacion.promociones.CotizacionService.EntradaPedida;
 import com.cinemax.facturacion.promociones.CotizacionService.SnackPedido;
@@ -44,6 +45,12 @@ public class PromotionController {
         return ResponseEntity.ok(CotizacionResponseDTO.from(cotizacionService.cotizar(
                 request.getIdShowtime(), request.getIdVenue(), entradas, snacks, request.getPromotionCode(),
                 clienteConSesion())));
+    }
+
+    // Público: las promociones de la portada.
+    @GetMapping("/vigentes")
+    public ResponseEntity<List<PromocionPublicaDTO>> vigentes() {
+        return ResponseEntity.ok(promotionAdminService.vigentes());
     }
 
     // ---- Gestión (admin) -----------------------------------------------------

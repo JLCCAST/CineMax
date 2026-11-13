@@ -34,6 +34,7 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/availability/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/promotions/preview").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/promotions/vigentes").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

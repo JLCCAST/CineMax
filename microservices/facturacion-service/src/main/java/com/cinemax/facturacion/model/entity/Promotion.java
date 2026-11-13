@@ -83,6 +83,10 @@ public class Promotion {
     @Column(name = "image_url_promotion", length = 250)
     private String imageUrlPromotion;
 
+    // Texto que ve el cliente en la portada.
+    @Column(name = "description", length = 300)
+    private String description;
+
     // ---- Condiciones y alcance de las promociones automáticas ----
 
     @Builder.Default

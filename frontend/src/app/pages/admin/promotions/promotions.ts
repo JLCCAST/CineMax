@@ -167,7 +167,8 @@ export class AdminPromotions implements OnInit {
       minimumPurchaseAmount: 0, minimumTicketQuantity: 1,
       startDate: hoy, endDate: hoy, dayOfWeek: null, startTimeFrom: null, startTimeTo: null,
       excludePremiereMovies: false, requiredSnackCategoryId: null, customerCondition: null,
-      maxUsesPerUser: null, appliesTo: 'ENTRADAS', priority: 0, status: 'Activo'
+      maxUsesPerUser: null, appliesTo: 'ENTRADAS', priority: 0, status: 'Activo',
+      description: null, imageUrlPromotion: null
     };
   }
 }

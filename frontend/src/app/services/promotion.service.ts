@@ -25,6 +25,9 @@ export interface Promotion {
   appliesTo: 'ENTRADAS' | 'CONFITERIA' | 'TODO';
   priority: number;
   status: 'Activo' | 'Inactivo';
+  // Lo que ve el cliente en la portada.
+  description: string | null;
+  imageUrlPromotion: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
