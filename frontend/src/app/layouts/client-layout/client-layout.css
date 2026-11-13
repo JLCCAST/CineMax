@@ -1,24 +1,47 @@
 
-   .bg-dark-custom { 
-    background-color: var(--background-color); 
+   .cabecera {
+    background-color: var(--header-bg);
+    border-bottom: 1px solid #222;
 }
-.border-bottom-custom { 
-    border-bottom: 0.2rem solid var(--surface-color); 
+
+.enlace-cabecera {
+    padding: 0.4rem 0.15rem !important;
+    border-bottom: 2px solid transparent;
+    color: #e6e6ea !important;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
-.logo {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--secondary-color);
+
+.enlace-cabecera:hover,
+.enlace-cabecera.activo {
+    color: #fff !important;
+    border-bottom-color: var(--brand);
 }
-.b-header {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: var(--text-light);
-    transition: color 0.3s;
+
+.selector-cine {
+    display: flex;
+    gap: 0.5rem;
 }
-.b-header:hover { 
-    color: var(--secondary-color); 
+
+.selector-cine select {
+    min-width: 210px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #3a3a40;
+    border-radius: var(--radius);
+    background-color: #18181b;
+    color: #fff;
+    font-size: 0.9rem;
 }
+
+@media (max-width: 991px) {
+    .selector-cine select {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
 .b-perfil {
     width: 2.8rem;
     height: 2.8rem;
@@ -36,7 +59,8 @@
    2. FOOTER (PIE DE PÁGINA)
    ========================================= */
 .footer-cine {
-    background-color: var(--surface-color);
+    background-color: var(--header-bg);
+    border-top: 1px solid #222;
     color: var(--text-light);
     margin-top: 5rem;
     padding: 2rem 0;

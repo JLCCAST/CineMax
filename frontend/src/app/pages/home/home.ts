@@ -126,6 +126,11 @@ export class Home implements OnInit, OnDestroy {
     clearInterval(this.rotacion);
   }
 
+  anteriorDestacada(): void {
+    const total = this.destacadas().length;
+    if (total > 1) this.irADestacada((this.indiceDestacada() - 1 + total) % total);
+  }
+
   siguienteDestacada(): void {
     const total = this.destacadas().length;
     if (total > 1) this.indiceDestacada.set((this.indiceDestacada() + 1) % total);
@@ -184,7 +189,8 @@ export class Home implements OnInit, OnDestroy {
     const diferencia = Math.round((dia.getTime() - hoy.getTime()) / 86_400_000);
     if (diferencia === 0) return 'Hoy';
     if (diferencia === 1) return 'Mañana';
-    return dia.toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric' });
+    const texto = dia.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'short' });
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
   }
 
   ocultarImagen(evento: Event): void {

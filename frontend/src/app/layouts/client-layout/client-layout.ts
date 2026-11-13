@@ -7,6 +7,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
 import { finalize, delay } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-client-layout',
@@ -24,6 +26,10 @@ export class ClientLayout implements OnInit {
   recuperarForm!: FormGroup;
 
   isLogged: boolean = false;
+
+  // Selector de cine de la cabecera; se recuerda entre visitas.
+  cines: { idVenue: number; nameVenue: string }[] = [];
+  cineElegido: number | null = Number(localStorage.getItem('cinemax_cine')) || null;
   userEmail: string = '';
   menuAbierto: boolean = false;
   vistaActiva: string = 'login';
@@ -49,6 +55,7 @@ export class ClientLayout implements OnInit {
     private authService: AuthService,
     private userService: UserService,
     private router: Router,
+    private http: HttpClient,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
   ) {}
@@ -74,6 +81,11 @@ export class ClientLayout implements OnInit {
     });
 
     this.verificarSesion();
+
+    this.http.get<{ idVenue: number; nameVenue: string }[]>(`${environment.apiUrl}/venues/public`).subscribe({
+      next: cines => { this.cines = cines; this.cdr.detectChanges(); },
+      error: () => this.cines = []
+    });
 
     // ?sesion=requerida (lo pone authGuard) o ?sesion=vencida (lo pone el admin).
     this.route.queryParamMap.subscribe(params => {
@@ -237,6 +249,16 @@ export class ClientLayout implements OnInit {
       this.cargarDatosUsuario();
     }
     this.cdr.detectChanges();
+  }
+
+  elegirCine(valor: string) {
+    this.cineElegido = Number(valor) || null;
+    if (this.cineElegido) localStorage.setItem('cinemax_cine', String(this.cineElegido));
+    else localStorage.removeItem('cinemax_cine');
+  }
+
+  verCartelera() {
+    this.router.navigate(['/movies'], { queryParams: this.cineElegido ? { idVenue: this.cineElegido } : {} });
   }
 
   // El interceptor avisa cuando el token venció con la página abierta.

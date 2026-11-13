@@ -1,5 +1,5 @@
 <!-- BARRA DE NAVEGACIÓN -->
-<nav class="navbar navbar-expand-lg sticky-top navbar-dark bg-dark-custom border-bottom-custom">
+<nav class="navbar navbar-expand-lg sticky-top navbar-dark cabecera">
   <div class="container-fluid px-4">
     <a class="navbar-brand logo d-flex align-items-center" routerLink="/">
       <img src="/Imagenes/logo_CINEMAX.jpeg" alt="CINEMAX" style="height: 45px;"> 
@@ -10,11 +10,20 @@
     </button>
     
     <div class="collapse navbar-collapse justify-content-between" id="CabeceraCinemax">
-      <ul class="navbar-nav mb-2 mb-lg-0 gap-lg-4 ms-4">
-        <li class="nav-item"><a class="nav-link b-header" routerLink="/movies">Películas</a></li>
-        <li class="nav-item"><a class="nav-link b-header" routerLink="/sedes">Sedes</a></li>
-        <li class="nav-item"><a class="nav-link b-header" routerLink="/confiteria">Confitería</a></li>
+      <ul class="navbar-nav mb-2 mb-lg-0 gap-lg-3 ms-lg-4">
+        <li class="nav-item"><a class="nav-link enlace-cabecera" routerLink="/movies" routerLinkActive="activo">Películas</a></li>
+        <li class="nav-item"><a class="nav-link enlace-cabecera" routerLink="/sedes" routerLinkActive="activo">Cines</a></li>
+        <li class="nav-item"><a class="nav-link enlace-cabecera" routerLink="/confiteria" routerLinkActive="activo">Confitería</a></li>
+        <li class="nav-item"><a class="nav-link enlace-cabecera" routerLink="/" fragment="promociones">Promociones</a></li>
       </ul>
+
+      <form class="selector-cine ms-lg-auto me-lg-4 my-3 my-lg-0" (submit)="$event.preventDefault(); verCartelera()">
+        <select aria-label="Elige tu cine" (change)="elegirCine($any($event.target).value)">
+          <option value="">Todos los cines</option>
+          <option *ngFor="let c of cines" [value]="c.idVenue" [selected]="c.idVenue === cineElegido">{{ c.nameVenue }}</option>
+        </select>
+        <button type="submit" class="btn-cine">Ver cartelera</button>
+      </form>
       
       <div class="zona-perfil-manual d-flex align-items-center" style="position: relative; z-index: 999999;">
         

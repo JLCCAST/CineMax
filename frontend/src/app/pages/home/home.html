@@ -1,33 +1,36 @@
-<!-- Portada destacada: una película en cartelera a la vez -->
-<section class="hero">
+<!-- Banner: una película en cartelera a la vez -->
+<section class="banner">
   @if (destacada(); as m) {
-    <div class="hero-fondo" [class.difuminado]="!!m.posterUrl"
+    <div class="banner-imagen" [class.con-poster]="!!m.posterUrl"
          [style.background-image]="m.posterUrl ? 'url(' + m.posterUrl + ')' : null"></div>
-    <div class="hero-velo"></div>
 
-    <div class="container hero-contenido">
-      <div class="hero-texto">
-        <span class="etiqueta">{{ m.status === 'Estreno' ? 'Estreno' : 'En cartelera' }}</span>
-        <h1 class="hero-titulo">{{ m.titleMovie }}</h1>
-        <p class="hero-meta">
+    <div class="container banner-contenido">
+      <img class="banner-poster" [src]="m.posterUrl || posterGenerico" [alt]="m.titleMovie">
+      <div class="banner-texto">
+        <p class="banner-estado">{{ m.status === 'Estreno' ? 'Estreno' : 'En cartelera' }}</p>
+        <h1 class="banner-titulo font-display">{{ m.titleMovie }}</h1>
+        <p class="banner-meta">
           @if (m.classification) { <span class="clasificacion">{{ m.classification.nameClassification }}</span> }
           <span>{{ duracion(m) }}</span>
           @if (generos(m)) { <span>{{ generos(m) }}</span> }
         </p>
-        <p class="hero-sinopsis">{{ m.synopsis }}</p>
-        <div class="hero-acciones">
-          <a class="btn-brand" [routerLink]="['/movie', m.idMovie]">
-            <i class="fa-solid fa-ticket"></i> Comprar entradas
-          </a>
-          <a class="btn-ghost" [routerLink]="['/movie', m.idMovie]">Ver detalle</a>
+        <p class="banner-sinopsis">{{ m.synopsis }}</p>
+        <div class="banner-acciones">
+          <a class="btn-cine" [routerLink]="['/movie', m.idMovie]">Comprar entradas</a>
+          <a class="btn-cine-borde" [routerLink]="['/movie', m.idMovie]">Ver horarios</a>
         </div>
       </div>
-
-      <img class="hero-poster" [src]="m.posterUrl || posterGenerico" [alt]="m.titleMovie">
     </div>
 
     @if (destacadas().length > 1) {
-      <div class="container hero-puntos">
+      <button type="button" class="banner-flecha izquierda" (click)="anteriorDestacada()" aria-label="Anterior">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <button type="button" class="banner-flecha derecha" (click)="irADestacada((indiceDestacada() + 1) % destacadas().length)"
+              aria-label="Siguiente">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+      <div class="banner-puntos">
         @for (d of destacadas(); track d.idMovie; let i = $index) {
           <button type="button" [class.activo]="i === indiceDestacada()" (click)="irADestacada(i)"
                   [attr.aria-label]="'Ver ' + d.titleMovie"></button>
@@ -35,182 +38,156 @@
       </div>
     }
   } @else {
-    <div class="hero-velo"></div>
-    <div class="container hero-contenido">
-      <div class="hero-texto">
-        <h1 class="hero-titulo">Vive el cine en CineMax</h1>
-        <p class="hero-sinopsis">{{ cargando() ? 'Cargando la cartelera…' : 'Pronto anunciaremos nuevas películas.' }}</p>
-      </div>
+    <div class="container banner-contenido banner-vacio">
+      <h1 class="banner-titulo font-display">{{ cargando() ? 'Cargando cartelera' : 'Muy pronto, nuevas películas' }}</h1>
     </div>
   }
 </section>
 
-<!-- Compra rápida -->
-<section class="container">
-  <div class="compra-rapida">
-    <div class="compra-titulo">
-      <i class="fa-solid fa-bolt"></i>
-      <div>
-        <h2>Compra rápida</h2>
-        <p>Elige película, sede y horario, y pasa directo a tus butacas.</p>
-      </div>
-    </div>
+<div class="contenido-claro">
 
-    @if (peliculasConFunciones().length) {
-      <div class="compra-campos">
-        <label class="campo">
-          <span>Película</span>
-          <select (change)="elegirPelicula($any($event.target).value)">
-            <option value="">Elige una película</option>
-            @for (m of peliculasConFunciones(); track m.idMovie) {
-              <option [value]="m.idMovie" [selected]="m.idMovie === peliculaElegida()">{{ m.titleMovie }}</option>
-            }
-          </select>
-        </label>
+  <!-- Compra rápida -->
+  <section class="container">
+    <form class="compra-rapida" (submit)="$event.preventDefault(); comprar()">
+      <h2 class="compra-titulo font-display">Compra rápida</h2>
 
-        <label class="campo">
-          <span>Sede</span>
-          <select [disabled]="!peliculaElegida()" (change)="elegirSede(+$any($event.target).value || null)">
-            <option value="">Elige una sede</option>
-            @for (s of sedesDeLaPelicula(); track s.idVenue) {
-              <option [value]="s.idVenue" [selected]="s.idVenue === sedeElegida()">{{ s.nameVenue }}</option>
-            }
-          </select>
-        </label>
-      </div>
+      <label class="campo">
+        <span>Película</span>
+        <select (change)="elegirPelicula($any($event.target).value)">
+          <option value="">Elige la película</option>
+          @for (m of peliculasConFunciones(); track m.idMovie) {
+            <option [value]="m.idMovie" [selected]="m.idMovie === peliculaElegida()">{{ m.titleMovie }}</option>
+          }
+        </select>
+      </label>
 
-      @if (sedeElegida()) {
-        <div class="compra-paso">
-          <span class="paso-titulo">Día</span>
-          <div class="chips">
-            @for (d of dias(); track d) {
-              <button type="button" class="chip" [class.activo]="d === diaElegido()" (click)="elegirDia(d)">
-                {{ etiquetaDia(d) }}
-              </button>
-            }
-          </div>
-        </div>
-        <div class="compra-paso">
-          <span class="paso-titulo">Horario</span>
-          <div class="chips">
-            @for (f of horarios(); track f.idShowtime) {
-              <button type="button" class="chip" [class.activo]="f.idShowtime === funcionElegida()"
-                      (click)="funcionElegida.set(f.idShowtime)">
-                {{ hora(f) }} <small>{{ f.languageFormat }}</small>
-              </button>
-            }
-          </div>
-        </div>
-      }
+      <label class="campo">
+        <span>Cine</span>
+        <select [disabled]="!peliculaElegida()" (change)="elegirSede(+$any($event.target).value || null)">
+          <option value="">Elige el cine</option>
+          @for (s of sedesDeLaPelicula(); track s.idVenue) {
+            <option [value]="s.idVenue" [selected]="s.idVenue === sedeElegida()">{{ s.nameVenue }}</option>
+          }
+        </select>
+      </label>
 
-      <div class="compra-final">
-        <button type="button" class="btn-brand" [disabled]="!funcionElegida()" (click)="comprar()">
-          Elegir butacas <i class="fa-solid fa-arrow-right"></i>
-        </button>
-      </div>
-    } @else {
-      <p class="vacio">{{ cargando() ? 'Cargando funciones…' : 'No hay funciones programadas por ahora.' }}</p>
-    }
-  </div>
-</section>
+      <label class="campo">
+        <span>Día</span>
+        <select [disabled]="!sedeElegida()" (change)="elegirDia($any($event.target).value)">
+          @for (d of dias(); track d) {
+            <option [value]="d" [selected]="d === diaElegido()">{{ etiquetaDia(d) }}</option>
+          }
+        </select>
+      </label>
 
-<!-- Cartelera -->
-<section class="container seccion">
-  <div class="seccion-cabecera">
-    <h2 class="section-title">Películas</h2>
-    <div class="pestanas" role="tablist">
-      @for (p of pestanas; track p.valor) {
-        <button type="button" role="tab" [class.activa]="pestana() === p.valor"
-                [attr.aria-selected]="pestana() === p.valor" (click)="pestana.set(p.valor)">{{ p.texto }}</button>
-      }
-    </div>
-  </div>
+      <label class="campo">
+        <span>Horario</span>
+        <select [disabled]="!diaElegido()" (change)="funcionElegida.set($any($event.target).value || null)">
+          <option value="">Elige el horario</option>
+          @for (f of horarios(); track f.idShowtime) {
+            <option [value]="f.idShowtime" [selected]="f.idShowtime === funcionElegida()">{{ hora(f) }} · {{ f.languageFormat }}</option>
+          }
+        </select>
+      </label>
 
-  @if (cartelera().length) {
-    <div class="grilla-peliculas">
-      @for (m of cartelera(); track m.idMovie) {
-        <a class="pelicula" [routerLink]="['/movie', m.idMovie]">
-          <div class="pelicula-poster">
-            <img [src]="m.posterUrl || posterGenerico" [alt]="m.titleMovie" loading="lazy">
-            @if (m.classification) { <span class="clasificacion">{{ m.classification.nameClassification }}</span> }
-            @if (m.premiereWeek) { <span class="etiqueta etiqueta-poster">Estreno</span> }
-            <span class="pelicula-cta">Ver horarios</span>
-          </div>
-          <h3>{{ m.titleMovie }}</h3>
-          <p>{{ duracion(m) }}@if (generos(m)) { · {{ generos(m) }} }</p>
-        </a>
-      }
-    </div>
-  } @else {
-    <p class="vacio">No hay películas en esta sección por ahora.</p>
-  }
-</section>
+      <button type="submit" class="btn-cine" [disabled]="!funcionElegida()">Comprar</button>
+    </form>
+  </section>
 
-<!-- Promociones -->
-@if (promociones().length) {
+  <!-- Cartelera -->
   <section class="container seccion">
     <div class="seccion-cabecera">
-      <h2 class="section-title">Promociones</h2>
-      <p class="seccion-nota">Se aplican solas al pagar; el cupón lo escribes tú.</p>
+      <div class="pestanas" role="tablist">
+        @for (p of pestanas; track p.valor) {
+          <button type="button" role="tab" class="font-display" [class.activa]="pestana() === p.valor"
+                  [attr.aria-selected]="pestana() === p.valor" (click)="pestana.set(p.valor)">{{ p.texto }}</button>
+        }
+      </div>
+      <a class="ver-todo" routerLink="/movies">Ver toda la cartelera</a>
     </div>
-    <div class="grilla-promos">
-      @for (p of promociones(); track p.idPromotion) {
-        <article class="promo">
-          <div class="promo-media" [attr.data-alcance]="p.appliesTo">
-            <i class="fa-solid" [class.fa-ticket]="p.appliesTo === 'ENTRADAS'"
-               [class.fa-burger]="p.appliesTo === 'CONFITERIA'" [class.fa-tags]="p.appliesTo === 'TODO'"></i>
-            @if (p.imageUrl) { <img [src]="p.imageUrl" [alt]="p.namePromotion" loading="lazy" (error)="ocultarImagen($event)"> }
-          </div>
-          <div class="promo-cuerpo">
-            <h3>{{ p.namePromotion }}</h3>
-            <p>{{ p.description || 'Se aplica sola si tu compra cumple las condiciones.' }}</p>
-            @if (p.promotionCode) { <span class="codigo">Código <strong>{{ p.promotionCode }}</strong></span> }
-          </div>
-        </article>
-      }
-    </div>
-  </section>
-}
 
-<!-- Confitería -->
-<section class="container seccion">
-  <div class="confiteria">
-    <div class="confiteria-media">
-      <i class="fa-solid fa-burger"></i>
-      <img src="Imagenes/Portada/confiteria.jpg" alt="Combos de confitería" loading="lazy" (error)="ocultarImagen($event)">
-    </div>
-    <div class="confiteria-texto">
-      <span class="etiqueta">Confitería</span>
-      <h2>Tu combo listo, sin hacer cola</h2>
-      <p>Pídelo con tus entradas o por separado, y recógelo en la dulcería de tu sede.</p>
-      <a class="btn-brand" routerLink="/confiteria">Ver la confitería <i class="fa-solid fa-arrow-right"></i></a>
-    </div>
-  </div>
-</section>
-
-<!-- Sedes -->
-@if (sedes().length) {
-  <section class="container seccion seccion-final">
-    <div class="seccion-cabecera">
-      <h2 class="section-title">Nuestras sedes</h2>
-      <a class="enlace" routerLink="/sedes">Ver mapa <i class="fa-solid fa-arrow-right"></i></a>
-    </div>
-    <div class="grilla-sedes">
-      @for (s of sedes(); track s.idVenue) {
-        <article class="sede">
-          <div class="sede-media">
-            <i class="fa-solid fa-location-dot"></i>
-            @if (s.imageUrl) { <img [src]="s.imageUrl" [alt]="s.nameVenue" loading="lazy" (error)="ocultarImagen($event)"> }
-          </div>
-          <div class="sede-cuerpo">
-            <h3>{{ s.nameVenue }}</h3>
-            <p>{{ s.addressVenue }}</p>
-            <a class="enlace" routerLink="/movies" [queryParams]="{ idVenue: s.idVenue }">
-              Ver cartelera de hoy <i class="fa-solid fa-arrow-right"></i>
+    @if (cartelera().length) {
+      <div class="grilla-peliculas">
+        @for (m of cartelera(); track m.idMovie) {
+          <article class="pelicula">
+            <a class="pelicula-poster" [routerLink]="['/movie', m.idMovie]">
+              <img [src]="m.posterUrl || posterGenerico" [alt]="m.titleMovie" loading="lazy">
+              @if (m.classification) { <span class="clasificacion">{{ m.classification.nameClassification }}</span> }
+              @if (m.premiereWeek) { <span class="cinta">Estreno</span> }
             </a>
-          </div>
-        </article>
-      }
+            <h3><a [routerLink]="['/movie', m.idMovie]">{{ m.titleMovie }}</a></h3>
+            <p>{{ duracion(m) }}@if (generos(m)) { · {{ generos(m) }} }</p>
+            <a class="btn-cine pelicula-boton" [routerLink]="['/movie', m.idMovie]">
+              {{ m.status === 'Preventa' ? 'Preventa' : 'Comprar' }}
+            </a>
+          </article>
+        }
+      </div>
+    } @else {
+      <p class="vacio">No hay películas en esta sección por ahora.</p>
+    }
+  </section>
+
+  <!-- Promociones -->
+  @if (promociones().length) {
+    <section class="container seccion" id="promociones">
+      <div class="seccion-cabecera">
+        <h2 class="titulo-seccion font-display">Promociones</h2>
+        <p class="nota">Se aplican solas al pagar. El cupón lo escribes tú.</p>
+      </div>
+      <div class="grilla-promos">
+        @for (p of promociones(); track p.idPromotion) {
+          <article class="promo">
+            <div class="promo-imagen">
+              <i class="fa-solid" [class.fa-ticket]="p.appliesTo === 'ENTRADAS'"
+                 [class.fa-burger]="p.appliesTo === 'CONFITERIA'" [class.fa-tags]="p.appliesTo === 'TODO'"></i>
+              @if (p.imageUrl) { <img [src]="p.imageUrl" [alt]="p.namePromotion" loading="lazy" (error)="ocultarImagen($event)"> }
+            </div>
+            <div class="promo-texto">
+              <h3 class="font-display">{{ p.namePromotion }}</h3>
+              <p>{{ p.description || 'Se aplica sola si tu compra cumple las condiciones.' }}</p>
+              @if (p.promotionCode) { <p class="codigo">Código: <strong>{{ p.promotionCode }}</strong></p> }
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Confitería -->
+  <section class="container seccion">
+    <div class="confiteria">
+      <div class="confiteria-imagen">
+        <i class="fa-solid fa-burger"></i>
+        <img src="Imagenes/Portada/confiteria.jpg" alt="Combos de confitería" loading="lazy" (error)="ocultarImagen($event)">
+      </div>
+      <div class="confiteria-texto">
+        <h2 class="titulo-seccion font-display">Confitería</h2>
+        <p>Pide tu combo con tus entradas o por separado, y recógelo en la dulcería de tu cine.</p>
+        <a class="btn-cine" routerLink="/confiteria">Pedir ahora</a>
+      </div>
     </div>
   </section>
-}
+
+  <!-- Cines -->
+  @if (sedes().length) {
+    <section class="container seccion">
+      <div class="seccion-cabecera">
+        <h2 class="titulo-seccion font-display">Nuestros cines</h2>
+        <a class="ver-todo" routerLink="/sedes">Ver en el mapa</a>
+      </div>
+      <div class="grilla-cines">
+        @for (s of sedes(); track s.idVenue) {
+          <article class="cine">
+            <i class="fa-solid fa-location-dot"></i>
+            <div>
+              <h3>{{ s.nameVenue }}</h3>
+              <p>{{ s.addressVenue }}</p>
+              <a routerLink="/movies" [queryParams]="{ idVenue: s.idVenue }">Cartelera de hoy</a>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  }
+</div>

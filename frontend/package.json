@@ -18,7 +18,7 @@
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
     "@fontsource-variable/inter": "^5.2.5",
-    "@fontsource-variable/outfit": "^5.2.5",
+    "@fontsource-variable/oswald": "^5.2.5",
     "bootstrap": "^5.3.8",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
