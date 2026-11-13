@@ -1,5 +1,6 @@
 package com.cinemax.usuariosservice.config;
 
+import com.cinemax.common.error.RespuestasDeSeguridad;
 import com.cinemax.common.security.JwtAuthenticationFilter;
 import com.cinemax.common.security.ServiceAccessFilter;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final RespuestasDeSeguridad respuestas;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -30,6 +32,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
+            // Sin sesión: 401; con sesión pero sin permiso: 403. Ambos con el formato común.
+            .exceptionHandling(errores -> errores.authenticationEntryPoint(respuestas).accessDeniedHandler(respuestas))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 

@@ -3,7 +3,6 @@ import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Offcanvas } from 'bootstrap';
-// ✅ CAMBIO: Reemplazar FormsModule por ReactiveFormsModule
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
@@ -12,14 +11,14 @@ import { finalize, delay } from 'rxjs/operators';
 @Component({
   selector: 'app-client-layout',
   standalone: true,
-  // ✅ CAMBIO: ReactiveFormsModule en lugar de FormsModule
+  // ReactiveFormsModule en lugar de FormsModule
   imports: [CommonModule, RouterModule, ReactiveFormsModule],
   templateUrl: './client-layout.html',
   styleUrl: './client-layout.css',
 })
 export class ClientLayout implements OnInit {
 
-  // ✅ NUEVO: FormGroups reactivos (reemplazan a loginData, registerData y correoRecuperacion)
+  // FormGroups reactivos (reemplazan a loginData, registerData y correoRecuperacion)
   loginForm!: FormGroup;
   registerForm!: FormGroup;
   recuperarForm!: FormGroup;
@@ -42,11 +41,11 @@ export class ClientLayout implements OnInit {
   loadingRecuperacion: boolean = false;
   mensajeRecuperacion: { texto: string, tipo: 'success' | 'danger' } | null = null;
 
-  // ✅ NUEVO: Regex igual al @Pattern del backend (RegisterRequestDTO)
+  // Regex igual al @Pattern del backend (RegisterRequestDTO)
   private readonly PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
 
   constructor(
-    private fb: FormBuilder,          // ✅ NUEVO
+    private fb: FormBuilder,          
     private authService: AuthService,
     private userService: UserService,
     private router: Router,
@@ -55,7 +54,7 @@ export class ClientLayout implements OnInit {
   ) {}
 
   ngOnInit() {
-    // ✅ NUEVO: Inicialización de formularios reactivos
+    // Inicialización de formularios reactivos
     this.loginForm = this.fb.group({
       email:    ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
@@ -96,7 +95,7 @@ export class ClientLayout implements OnInit {
     });
   }
 
-  // ✅ HELPERS de acceso rápido a los controles (para mostrar errores en el HTML)
+  // Helper para acceso rápido a los controles (para mostrar errores en el HTML)
   get lf() { return this.loginForm.controls; }
   get rf() { return this.registerForm.controls; }
   get rec() { return this.recuperarForm.controls; }
@@ -125,7 +124,7 @@ export class ClientLayout implements OnInit {
 
   iniciarSesion() {
     this.mensajeAuth = '';
-    // ✅ NUEVO: Marcar todos los campos como tocados para mostrar errores
+    // Marcar todos los campos como tocados para mostrar errores
     this.loginForm.markAllAsTouched();
 
     if (this.loginForm.invalid) {
@@ -138,7 +137,7 @@ export class ClientLayout implements OnInit {
     this.cargandoLogin = true;
     this.cdr.detectChanges();
 
-    // ✅ CAMBIO: loginForm.value en lugar de loginData
+    // LoginForm.value en lugar de loginData
     this.authService.login(this.loginForm.value).subscribe({
       next: (res: any) => {
         this.esErrorAuth = false;
@@ -179,7 +178,7 @@ export class ClientLayout implements OnInit {
       return;
     }
 
-    // ✅ CAMBIO: registerForm.value en lugar de registerData
+    // RegisterForm.value en lugar de registerData
     this.authService.register(this.registerForm.value).subscribe({
       next: () => {
         this.esErrorAuth = false;
@@ -208,7 +207,7 @@ export class ClientLayout implements OnInit {
     this.loadingRecuperacion = true;
     this.cdr.detectChanges();
 
-    // ✅ CAMBIO: recuperarForm.value.correoRecuperacion
+    // RecuperarForm.value.correoRecuperacion
     this.authService.forgotPassword(this.recuperarForm.value.correoRecuperacion)
       .pipe(
         delay(3000),
@@ -224,7 +223,7 @@ export class ClientLayout implements OnInit {
           this.cdr.detectChanges();
         },
         error: (err: any) => {
-          const msg = err.error?.error || 'Hubo un error al conectar con el servidor.';
+          const msg = err.error?.message || 'Hubo un error al conectar con el servidor.';
           this.mensajeRecuperacion = { texto: msg, tipo: 'danger' };
           this.cdr.detectChanges();
         }

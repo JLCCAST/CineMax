@@ -59,6 +59,13 @@
             <artifactId>jackson-annotations</artifactId>
         </dependency>
 
+        <!-- Para escribir los errores en JSON (RespuestasDeSeguridad). Lo aportan los servicios. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Solo para InternalTokenFeignInterceptor: lo aportan los servicios que usan Feign. -->
         <dependency>
             <groupId>io.github.openfeign</groupId>
