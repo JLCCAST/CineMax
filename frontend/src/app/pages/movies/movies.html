@@ -1,58 +1,47 @@
-<div class="movies-header">
+<div class="pagina-clara">
   <div class="container">
-    <h1 class="movies-title">Películas</h1>
-    <p class="movies-subtitle">Encuentra tu próxima película favorita</p>
-  </div>
-</div>
+    <h1 class="titulo font-display">Cartelera</h1>
 
-<div class="container">
-  <div class="tabs-bar">
-    <button
-      *ngFor="let tab of tabs"
-      class="tab-btn"
-      [class.tab-activo]="tabActivo === tab"
-      (click)="cargarPorTab(tab)">
-      {{ tab }}
-    </button>
-  </div>
-</div>
-
-<div *ngIf="loading" class="text-center py-5">
-  <div class="spinner-border text-light"></div>
-</div>
-
-<div class="container pb-5" *ngIf="!loading">
-
-  <div *ngIf="peliculasFiltradas.length === 0 && !error" class="sin-resultados">
-    <span>🎬</span>
-    <p>No hay películas en esta categoría por ahora.</p>
-  </div>
-
-  <div *ngIf="error" class="sin-resultados">
-    <span>⚠️</span>
-    <p>No se pudo conectar al servidor. Intenta de nuevo.</p>
-  </div>
-
-  <div class="movies-grid" *ngIf="peliculasFiltradas.length > 0">
-    <div
-      *ngFor="let pelicula of peliculasFiltradas"
-      class="movie-card"
-      [routerLink]="['/movie', pelicula.idMovie]">
-
-      <div class="movie-poster-wrap">
-        <img [src]="pelicula.posterUrl || 'Imagenes/poster-generico.svg'" [alt]="pelicula.titleMovie" class="movie-poster-img">
-        <div class="movie-overlay">
-          <button class="btn-ver-detalle">Ver detalle</button>
-        </div>
-        <div *ngIf="pelicula.premiereWeek" class="badge-estreno-grid">Estreno</div>
-        <div *ngIf="pelicula.classification?.nameClassification" class="badge-rating">{{ pelicula.classification?.nameClassification }}</div>
+    <div class="barra">
+      <div class="pestanas" role="tablist">
+        @for (p of pestanas; track p.valor) {
+          <button type="button" role="tab" class="font-display" [class.activa]="pestana() === p.valor"
+                  [attr.aria-selected]="pestana() === p.valor" (click)="pestana.set(p.valor)">{{ p.texto }}</button>
+        }
       </div>
 
-      <div class="movie-card-info">
-        <h6 class="movie-card-title">{{ pelicula.titleMovie }}</h6>
-        <span class="movie-card-status">{{ pelicula.status }}</span>
+      <div class="filtros">
+        <label class="campo">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="search" placeholder="Buscar película" [value]="busqueda()"
+                 (input)="busqueda.set($any($event.target).value)" aria-label="Buscar película">
+        </label>
+        <select aria-label="Cine" (change)="elegirCine($any($event.target).value)">
+          <option value="">Todos los cines</option>
+          @for (c of cines(); track c.idVenue) {
+            <option [value]="c.idVenue" [selected]="c.idVenue === cine()">{{ c.nameVenue }}</option>
+          }
+        </select>
       </div>
-
     </div>
+
+    @if (nombreCine()) {
+      <p class="aviso">Películas con funciones en <strong>{{ nombreCine() }}</strong>.
+        <button type="button" (click)="elegirCine('')">Ver todos los cines</button></p>
+    }
+
+    @if (cargando()) {
+      <p class="vacio">Cargando la cartelera…</p>
+    } @else if (error()) {
+      <p class="vacio">No pudimos cargar la cartelera. Intenta de nuevo en unos segundos.</p>
+    } @else if (resultado().length) {
+      <div class="grilla">
+        @for (m of resultado(); track m.idMovie) {
+          <app-tarjeta-pelicula [pelicula]="m" />
+        }
+      </div>
+    } @else {
+      <p class="vacio">No hay películas que coincidan. Prueba con otra pestaña o con otro cine.</p>
+    }
   </div>
 </div>

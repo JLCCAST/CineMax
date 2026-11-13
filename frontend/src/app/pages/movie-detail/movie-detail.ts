@@ -1,135 +1,130 @@
-import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { BookingService } from '../../services/booking';
-import { MovieService } from '../../services/movie.service';
 import { HttpClient } from '@angular/common/http';
+import { BookingService } from '../../services/booking';
+import { Movie, MovieService } from '../../services/movie.service';
 import { environment } from '../../environments/environment';
+
+interface Funcion {
+  idShowtime: string;
+  idVenue: number;
+  nameVenue: string;
+  nameRoom: string;
+  showDate: string;
+  startTime: string;
+  languageFormat: string;
+  status: string;
+}
 
 @Component({
   selector: 'app-movie-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule],
   templateUrl: './movie-detail.html',
   styleUrl: './movie-detail.css'
 })
 export class MovieDetail implements OnInit {
-  movie: any = null;
-  loading = true;
-  error = false;
 
-  horarios: any[] = [];
-  sedesAgrupadas: any[] = [];
-  showtimeSeleccionado: string | null = null;
-  formatoSeleccionado: string | null = null;
+  readonly posterGenerico = 'Imagenes/poster-generico.svg';
+
+  movie = signal<Movie | null>(null);
+  cargando = signal(true);
+  error = signal(false);
+
+  private funciones = signal<Funcion[]>([]);
+  diaElegido = signal<string | null>(null);
+  elegida = signal<Funcion | null>(null);
+
+  dias = computed(() => [...new Set(this.funciones().map(f => f.showDate))].sort());
+
+  // Funciones del día elegido, agrupadas por cine y por formato (doblada, subtitulada…).
+  cines = computed(() => {
+    const grupos = new Map<string, Map<string, Funcion[]>>();
+    for (const f of this.funciones().filter(x => x.showDate === this.diaElegido())) {
+      const formatos = grupos.get(f.nameVenue) ?? new Map<string, Funcion[]>();
+      formatos.set(f.languageFormat, [...(formatos.get(f.languageFormat) ?? []), f]);
+      grupos.set(f.nameVenue, formatos);
+    }
+    return [...grupos.entries()].map(([nombre, formatos]) => ({
+      nombre,
+      formatos: [...formatos.entries()].map(([formato, funciones]) => ({ formato, funciones }))
+    }));
+  });
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private bookingService: BookingService,
     private movieService: MovieService,
-    private ngZone: NgZone,
-    private cdr: ChangeDetectorRef,
     private http: HttpClient
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
-      this.movie = null;
-      this.loading = true;
-      this.error = false;
       const id = params.get('id')!;
+      this.movie.set(null);
+      this.cargando.set(true);
+      this.error.set(false);
+      this.elegida.set(null);
       this.movieService.getMovieById(id).subscribe({
-        next: (data) => {
-          this.movie = data;
-          this.loading = false;
-          this.cdr.detectChanges();
-          this.cargarHorarios(id);
-        },
-        error: () => {
-          this.error = true;
-          this.loading = false;
-          this.cdr.detectChanges();
-        }
+        next: data => { this.movie.set(data); this.cargando.set(false); this.cargarFunciones(id); },
+        error: () => { this.error.set(true); this.cargando.set(false); }
       });
     });
   }
 
-  cargarHorarios(idMovie: string) {
-    this.http.get<any[]>(`${environment.apiUrl}/showtimes?idMovie=${idMovie}`).subscribe({
-      next: (data) => {
+  private cargarFunciones(idMovie: string): void {
+    this.http.get<Funcion[]>(`${environment.apiUrl}/showtimes?idMovie=${idMovie}`).subscribe({
+      next: data => {
         // Solo funciones que no han empezado, en orden de fecha y hora.
-        this.horarios = data
-          .filter(h => h.status === 'Programada' && !MovieDetail.yaEmpezo(h))
+        const futuras = data
+          .filter(f => f.status === 'Programada' && !MovieDetail.yaEmpezo(f))
           .sort((a, b) => (a.showDate + a.startTime).localeCompare(b.showDate + b.startTime));
-        this.agruparPorSede();
-        this.cdr.detectChanges();
+        this.funciones.set(futuras);
+        this.diaElegido.set(futuras[0]?.showDate ?? null);
       },
-      error: () => {
-        this.horarios = [];
-        this.sedesAgrupadas = [];
-        this.cdr.detectChanges();
-      }
+      error: () => this.funciones.set([])
     });
   }
 
-  agruparPorSede() {
-    const mapa = new Map<string, any>();
-
-    for (const h of this.horarios) {
-      if (!mapa.has(h.nameVenue)) {
-        mapa.set(h.nameVenue, { nameVenue: h.nameVenue, formatos: new Map() });
-      }
-      const sede = mapa.get(h.nameVenue);
-
-      if (!sede.formatos.has(h.languageFormat)) {
-        sede.formatos.set(h.languageFormat, []);
-      }
-      sede.formatos.get(h.languageFormat).push({
-        idShowtime: h.idShowtime,
-        dia: MovieDetail.etiquetaDia(h.showDate),
-        hora: String(h.startTime).slice(0, 5),
-        precio: h.baseTicketPrice
-      });
-    }
-
-    this.sedesAgrupadas = Array.from(mapa.values()).map(s => ({
-      nameVenue: s.nameVenue,
-      formatos: (Array.from(s.formatos.entries()) as [string, any][]).map(([formato, horas]) => ({ formato, horas }))
-    }));
+  elegirDia(dia: string): void {
+    this.diaElegido.set(dia);
+    this.elegida.set(null);
   }
 
-  // Fecha y hora de la función son de Lima, igual que el navegador del cliente.
-  private static yaEmpezo(h: any): boolean {
-    return new Date(`${h.showDate}T${h.startTime}`) <= new Date();
+  comprar(): void {
+    const f = this.elegida();
+    if (!f) return;
+    this.bookingService.iniciarReserva(f.idShowtime);
+    this.router.navigate(['/seats'], { queryParams: { show: f.idShowtime } });
   }
 
-  // "Hoy", "Mañana" o el día abreviado ("mié 18"), para no mezclar funciones de días distintos.
-  private static etiquetaDia(fecha: string): string {
+  hora(f: Funcion): string {
+    return f.startTime.slice(0, 5);
+  }
+
+  generos(m: Movie): string {
+    return (m.genres ?? []).map(g => g.nameGenre).join(', ');
+  }
+
+  duracion(m: Movie): string {
+    const h = Math.floor(m.durationMinutes / 60);
+    const min = m.durationMinutes % 60;
+    return h ? `${h} h ${min} min` : `${min} min`;
+  }
+
+  // "Hoy", "Mañana" o el día ("sáb. 15"), en la hora de Lima del navegador.
+  etiquetaDia(fecha: string): { nombre: string; numero: string } {
     const dia = new Date(`${fecha}T00:00:00`);
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
     const diferencia = Math.round((dia.getTime() - hoy.getTime()) / 86_400_000);
-    if (diferencia === 0) return 'Hoy';
-    if (diferencia === 1) return 'Mañana';
-    return dia.toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric' });
+    const nombre = diferencia === 0 ? 'Hoy' : diferencia === 1 ? 'Mañana'
+      : dia.toLocaleDateString('es-PE', { weekday: 'short' }).replace('.', '');
+    return { nombre, numero: dia.toLocaleDateString('es-PE', { day: 'numeric', month: 'short' }).replace('.', '') };
   }
 
-  seleccionarHorario(idShowtime: string, formato: string) {
-    this.showtimeSeleccionado = idShowtime;
-    this.formatoSeleccionado = formato;
-  }
-
-  volver() {
-    this.router.navigate(['/movies']);
-  }
-
-  empezarCompra() {
-    if (!this.showtimeSeleccionado) {
-      alert('Por favor selecciona un horario primero.');
-      return;
-    }
-    this.bookingService.iniciarReserva(this.showtimeSeleccionado);
-    this.router.navigate(['/seats'], { queryParams: { show: this.showtimeSeleccionado } });
+  private static yaEmpezo(f: Funcion): boolean {
+    return new Date(`${f.showDate}T${f.startTime}`) <= new Date();
   }
 }

@@ -1,136 +1,90 @@
-<!-- LOADING -->
-<div *ngIf="loading && !movie" class="loading-screen">
-  <div class="spinner-ring"></div>
-</div>
-
-<!-- ERROR -->
-<div *ngIf="error && !loading" class="error-screen">
-  <span>🎬</span>
-  <p>Película no encontrada.</p>
-  <button (click)="volver()">← Volver</button>
-</div>
-
-<!-- DETALLE -->
-<div *ngIf="movie" class="movie-detail-page">
-
-  <!-- HERO -->
-  <div class="hero-banner">
-    <div class="hero-bg" [style.backgroundImage]="'url(' + (movie.posterUrl || 'Imagenes/poster-generico.svg') + ')'"></div>
-    <div class="hero-overlay"></div>
-    <div class="container hero-content">
-      <button class="btn-back" (click)="volver()">
-        <i class="fa-solid fa-arrow-left"></i> Cartelera
-      </button>
-      <div class="row align-items-end g-4 mt-2">
-        <div class="col-auto">
-          <div class="poster-wrap">
-            <img [src]="movie.posterUrl || 'Imagenes/poster-generico.svg'" [alt]="movie.titleMovie" class="poster-img">
-            <span class="badge-status">{{ movie.status ?? 'Cartelera' }}</span>
-          </div>
-        </div>
-        <div class="col text-white pb-3">
-          <h1 class="movie-title">{{ movie.titleMovie }}</h1>
-          <div class="meta-row">
-            <span class="meta-chip"><i class="fa-regular fa-clock"></i> {{ movie.durationMinutes }} min</span>
-            <span class="meta-chip"><i class="fa-solid fa-film"></i> {{ movie.classification?.nameClassification }}</span>
-            <span class="meta-chip"><i class="fa-solid fa-clapperboard"></i> {{ movie.director }}</span>
-          </div>
-          <button class="btn-comprar-hero" (click)="empezarCompra()">
-            <i class="fa-solid fa-ticket"></i> Comprar Entradas
-          </button>
-        </div>
+@if (movie(); as m) {
+  <!-- Ficha de la película -->
+  <section class="ficha">
+    <div class="ficha-fondo" [style.background-image]="m.posterUrl ? 'url(' + m.posterUrl + ')' : null"></div>
+    <div class="container ficha-contenido">
+      <img class="ficha-poster" [src]="m.posterUrl || posterGenerico" [alt]="m.titleMovie">
+      <div>
+        <a class="volver" routerLink="/movies"><i class="fa-solid fa-chevron-left"></i> Cartelera</a>
+        <h1 class="ficha-titulo font-display">{{ m.titleMovie }}</h1>
+        <p class="ficha-meta">
+          @if (m.classification) { <span class="clasificacion">{{ m.classification.nameClassification }}</span> }
+          <span>{{ duracion(m) }}</span>
+          @if (generos(m)) { <span>{{ generos(m) }}</span> }
+        </p>
+        <p class="ficha-sinopsis">{{ m.synopsis }}</p>
+        <dl class="ficha-datos">
+          <div><dt>Director</dt><dd>{{ m.director }}</dd></div>
+          @if (m.releaseDate) { <div><dt>Estreno</dt><dd>{{ m.releaseDate }}</dd></div> }
+          <div><dt>Estado</dt><dd>{{ m.status }}</dd></div>
+        </dl>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- CONTENIDO -->
-  <div class="container content-section">
-    <div class="row g-5">
+  <!-- Horarios -->
+  <div class="pagina-clara horarios-pagina">
+    <div class="container disposicion">
+      <section>
+        <h2 class="titulo-seccion font-display">Horarios</h2>
 
-      <!-- IZQUIERDA: Sinopsis + Horarios -->
-      <div class="col-lg-8">
-
-        <!-- Sinopsis -->
-        <div class="section-block">
-          <h3 class="section-title">Sinopsis</h3>
-          <p class="sinopsis-text">{{ movie.synopsis }}</p>
-        </div>
-
-        <!-- Info rápida -->
-        <div class="info-grid">
-          <div class="info-item">
-            <span class="info-label">Duración</span>
-            <span class="info-value">{{ movie.durationMinutes }} min</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Clasificación</span>
-            <span class="info-value">{{ movie.classification?.nameClassification }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Director</span>
-            <span class="info-value">{{ movie.director }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Estado</span>
-            <span class="info-value">{{ movie.status ?? 'Cartelera' }}</span>
-          </div>
-        </div>
-
-        <!-- Horarios -->
-        <div class="section-block">
-          <h3 class="section-title">Horarios disponibles</h3>
-
-          <div *ngIf="sedesAgrupadas.length === 0" class="text-secondary py-3">
-            No hay funciones programadas para esta película por el momento.
+        @if (dias().length) {
+          <div class="dias" role="tablist">
+            @for (d of dias(); track d) {
+              @let etiqueta = etiquetaDia(d);
+              <button type="button" role="tab" class="dia" [class.activo]="d === diaElegido()"
+                      [attr.aria-selected]="d === diaElegido()" (click)="elegirDia(d)">
+                <span class="dia-nombre">{{ etiqueta.nombre }}</span>
+                <span class="dia-numero">{{ etiqueta.numero }}</span>
+              </button>
+            }
           </div>
 
-          <div class="sede-block" *ngFor="let sede of sedesAgrupadas">
-            <div class="sede-header">
-              <i class="fa-solid fa-location-dot"></i>
-              <div>
-                <span class="sede-nombre">{{ sede.nameVenue }}</span>
-              </div>
-            </div>
-            <div class="formatos-wrap">
-              <div class="formato-row" *ngFor="let f of sede.formatos">
-                <span class="formato-tag"
-                  [class.tag-3d]="f.formato === '3D'"
-                  [class.formato-activo]="formatoSeleccionado === f.formato">
-                  {{ f.formato }}
-                </span>
-                <div class="horas-wrap">
-                  <button
-                    *ngFor="let h of f.horas"
-                    class="hora-btn"
-                    [class.hora-activa]="showtimeSeleccionado === h.idShowtime"
-                    (click)="seleccionarHorario(h.idShowtime, f.formato)">
-                    <span class="hora-dia">{{ h.dia }}</span> {{ h.hora }}
-                  </button>
+          @for (c of cines(); track c.nombre) {
+            <article class="cine">
+              <h3><i class="fa-solid fa-location-dot"></i> {{ c.nombre }}</h3>
+              @for (fm of c.formatos; track fm.formato) {
+                <div class="formato">
+                  <span class="formato-nombre">{{ fm.formato }}</span>
+                  <div class="horas">
+                    @for (f of fm.funciones; track f.idShowtime) {
+                      <button type="button" class="hora" [class.activa]="elegida()?.idShowtime === f.idShowtime"
+                              (click)="elegida.set(f)">{{ hora(f) }}</button>
+                    }
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
+              }
+            </article>
+          }
+        } @else {
+          <p class="vacio">Por ahora no hay funciones programadas para esta película.</p>
+        }
+      </section>
 
-        </div>
-      </div>
-
-      <!-- DERECHA: CTA -->
-      <div class="col-lg-4">
-        <div class="cta-card">
-          <img [src]="movie.posterUrl || 'Imagenes/poster-generico.svg'" [alt]="movie.titleMovie" class="cta-poster">
-          <div class="cta-body">
-            <h5 class="cta-title">{{ movie.titleMovie }}</h5>
-            <p class="cta-meta">{{ movie.durationMinutes }} min · {{ movie.classification?.nameClassification }}</p>
-            <button class="btn-comprar-cta" (click)="empezarCompra()">
-              <i class="fa-solid fa-ticket me-2"></i>Comprar Entradas
-            </button>
-            <button class="btn-volver-cta" (click)="volver()">
-              ← Volver a cartelera
-            </button>
-          </div>
-        </div>
-      </div>
-
+      <aside class="resumen">
+        <h2 class="font-display">Tu función</h2>
+        @if (elegida(); as f) {
+          <dl>
+            <div><dt>Película</dt><dd>{{ m.titleMovie }}</dd></div>
+            <div><dt>Cine</dt><dd>{{ f.nameVenue }}</dd></div>
+            <div><dt>Fecha</dt><dd>{{ etiquetaDia(f.showDate).nombre }}, {{ etiquetaDia(f.showDate).numero }}</dd></div>
+            <div><dt>Hora</dt><dd>{{ hora(f) }} · {{ f.languageFormat }}</dd></div>
+            @if (f.nameRoom) { <div><dt>Sala</dt><dd>{{ f.nameRoom }}</dd></div> }
+          </dl>
+        } @else {
+          <p class="vacio-resumen">Elige un horario para continuar.</p>
+        }
+        <button type="button" class="btn-cine" [disabled]="!elegida()" (click)="comprar()">Comprar entradas</button>
+      </aside>
     </div>
   </div>
-</div>
+} @else if (error()) {
+  <div class="pagina-clara">
+    <div class="container estado">
+      <h1 class="font-display">Película no encontrada</h1>
+      <a class="btn-cine" routerLink="/movies">Ver la cartelera</a>
+    </div>
+  </div>
+} @else {
+  <div class="pagina-clara"><p class="container estado">Cargando…</p></div>
+}

@@ -1,0 +1,10 @@
+@let m = pelicula();
+<a class="poster" [routerLink]="['/movie', m.idMovie]">
+  <img [src]="m.posterUrl || posterGenerico" [alt]="m.titleMovie" loading="lazy">
+  @if (m.classification) { <span class="clasificacion">{{ m.classification.nameClassification }}</span> }
+  @if (m.premiereWeek || m.status === 'Estreno') { <span class="cinta">Estreno</span> }
+  @if (m.status === 'Preventa') { <span class="cinta cinta-preventa">Preventa</span> }
+</a>
+<h3><a [routerLink]="['/movie', m.idMovie]">{{ m.titleMovie }}</a></h3>
+<p>{{ datos() }}</p>
+<a class="btn-cine boton" [routerLink]="['/movie', m.idMovie]">{{ m.status === 'Preventa' ? 'Comprar preventa' : 'Comprar' }}</a>

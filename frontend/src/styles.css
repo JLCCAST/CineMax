@@ -116,7 +116,15 @@ body {
     outline-offset: 2px;
 }
 
-/* La portada termina en su fondo claro, pegada al pie (las otras páginas dejan el margen). */
-main:has(> app-home) + footer {
+/* Fondo de las páginas rediseñadas. Terminan pegadas al pie (las antiguas dejan su margen). */
+.pagina-clara {
+    min-height: 60vh;
+    padding: 2.5rem 0 4rem;
+    background: var(--page-bg);
+    color: var(--ink);
+}
+
+main:has(> app-home) + footer,
+main:has(.pagina-clara) + footer {
     margin-top: 0 !important;
 }

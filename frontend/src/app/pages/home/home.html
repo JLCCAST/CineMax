@@ -109,18 +109,7 @@
     @if (cartelera().length) {
       <div class="grilla-peliculas">
         @for (m of cartelera(); track m.idMovie) {
-          <article class="pelicula">
-            <a class="pelicula-poster" [routerLink]="['/movie', m.idMovie]">
-              <img [src]="m.posterUrl || posterGenerico" [alt]="m.titleMovie" loading="lazy">
-              @if (m.classification) { <span class="clasificacion">{{ m.classification.nameClassification }}</span> }
-              @if (m.premiereWeek) { <span class="cinta">Estreno</span> }
-            </a>
-            <h3><a [routerLink]="['/movie', m.idMovie]">{{ m.titleMovie }}</a></h3>
-            <p>{{ duracion(m) }}@if (generos(m)) { · {{ generos(m) }} }</p>
-            <a class="btn-cine pelicula-boton" [routerLink]="['/movie', m.idMovie]">
-              {{ m.status === 'Preventa' ? 'Preventa' : 'Comprar' }}
-            </a>
-          </article>
+          <app-tarjeta-pelicula [pelicula]="m" />
         }
       </div>
     } @else {

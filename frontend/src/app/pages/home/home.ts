@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { MovieService, Movie } from '../../services/movie.service';
 import { BookingService } from '../../services/booking';
 import { environment } from '../../environments/environment';
+import { TarjetaPelicula } from '../../shared/components/tarjeta-pelicula/tarjeta-pelicula';
 
 interface Funcion {
   idShowtime: string;
@@ -39,7 +40,7 @@ type Pestana = 'Cartelera' | 'Estreno' | 'Preventa';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TarjetaPelicula],
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
@@ -48,7 +49,7 @@ export class Home implements OnInit, OnDestroy {
   readonly posterGenerico = 'Imagenes/poster-generico.svg';
   readonly pestanas: { valor: Pestana; texto: string }[] = [
     { valor: 'Cartelera', texto: 'En cartelera' },
-    { valor: 'Estreno', texto: 'Próximos estrenos' },
+    { valor: 'Estreno', texto: 'Estrenos' },
     { valor: 'Preventa', texto: 'Preventa' },
   ];
 
@@ -68,8 +69,10 @@ export class Home implements OnInit, OnDestroy {
 
   // ── Cartelera ──────────────────────────────────────────────────────────────
   pestana = signal<Pestana>('Cartelera');
+  // "En cartelera" incluye los estrenos: también tienen funciones.
   cartelera = computed(() => this.peliculas()
-    .filter(m => m.isActive !== false && m.status === this.pestana()));
+    .filter(m => m.isActive !== false && (m.status === this.pestana()
+      || (this.pestana() === 'Cartelera' && m.status === 'Estreno'))));
 
   // ── Compra rápida: película → sede → día → horario ──────────────────────────
   peliculaElegida = signal<string | null>(null);
