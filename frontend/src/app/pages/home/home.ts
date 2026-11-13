@@ -1,6 +1,7 @@
-import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit, afterNextRender, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { MovieService, Movie } from '../../services/movie.service';
 import { BookingService } from '../../services/booking';
@@ -101,17 +102,26 @@ export class Home implements OnInit, OnDestroy {
       && f.showDate === this.diaElegido())
     .sort((a, b) => a.startTime.localeCompare(b.startTime)));
 
+  private readonly injector = inject(Injector);
+  private fragmento: string | null = null;
+
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private movieService: MovieService,
     private bookingService: BookingService,
     private http: HttpClient
-  ) {}
+  ) {
+    this.route.fragment.pipe(takeUntilDestroyed()).subscribe(f => {
+      this.fragmento = f;
+      this.irAPromociones();
+    });
+  }
 
   ngOnInit(): void {
     this.movieService.getAllMovies().subscribe({
-      next: data => { this.peliculas.set(data); this.cargando.set(false); },
-      error: () => this.cargando.set(false)
+      next: data => { this.peliculas.set(data); this.cargando.set(false); this.irAPromociones(); },
+      error: () => { this.cargando.set(false); this.irAPromociones(); }
     });
     this.http.get<Funcion[]>(`${environment.apiUrl}/showtimes`).subscribe({
       next: data => this.funciones.set(data), error: () => this.funciones.set([])
@@ -120,13 +130,22 @@ export class Home implements OnInit, OnDestroy {
       next: data => this.sedes.set(data), error: () => this.sedes.set([])
     });
     this.http.get<Promocion[]>(`${environment.apiUrl}/promotions/vigentes`).subscribe({
-      next: data => this.promociones.set(data), error: () => this.promociones.set([])
+      next: data => { this.promociones.set(data); this.irAPromociones(); },
+      error: () => this.promociones.set([])
     });
     this.rotacion = setInterval(() => this.siguienteDestacada(), 7000);
   }
 
   ngOnDestroy(): void {
     clearInterval(this.rotacion);
+  }
+
+  // La sección de promociones aparece cuando llegan los datos, después de que el router
+  // buscó el ancla. Se baja a ella cuando ya cargó lo que va encima (la cartelera).
+  private irAPromociones(): void {
+    if (this.fragmento !== 'promociones' || this.cargando() || !this.promociones().length) return;
+    afterNextRender(() => document.getElementById('promociones')?.scrollIntoView({ behavior: 'smooth' }),
+      { injector: this.injector });
   }
 
   anteriorDestacada(): void {
