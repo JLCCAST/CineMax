@@ -1,12 +1,11 @@
 package com.cinemax.facturacion.service;
 
 import com.cinemax.facturacion.client.CarteleraClient;
+import com.cinemax.facturacion.client.Circuitos;
 import com.cinemax.facturacion.client.ConfiteriaClient;
 import com.cinemax.facturacion.dto.external.MovimientoStockDTO;
 import com.cinemax.facturacion.promociones.CotizacionService.LineaSnack;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.cinemax.common.error.FeignExceptionHandler;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,26 +17,18 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
-/**
- * Pasos remotos de una compra: descontar butacas en cartelera y stock en confitería.
- *
- * Cada paso que sale bien deja registrada su compensación. Si después la venta
- * local se deshace (otro paso rechazado, un error al guardar), las compensaciones
- * se ejecutan y devuelven lo que ya se había descontado. Debe llamarse dentro de
- * la transacción de la venta.
- */
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class ReservasRemotas {
 
-    private static final ObjectMapper JSON = new ObjectMapper();
-
     private final CarteleraClient carteleraClient;
     private final ConfiteriaClient confiteriaClient;
+    private final Circuitos circuitos;
 
     public void descontarButacas(String idShowtime, int cantidad) {
-        ejecutar(() -> carteleraClient.decreaseAvailableSeats(idShowtime, cantidad));
+        ejecutar("cartelera", () -> carteleraClient.decreaseAvailableSeats(idShowtime, cantidad));
         alDeshacer("las butacas de la función " + idShowtime,
                 () -> carteleraClient.increaseAvailableSeats(idShowtime, cantidad));
     }
@@ -49,17 +40,19 @@ public class ReservasRemotas {
         MovimientoStockDTO movimiento = new MovimientoStockDTO(idVenue, snacks.stream()
                 .map(s -> new MovimientoStockDTO.Item(s.idSnack(), s.quantity()))
                 .toList());
-        ejecutar(() -> confiteriaClient.descontarStock(movimiento));
+        ejecutar("confiteria", () -> confiteriaClient.descontarStock(movimiento));
         alDeshacer("los snacks de la sede " + idVenue, () -> confiteriaClient.reponerStock(movimiento));
     }
 
     // Un rechazo del otro servicio (409 o 404) le llega al cliente con el mismo código y mensaje.
-    private static void ejecutar(Runnable llamada) {
+    // Los descuentos pasan por el circuit breaker; las devoluciones (alDeshacer) no:
+    // si el servicio volvió, hay que intentar devolver aunque el circuito siga abierto.
+    private void ejecutar(String servicio, Runnable llamada) {
         try {
-            llamada.run();
+            circuitos.ejecutar(servicio, llamada);
         } catch (FeignException e) {
             if (e.status() == 409 || e.status() == 404) {
-                throw new ResponseStatusException(HttpStatus.valueOf(e.status()), mensaje(e));
+                throw new ResponseStatusException(HttpStatus.valueOf(e.status()), FeignExceptionHandler.mensajeRemoto(e));
             }
             throw e;
         }
@@ -81,17 +74,5 @@ public class ReservasRemotas {
                 }
             }
         });
-    }
-
-    private static String mensaje(FeignException e) {
-        try {
-            JsonNode body = JSON.readTree(e.contentUTF8());
-            if (body != null && body.hasNonNull("message")) {
-                return body.get("message").asText();
-            }
-        } catch (JsonProcessingException ignored) {
-            // Sin cuerpo legible: se usa el mensaje genérico.
-        }
-        return "No se pudo completar la compra.";
     }
 }

@@ -12,6 +12,8 @@ from datetime import date, timedelta
 import httpx
 import pytest
 
+from support import retirar_funcion
+
 SALA = 2
 GASEOSA = 1
 COMPRAS_A_LA_VEZ = 6
@@ -33,7 +35,7 @@ def funcion(api, staff_headers, movies) -> dict:
     assert response.status_code == 201, response.text
     showtime = response.json()
     yield showtime
-    api.delete(f"/showtimes/{showtime['idShowtime']}", headers=staff_headers)
+    retirar_funcion(api, staff_headers, showtime)
 
 
 @pytest.fixture

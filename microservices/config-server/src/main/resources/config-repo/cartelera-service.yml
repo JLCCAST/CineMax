@@ -10,6 +10,8 @@ spring:
       username: ${DB_USER:cine}
       password: ${DB_PASSWORD:cine123}
       authentication-database: admin
+      # Crea al arrancar los índices declarados en las entidades (@CompoundIndex en Showtime).
+      auto-index-creation: true
   # Pósters que sube el admin de películas.
   servlet:
     multipart:

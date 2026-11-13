@@ -1,5 +1,6 @@
 package com.cinemax.confiteria.config;
 
+import com.cinemax.common.error.RespuestasDeSeguridad;
 import com.cinemax.common.security.JwtAuthenticationFilter;
 import com.cinemax.common.security.ServiceAccessFilter;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final RespuestasDeSeguridad respuestas;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -37,6 +39,8 @@ public class SecurityConfig {
         http
             .cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
+            // Sin sesión: 401; con sesión pero sin permiso: 403. Ambos con el formato común.
+            .exceptionHandling(errores -> errores.authenticationEntryPoint(respuestas).accessDeniedHandler(respuestas))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/error").permitAll()

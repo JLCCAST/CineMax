@@ -1,6 +1,7 @@
 package com.cinemax.facturacion.service;
 
 import com.cinemax.facturacion.client.CarteleraClient;
+import com.cinemax.facturacion.client.Circuitos;
 import com.cinemax.facturacion.client.SucursalesClient;
 import com.cinemax.facturacion.dto.external.ShowtimeDTO;
 import com.cinemax.facturacion.dto.response.SeatStatusDTO;
@@ -23,12 +24,13 @@ public class DisponibilidadService {
 
     private final CarteleraClient carteleraClient;
     private final SucursalesClient sucursalesClient;
+    private final Circuitos circuitos;
     private final SaleTicketDetailRepository saleTicketDetailRepository;
 
     public List<SeatStatusDTO> mapaDeButacas(String idShowtime) {
         ShowtimeDTO showtime;
         try {
-            showtime = carteleraClient.getShowtime(idShowtime);
+            showtime = circuitos.llamar("cartelera", () -> carteleraClient.getShowtime(idShowtime));
         } catch (FeignException.NotFound e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Función no encontrada.");
         }
@@ -38,7 +40,8 @@ public class DisponibilidadService {
 
         Set<Integer> vendidas = new HashSet<>(saleTicketDetailRepository.findIdSeatsByIdShowtime(idShowtime));
 
-        return sucursalesClient.getSeatsByRoom(showtime.getIdRoom()).stream()
+        ShowtimeDTO funcion = showtime;
+        return circuitos.llamar("sucursales", () -> sucursalesClient.getSeatsByRoom(funcion.getIdRoom())).stream()
                 .map(seat -> SeatStatusDTO.builder()
                         .idSeat(seat.getIdSeat())
                         .rowLetter(seat.getRowName())

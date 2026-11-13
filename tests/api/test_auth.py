@@ -48,8 +48,8 @@ def test_login_rechaza_una_clave_incorrecta(api, settings):
         "/auth/login",
         json={"email": settings.client_email, "password": "clave-incorrecta"},
     )
-    # Hoy responde 403 sin cuerpo (lo ideal sería 401).
-    assert response.status_code in (401, 403)
+    assert response.status_code == 401
+    assert response.json()["message"] == "Email o contraseña incorrectos"
     assert "token" not in response.text
 
 
@@ -64,9 +64,9 @@ def test_perfil_devuelve_los_datos_del_usuario_autenticado(api, client_headers, 
 
 
 def test_perfil_exige_iniciar_sesion(api):
-    assert api.get("/users/profile").status_code in (401, 403)
+    assert api.get("/users/profile").status_code == 401
 
 
 def test_perfil_rechaza_un_token_invalido(api):
     response = api.get("/users/profile", headers=bearer("esto.no.es-un-jwt"))
-    assert response.status_code in (401, 403)
+    assert response.status_code == 401

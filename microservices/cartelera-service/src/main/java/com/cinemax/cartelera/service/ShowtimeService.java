@@ -1,7 +1,10 @@
 package com.cinemax.cartelera.service;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +57,9 @@ public class ShowtimeService {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private Clock reloj;
 
     public List<ShowtimeResponseDTO> findAll(String movieId, LocalDate showDate) {
         List<Showtime> showtimes;
@@ -141,6 +147,7 @@ public class ShowtimeService {
             throw new RuntimeException("La hora de fin no puede ser antes que la hora de inicio");
         }
 
+        validarQueSeaFutura(dto.getShowDate(), dto.getStartTime());
         RoomVenueDTO sala = buscarSala(dto.getIdRoom());
 
         Showtime showtime = Showtime.builder()
@@ -174,6 +181,15 @@ public class ShowtimeService {
             throw new RuntimeException("La hora de fin no puede ser antes que la hora de inicio");
         }
 
+        if (!Objects.equals(dto.getShowDate(), showtime.getShowDate())
+                || !Objects.equals(dto.getStartTime(), showtime.getStartTime())) {
+            validarQueSeaFutura(dto.getShowDate(), dto.getStartTime());
+        }
+        if (vendidas(showtime) > 0 && !Objects.equals(dto.getIdRoom(), showtime.getIdRoom())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Esta función ya tiene entradas vendidas: no se puede cambiar de sala.");
+        }
+
         showtime.setShowDate(dto.getShowDate());
         showtime.setStartTime(dto.getStartTime());
         showtime.setEndTime(dto.getEndTime());
@@ -197,10 +213,23 @@ public class ShowtimeService {
     }
 
     public void delete(String id) {
-        if (!showtimeRepository.existsById(id)) {
-            throw new RuntimeException("Función no encontrada con id: " + id);
+        Showtime showtime = buscarFuncion(id);
+        if (vendidas(showtime) > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Esta función ya tiene entradas vendidas. En vez de borrarla, cámbiala a Cancelada.");
         }
         showtimeRepository.deleteById(id);
+    }
+
+    private static int vendidas(Showtime showtime) {
+        return showtime.getSoldSeats() != null ? showtime.getSoldSeats() : 0;
+    }
+
+    // Fecha y hora de Lima (el contenedor corre en UTC).
+    private void validarQueSeaFutura(LocalDate fecha, LocalTime hora) {
+        if (fecha != null && hora != null && !LocalDateTime.of(fecha, hora).isAfter(LocalDateTime.now(reloj))) {
+            throw new RuntimeException("La función tiene que empezar en una fecha y hora futuras.");
+        }
     }
 
     // Usado por facturacion-service al confirmar una venta. Resta en una sola
@@ -222,7 +251,8 @@ public class ShowtimeService {
     public void increaseAvailableSeats(String id, int cantidad) {
         validarCantidad(cantidad);
         Query query = Query.query(Criteria.where("idShowtime").is(id).and("availableSeats").ne(null));
-        if (mongoTemplate.updateFirst(query, new Update().inc("availableSeats", cantidad), Showtime.class)
+        Update devolver = new Update().inc("availableSeats", cantidad).inc("soldSeats", -cantidad);
+        if (mongoTemplate.updateFirst(query, devolver, Showtime.class)
                 .getMatchedCount() == 0) {
             buscarFuncion(id);
         }
@@ -230,7 +260,8 @@ public class ShowtimeService {
 
     private boolean restarSiAlcanza(String id, int cantidad) {
         Query query = Query.query(Criteria.where("idShowtime").is(id).and("availableSeats").gte(cantidad));
-        return mongoTemplate.updateFirst(query, new Update().inc("availableSeats", -cantidad), Showtime.class)
+        Update vender = new Update().inc("availableSeats", -cantidad).inc("soldSeats", cantidad);
+        return mongoTemplate.updateFirst(query, vender, Showtime.class)
                 .getMatchedCount() == 1;
     }
 

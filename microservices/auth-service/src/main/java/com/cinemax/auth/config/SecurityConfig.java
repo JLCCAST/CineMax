@@ -1,5 +1,6 @@
 package com.cinemax.auth.config;
 
+import com.cinemax.common.error.RespuestasDeSeguridad;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,9 +14,11 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, RespuestasDeSeguridad respuestas) throws Exception {
         http           
                 .csrf(AbstractHttpConfigurer::disable)
+                // Sin sesión: 401; con sesión pero sin permiso: 403. Ambos con el formato común.
+                .exceptionHandling(errores -> errores.authenticationEntryPoint(respuestas).accessDeniedHandler(respuestas))
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth

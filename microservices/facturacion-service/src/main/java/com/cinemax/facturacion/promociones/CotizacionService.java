@@ -1,6 +1,7 @@
 package com.cinemax.facturacion.promociones;
 
 import com.cinemax.facturacion.client.CarteleraClient;
+import com.cinemax.facturacion.client.Circuitos;
 import com.cinemax.facturacion.client.ConfiteriaClient;
 import com.cinemax.facturacion.dto.external.SaleContextDTO;
 import com.cinemax.facturacion.dto.external.SnackInfoDTO;
@@ -42,6 +43,7 @@ public class CotizacionService {
 
     private final CarteleraClient carteleraClient;
     private final ConfiteriaClient confiteriaClient;
+    private final Circuitos circuitos;
     private final PromotionRepository promotionRepository;
     private final SaleTransactionRepository saleTransactionRepository;
     private final Clock reloj;
@@ -148,7 +150,7 @@ public class CotizacionService {
 
     private SaleContextDTO contexto(String idShowtime) {
         try {
-            return carteleraClient.getSaleContext(idShowtime);
+            return circuitos.llamar("cartelera", () -> carteleraClient.getSaleContext(idShowtime));
         } catch (FeignException.NotFound e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Función no encontrada.");
         }
@@ -183,7 +185,7 @@ public class CotizacionService {
         }
         List<Integer> ids = pedidos.stream().map(SnackPedido::idSnack).distinct().toList();
         Map<Integer, SnackInfoDTO> catalogo = new HashMap<>();
-        confiteriaClient.getSnacks(ids).forEach(s -> catalogo.put(s.getIdSnack(), s));
+        circuitos.llamar("confiteria", () -> confiteriaClient.getSnacks(ids)).forEach(s -> catalogo.put(s.getIdSnack(), s));
         for (SnackPedido p : pedidos) {
             SnackInfoDTO s = catalogo.get(p.idSnack());
             if (s == null || !"Activo".equals(s.getStatus())) {

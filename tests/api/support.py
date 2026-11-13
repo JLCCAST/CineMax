@@ -140,3 +140,12 @@ def register_client(api: httpx.Client, email: str, password: str) -> httpx.Respo
             "idDocumentType": dni_id(api),
         },
     )
+
+
+def retirar_funcion(api: httpx.Client, headers: dict[str, str], funcion: dict) -> None:
+    """Limpieza de las pruebas: borra la función o, si ya vendió entradas (409), la cancela."""
+    if api.delete(f"/showtimes/{funcion['idShowtime']}", headers=headers).status_code != 409:
+        return
+    cuerpo = {campo: funcion[campo] for campo in (
+        "showDate", "startTime", "endTime", "languageFormat", "baseTicketPrice", "movieId", "idRoom")}
+    api.put(f"/showtimes/{funcion['idShowtime']}", headers=headers, json={**cuerpo, "status": "Cancelada"})

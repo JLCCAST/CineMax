@@ -1,5 +1,6 @@
 package com.cinemax.facturacion.service;
 
+import com.cinemax.facturacion.client.Circuitos;
 import com.cinemax.facturacion.client.SucursalesClient;
 import com.cinemax.facturacion.client.UsuariosClient;
 import com.cinemax.facturacion.dto.external.RoomVenueDTO;
@@ -60,6 +61,7 @@ public class SaleTransactionServiceImpl implements SaleTransactionService {
 
     private final UsuariosClient usuariosClient;
     private final SucursalesClient sucursalesClient;
+    private final Circuitos circuitos;
 
     @Override
     @Transactional
@@ -88,7 +90,7 @@ public class SaleTransactionServiceImpl implements SaleTransactionService {
     }
 
     private UserDTO perfil() {
-        UserDTO user = usuariosClient.getProfile();
+        UserDTO user = circuitos.llamar("usuarios", usuariosClient::getProfile);
         if (user == null) {
             throw new IllegalStateException("Usuario no encontrado.");
         }
@@ -125,7 +127,7 @@ public class SaleTransactionServiceImpl implements SaleTransactionService {
         if (seatIds.isEmpty()) {
             return Map.of();  // pedido solo de confitería
         }
-        Map<Integer, SeatDTO> butacas = sucursalesClient.getSeats(seatIds).stream()
+        Map<Integer, SeatDTO> butacas = circuitos.llamar("sucursales", () -> sucursalesClient.getSeats(seatIds)).stream()
                 .collect(Collectors.toMap(SeatDTO::getIdSeat, Function.identity()));
         for (Integer idSeat : seatIds) {
             SeatDTO seat = butacas.get(idSeat);
@@ -151,11 +153,11 @@ public class SaleTransactionServiceImpl implements SaleTransactionService {
     // confitería, además, se comprueba que la sede de recojo exista y atienda.
     private Lugar lugar(SaleContextDTO contexto) {
         if (contexto.getIdShowtime() != null) {
-            RoomVenueDTO sala = sucursalesClient.getRoomWithVenue(contexto.getIdRoom());
+            RoomVenueDTO sala = circuitos.llamar("sucursales", () -> sucursalesClient.getRoomWithVenue(contexto.getIdRoom()));
             return new Lugar(sala.getNameRoom(), sala.getNameVenue());
         }
         try {
-            VenueDTO sede = sucursalesClient.getVenue(contexto.getIdVenue());
+            VenueDTO sede = circuitos.llamar("sucursales", () -> sucursalesClient.getVenue(contexto.getIdVenue()));
             if (!"Activo".equals(sede.getStatus())) {
                 throw new IllegalStateException("Esta sede no está atendiendo pedidos.");
             }

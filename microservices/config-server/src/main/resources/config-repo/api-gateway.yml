@@ -4,6 +4,11 @@ server:
 spring:
   cloud:
     gateway:
+      # Límite para cada petición que el gateway reenvía. Una compra hace varias
+      # llamadas entre servicios, cada una de hasta 4 s, así que aquí hay margen.
+      httpclient:
+        connect-timeout: 2000
+        response-timeout: 15s
       globalcors:
         add-to-simple-url-handler-mapping: true
         cors-configurations:

@@ -1,4 +1,13 @@
 spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          # Toda llamada entre servicios tiene un límite: si el otro servicio no
+          # contesta, se corta y se responde 503, en vez de dejar al cliente esperando.
+          default:
+            connect-timeout: 1000
+            read-timeout: 4000
   jpa:
     hibernate:
       # El esquema lo crea Flyway (db/migration en cada servicio).
