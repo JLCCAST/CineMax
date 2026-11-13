@@ -1,167 +1,60 @@
-<div class="container mt-4 mb-5 text-white">
+<div class="pagina-clara">
+  <div class="container">
+    <app-checkout-stepper pasoActual="seats" />
+    <h1 class="checkout-titulo">Elige tus butacas</h1>
 
-  <!-- ── STEPPER ──────────────────────────────────────────────────────────── -->
-  <div class="progress-wrapper mb-5 mx-auto shadow-sm">
-    <div class="d-flex justify-content-between align-items-center position-relative w-100 px-4">
-      <div class="progress-line position-absolute"></div>
-      <div class="progress-step active" title="Asientos"><i class="fa-solid fa-couch"></i></div>
-      <div class="progress-step"         title="Tickets"> <i class="fa-solid fa-ticket"></i></div>
-      <div class="progress-step"         title="Snacks">  <i class="fa-solid fa-burger"></i></div>
-      <div class="progress-step"         title="Pago">    <i class="fa-regular fa-credit-card"></i></div>
-    </div>
-  </div>
+    @if (error) { <div class="aviso-error">{{ error }}</div> }
 
-  <h3 class="text-center fw-bold mb-5" style="letter-spacing: 1px;">SELECCIONA TU ASIENTO</h3>
+    @if (cargando && !error) {
+      <p class="cargando">Cargando la sala…</p>
+    } @else if (!error) {
+      <div class="checkout-grid">
+        <section class="panel sala">
+          <div class="pantalla">Pantalla</div>
 
-  <!-- ── ERROR ────────────────────────────────────────────────────────────── -->
-  <div *ngIf="error" class="alert alert-danger text-center">{{ error }}</div>
+          <div class="mapa">
+            @for (fila of filas; track fila) {
+              <div class="fila">
+                <span class="fila-letra">{{ fila }}</span>
+                <div class="butacas">
+                  @for (col of columnas; track col) {
+                    @let b = getAsiento(fila, col);
+                    @if (!b || b.esOculto) {
+                      <span class="pasillo"></span>
+                    } @else {
+                      @let estado = getEstadoVisible(b);
+                      <button type="button" class="butaca {{ estado }}"
+                              [disabled]="b.estado === 'ocupado' || b.estado === 'mantenimiento'"
+                              (click)="toggleAsiento(b)" [title]="fila + col"
+                              [attr.aria-pressed]="estado === 'seleccionado'">
+                        @if (b.estado === 'wheelchair' && estado !== 'seleccionado') {
+                          <i class="fa-solid fa-wheelchair"></i>
+                        } @else { {{ col }} }
+                      </button>
+                    }
+                  }
+                </div>
+                <span class="fila-letra">{{ fila }}</span>
+              </div>
+            }
+          </div>
 
-  <!-- ── SPINNER ──────────────────────────────────────────────────────────── -->
-  <div *ngIf="cargando && !error" class="text-center py-5">
-    <div class="spinner-border" style="color: #8a2be2;" role="status"></div>
-    <p class="text-secondary mt-3 small">Cargando disponibilidad...</p>
-  </div>
+          <ul class="leyenda">
+            <li><span class="butaca mini disponible"></span> Libre</li>
+            <li><span class="butaca mini seleccionado"></span> Tu elección</li>
+            <li><span class="butaca mini ocupado"></span> Ocupada</li>
+            <li><span class="butaca mini wheelchair"><i class="fa-solid fa-wheelchair"></i></span> Silla de ruedas</li>
+          </ul>
+        </section>
 
-  <!-- ── CONTENIDO PRINCIPAL ───────────────────────────────────────────────── -->
-  <div *ngIf="!cargando && !error" class="row g-5">
-
-    <!-- ── MAPA DE ASIENTOS ─────────────────────────────────────────────────── -->
-    <div class="col-lg-8">
-
-      <!-- Pantalla -->
-      <div class="screen-bar mx-auto mb-5 text-center fw-bold" style="letter-spacing: 4px;">
-        PANTALLA
+        @if (resumenEnVivo) {
+          <app-booking-summary [resumen]="resumenEnVivo" [secciones]="{ tickets: false, snacks: false, total: false }">
+            <p class="contador">{{ seleccionados.length }} de {{ MAX_ASIENTOS }} butacas como máximo</p>
+            <button type="button" class="btn-cine" [disabled]="!seleccionados.length" (click)="irSiguientePaso()">Continuar</button>
+            <button type="button" class="btn-cine-secundario" (click)="cancelar()">Cancelar</button>
+          </app-booking-summary>
+        }
       </div>
-
-      <!-- Matriz dinámica -->
-      <div class="d-flex flex-column align-items-center mb-5 seat-grid">
-        <div class="d-flex align-items-center mb-2 seat-row"
-             *ngFor="let fila of filas">
-
-          <!-- Etiqueta izquierda -->
-          <span class="row-label me-3">{{ fila }}</span>
-
-          <!-- Asientos de la fila -->
-          <div class="d-flex gap-2">
-            <ng-container *ngFor="let col of columnas">
-
-              <!-- Asiento oculto = pasillo (espacio vacío) -->
-              <div *ngIf="getAsiento(fila, col)?.esOculto"
-                   class="seat-gap"></div>
-
-              <!-- Asiento normal -->
-              <ng-container *ngIf="!getAsiento(fila, col)?.esOculto">
-                <button
-                  class="seat-box"
-                  [ngClass]="{
-                    'disponible':   getEstadoVisible(getAsiento(fila, col)!) === 'disponible',
-                    'ocupado':      getEstadoVisible(getAsiento(fila, col)!) === 'ocupado',
-                    'mantenimiento':getEstadoVisible(getAsiento(fila, col)!) === 'mantenimiento',
-                    'seleccionado': getEstadoVisible(getAsiento(fila, col)!) === 'seleccionado',
-                    'wheelchair':   getEstadoVisible(getAsiento(fila, col)!) === 'wheelchair'
-                  }"
-                  [disabled]="getAsiento(fila, col)!.estado === 'ocupado' ||
-                               getAsiento(fila, col)!.estado === 'mantenimiento'"
-                  (click)="toggleAsiento(getAsiento(fila, col)!)"
-                  [title]="fila + col">
-
-                  <!-- Wheelchair muestra ícono, el resto muestra el código -->
-                  <ng-container *ngIf="getAsiento(fila, col)!.estado !== 'wheelchair'">
-                    {{ fila }}{{ col }}
-                  </ng-container>
-                  <i *ngIf="getAsiento(fila, col)!.estado === 'wheelchair'"
-                     class="fa-solid fa-wheelchair"></i>
-                </button>
-              </ng-container>
-
-            </ng-container>
-          </div>
-
-          <!-- Etiqueta derecha -->
-          <span class="row-label ms-3">{{ fila }}</span>
-        </div>
-      </div>
-
-      <!-- Leyenda -->
-      <div class="d-flex justify-content-center gap-4 flex-wrap fw-bold mt-4 legend">
-        <div class="d-flex align-items-center gap-2">
-          <div class="seat-box mini disponible"></div><span>DISPONIBLE</span>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-          <div class="seat-box mini ocupado"></div><span>NO DISPONIBLE</span>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-          <div class="seat-box mini seleccionado"></div><span>MI SELECCIÓN</span>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-          <div class="seat-box mini wheelchair text-center">
-            <i class="fa-solid fa-wheelchair"></i>
-          </div><span>DISCAPACITADO</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── RESUMEN ────────────────────────────────────────────────────────── -->
-    <div class="col-lg-4">
-      <div class="summary-card p-4 rounded-4 shadow">
-
-        <h4 class="fw-bold mb-4">RESUMEN</h4>
-
-        <!-- Película -->
-        <p class="summary-label text-uppercase fw-bold mb-2">Película</p>
-        <div class="d-flex gap-3 mb-4 align-items-center">
-          <img [src]="resumen?.pelicula?.poster || 'Imagenes/poster-generico.svg'"
-               alt="Póster" width="65" class="rounded-3 shadow poster-img">
-          <div>
-            <p class="mb-1 fw-bold lh-sm fs-5">{{ resumen?.pelicula?.nombre || '—' }}</p>
-            <span class="badge-formato">{{ resumen?.pelicula?.formato || '' }}</span>
-          </div>
-        </div>
-
-        <hr class="divider">
-
-        <!-- Cine / Fecha -->
-        <p class="summary-label text-uppercase fw-bold mb-2">Cine, Día y Función</p>
-        <div class="d-flex align-items-center gap-3 mb-4">
-          <div class="icon-box">
-            <i class="fa-regular fa-calendar fs-5"></i>
-          </div>
-          <div>
-            <p class="mb-1 fw-bold">{{ resumen?.cine || '—' }}</p>
-            <p class="mb-0 text-secondary small">{{ resumen?.fechaHora || '' }}</p>
-          </div>
-        </div>
-
-        <hr class="divider">
-
-        <!-- Asientos seleccionados -->
-        <p class="summary-label text-uppercase fw-bold mb-2">Asientos</p>
-        <div class="d-flex align-items-center gap-3 mb-2">
-          <div class="icon-box">
-            <i class="fa-solid fa-couch fs-5"></i>
-          </div>
-          <p class="mb-0 fw-bold fs-5 selection-text">{{ codigosSeleccionados }}</p>
-        </div>
-
-        <!-- Contador -->
-        <p class="text-secondary small mb-5">
-          {{ seleccionados.length }} / {{ MAX_ASIENTOS }} asientos seleccionados
-        </p>
-
-        <!-- Botones -->
-        <button class="btn w-100 py-3 rounded-pill fw-bold mb-3 d-flex justify-content-center
-                        align-items-center gap-2 btn-continue fs-5"
-                (click)="irSiguientePaso()">
-          CONTINUAR <i class="fa-solid fa-arrow-right"></i>
-        </button>
-        <button class="btn w-100 py-2 rounded-pill fw-bold d-flex justify-content-center
-                        align-items-center gap-2 btn-cancel"
-                (click)="cancelar()">
-          CANCELAR <i class="fa-regular fa-circle-xmark"></i>
-        </button>
-
-      </div>
-    </div>
-
+    }
   </div>
 </div>

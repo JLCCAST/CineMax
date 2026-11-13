@@ -7,6 +7,8 @@ import { ShowtimeService } from '../../../services/showtime.service';
 import { SeatService } from '../../../services/seat.service';
 
 import { Offcanvas } from 'bootstrap';
+import { BookingSummaryComponent } from '../shared/booking-summary/booking-summary';
+import { CheckoutStepperComponent } from '../shared/checkout-stepper/checkout-stepper';
 
 interface SeatCell {
   idSeat: number;
@@ -20,7 +22,7 @@ interface SeatCell {
 @Component({
   selector: 'app-seats',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, BookingSummaryComponent, CheckoutStepperComponent],
   templateUrl: './seats.html',
   styleUrl: './seats.css'
 })
@@ -182,6 +184,11 @@ export class Seats implements OnInit {
 
   estaSeleccionado(cell: SeatCell): boolean {
     return this.seleccionados.some(s => s.idSeat === cell.idSeat);
+  }
+
+  // El resumen muestra las butacas elegidas antes de guardarlas en la reserva.
+  get resumenEnVivo(): any {
+    return this.resumen ? { ...this.resumen, asientos: this.seleccionados.map(s => s.codigo) } : null;
   }
 
   get codigosSeleccionados(): string {

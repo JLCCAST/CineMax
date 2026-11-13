@@ -1,41 +1,96 @@
-/* BARRITA DE PROGRESO */
-.progress-wrapper { background-color: #1e1e24; padding: 15px 30px; border-radius: 40px; width: 70%; }
-.progress-line { height: 2px; background-color: #444; left: 0; right: 0; top: 50%; transform: translateY(-50%); }
-.progress-step {
-  width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  background-color: #1a1a1c; border: 2px solid #444; color: #777; font-size: 1.2rem; transition: all 0.3s ease;
+.tarifas {
+    padding: 0.25rem 1.5rem;
 }
-/* Paso activo actual (Tickets) */
-.progress-step.active { border-color: #8a2be2; color: #8a2be2; box-shadow: 0 0 10px rgba(138, 43, 226, 0.2); }
-/* Paso ya completado (Asientos) -> Verde Vivo que pediste antes */
-.progress-step.completed { border-color: #00e676; color: #00e676; background-color: rgba(0, 230, 118, 0.1); }
 
-/* LISTA DE TICKETS */
-.tickets-container { background-color: #161619; border: 1px solid #2a2a2a; }
-.ticket-row { border-bottom: 1px solid #2a2a2a; }
-.ticket-row:last-child { border-bottom: none; }
-
-/* CONTROLES + Y - */
-.btn-qty {
-  width: 35px; height: 35px; border-radius: 50%;
-  border: 1px solid #8a2be2; background-color: transparent;
-  color: #8a2be2; font-size: 1rem; display: flex; align-items: center; justify-content: center;
-  transition: 0.3s ease; cursor: pointer;
+.tarifa {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--line);
 }
-.btn-qty:hover { background-color: #8a2be2; color: #fff; transform: scale(1.1); }
-.btn-qty:active { transform: scale(0.95); }
 
-/* ALERTA */
-.custom-alert { background-color: #1a1a1c; border: 1px solid #2a2a2a; color: #ccc; }
+.tarifa:last-child {
+    border-bottom: none;
+}
 
-/* RESUMEN (Mismos de seats.css) */
-.summary-card { background-color: #161619; border: 1px solid #2a2a2a; }
-.summary-label { color: #888; font-size: 0.95rem; }
-.pastel-badge { background-color: #222; color: #ccc; border: 1px solid #444; font-size: 0.9rem; }
-.selection-text { color: #ffffff !important; font-size: 1.1rem !important; }
+.tarifa h3 {
+    margin: 0 0 0.2rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
 
-/* BOTONES */
-.btn-continue { background-color: #8a2be2; color: #fff !important; border: none; transition: 0.3s; }
-.btn-continue:hover { background-color: #7c26cc; transform: scale(1.02); }
-.btn-cancel { border: 1px solid #888; color: #888; background-color: transparent; transition: 0.3s; }
-.btn-cancel:hover { background-color: rgba(255,255,255,0.1); color: #fff; border-color: #fff; }
+.tarifa h3 i {
+    margin-left: 0.3rem;
+    color: #2f6fd6;
+    font-size: 0.9rem;
+}
+
+.tarifa p {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: 0.88rem;
+}
+
+.precio {
+    font-weight: 700;
+}
+
+.cantidad {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.cantidad button {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #fff;
+    color: var(--brand);
+}
+
+.cantidad button:disabled {
+    color: #c3c1cc;
+}
+
+.cantidad span {
+    min-width: 36px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.progreso {
+    margin: 1rem 0 0;
+    padding: 0.75rem 1rem;
+    border-left: 4px solid var(--accent);
+    background: #fff8e6;
+    color: #6b4e00;
+    font-size: 0.92rem;
+}
+
+.progreso.listo {
+    border-left-color: var(--success);
+    background: #e8f6ee;
+    color: #155c34;
+}
+
+@media (max-width: 576px) {
+    .tarifa {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.5rem 1rem;
+    }
+
+    .precio {
+        grid-column: 1;
+    }
+
+    .cantidad {
+        grid-row: 1 / span 2;
+        grid-column: 2;
+    }
+}

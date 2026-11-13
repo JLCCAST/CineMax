@@ -1,446 +1,320 @@
-/* ── Stepper ─────────────────────────────────────────────────────────────── */
-.progress-wrapper { background-color: #1e1e24; padding: 15px 30px; border-radius: 40px; width: 70%; }
-.progress-line { height: 2px; background-color: #444; left: 0; right: 0; top: 50%; transform: translateY(-50%); position: absolute; z-index: 1; }
-.progress-step {
-  width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  background-color: #1a1a1c; border: 2px solid #444; color: #777; font-size: 1.2rem; transition: all 0.3s ease;
-  position: relative; z-index: 2;
-}
-.progress-step.active    { border-color: #8a2be2; color: #8a2be2; box-shadow: 0 0 10px rgba(138,43,226,0.25); }
-.progress-step.completed { border-color: #00e676; color: #00e676; background-color: rgba(0,230,118,0.1); }
-
-/* ── Selector de método de pago ─────────────────────────────────────────── */
-.metodo-tabs {
-  display: flex;
-  gap: 10px;
-}
-.metodo-tab {
-  flex: 1;
-  padding: 14px 20px;
-  border-radius: 14px;
-  border: 2px solid #2a2a2a;
-  background-color: #161619;
-  color: #888;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-.metodo-tab:hover { border-color: #555; color: #ccc; }
-.metodo-tab--active {
-  border-color: #8a2be2;
-  color: #fff;
-  background-color: rgba(138, 43, 226, 0.08);
-  box-shadow: 0 0 10px rgba(138, 43, 226, 0.15);
+.metodos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
 }
 
-.yape-logo { width: 22px; height: 22px; object-fit: contain; border-radius: 4px; }
-
-/* ── Panel del formulario ────────────────────────────────────────────────── */
-.payment-panel {
-  background-color: #161619;
-  border: 1px solid #2a2a2a;
+.metodos button {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
+    font-weight: 600;
+    text-align: left;
 }
 
-/* ── Vista previa de tarjeta ─────────────────────────────────────────────── */
-.card-preview {
-  background: linear-gradient(135deg, #1c1c2e 0%, #2d1b69 60%, #1a0533 100%);
-  border-radius: 16px;
-  padding: 24px;
-  min-height: 180px;
-  border: 1px solid #3a2060;
-  box-shadow: 0 8px 30px rgba(138, 43, 226, 0.2);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: background 0.4s;
-}
-.card-preview--visa {
-  background: linear-gradient(135deg, #0d1b4b 0%, #1a3480 60%, #0d1b4b 100%);
-  border-color: #2244a8;
-}
-.card-preview--mastercard {
-  background: linear-gradient(135deg, #1a0a00 0%, #6b2000 60%, #1a0a00 100%);
-  border-color: #8b2e00;
+.metodos button.activo {
+    border-color: var(--brand);
+    background: var(--brand-tint);
+    box-shadow: inset 0 0 0 1px var(--brand);
 }
 
-.card-preview-top { margin-bottom: 20px; }
-
-/* Chip dorado */
-.chip {
-  width: 42px;
-  height: 32px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #c8a84b 0%, #f0d060 50%, #c8a84b 100%);
-  border: 1px solid #a07820;
+.metodos i {
+    color: var(--brand);
 }
 
-.card-brand {
-  color: rgba(255,255,255,0.85);
-  font-size: 1rem;
-  letter-spacing: 2px;
+.campos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
 }
 
-/* Número */
-.card-preview-num {
-  font-family: 'Courier New', monospace;
-  font-size: 1.35rem;
-  letter-spacing: 3px;
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-  margin-bottom: 16px;
+.ancho {
+    grid-column: 1 / -1;
 }
 
-/* Pie de tarjeta */
-.card-preview-lbl {
-  font-size: 0.65rem;
-  color: rgba(255,255,255,0.5);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 2px;
-}
-.card-preview-val {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
 }
 
-/* ── Campos del formulario ───────────────────────────────────────────────── */
-.field-label {
-  display: block;
-  color: #999;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-}
-.field-input {
-  width: 100%;
-  background-color: #111;
-  border: 1px solid #333;
-  border-radius: 10px;
-  padding: 12px 14px;
-  color: #fff;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.field-input:focus {
-  border-color: #8a2be2;
-  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.15);
-}
-.field-input::placeholder { color: #444; }
-
-.card-type-badge { font-size: 1.3rem; color: #aaa; }
-.cvv-hint { font-size: 0.72rem; color: #666; font-weight: 400; text-transform: none; letter-spacing: 0; }
-
-/* ── Nota de seguridad ───────────────────────────────────────────────────── */
-.security-note {
-  background-color: #111;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
-  padding: 12px 16px;
-  color: #888;
-  font-size: 0.8rem;
-}
-.security-note i { color: #00e676; }
-
-/* ── Panel Yape ──────────────────────────────────────────────────────────── */
-.yape-panel { }
-
-.yape-icon-wrap {
-  width: 64px; height: 64px;
-  border-radius: 50%;
-  background-color: rgba(124, 58, 237, 0.12);
-  border: 2px solid rgba(124, 58, 237, 0.3);
-  display: flex; align-items: center; justify-content: center;
+.campo > span {
+    display: flex;
+    justify-content: space-between;
+    color: var(--ink-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
-.yape-qr {
-  width: 160px; height: 160px;
-  border-radius: 16px;
-  border: 2px dashed #3a2060;
-  background-color: #0e0e12;
-  display: flex; align-items: center; justify-content: center;
-}
-.qr-inner {
-  display: flex; flex-direction: column; align-items: center;
+.campo > span i {
+    color: var(--ink);
+    font-size: 1.2rem;
 }
 
-.divider-text {
-  position: relative;
-  text-align: center;
-  color: #555;
-  font-size: 0.8rem;
-}
-.divider-text::before,
-.divider-text::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 38%;
-  height: 1px;
-  background-color: #2a2a2a;
-}
-.divider-text::before { left: 0; }
-.divider-text::after  { right: 0; }
-
-.input-group-phone { display: flex; align-items: stretch; }
-.phone-prefix {
-  background-color: #1a1a1e;
-  border: 1px solid #333;
-  border-right: none;
-  border-radius: 10px 0 0 10px;
-  padding: 12px 14px;
-  color: #888;
-  font-size: 0.95rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.field-input--phone {
-  border-radius: 0 10px 10px 0 !important;
-  flex: 1;
+input {
+    width: 100%;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid #cfcdd6;
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
 }
 
-.yape-tip {
-  background-color: rgba(124, 58, 237, 0.06);
-  border: 1px solid rgba(124, 58, 237, 0.2);
-  border-radius: 10px;
-  padding: 12px 14px;
+input:focus {
+    border-color: var(--brand);
+    outline: 2px solid var(--brand-tint);
 }
 
-/* ── Resumen lateral ─────────────────────────────────────────────────────── */
-.summary-card  { background-color: #161619; border: 1px solid #2a2a2a; }
-.summary-label { color: #888; font-size: 0.95rem; }
-.pastel-badge  { background-color: #222; color: #ccc; border: 1px solid #444; font-size: 0.9rem; }
-.icon-box      { background-color: #222; padding: 12px; border-radius: 8px; border: 1px solid #333; color: #fff; flex-shrink: 0; }
-
-/* ── Código promo ────────────────────────────────────────────────────────── */
-.btn-promo {
-  padding: 10px 18px;
-  border-radius: 10px;
-  border: 1px solid #8a2be2;
-  background: transparent;
-  color: #c084fc;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
-  white-space: nowrap;
-}
-.btn-promo:hover { background-color: #8a2be2; color: #fff; }
-.btn-promo:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.promo-badge {
-  background-color: rgba(0, 230, 118, 0.07);
-  border: 1px solid rgba(0, 230, 118, 0.25);
-  border-radius: 10px;
-  padding: 10px 14px;
-}
-.btn-remove-promo {
-  background: transparent;
-  border: none;
-  color: #888;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: color 0.2s;
-  padding: 2px 6px;
-}
-.btn-remove-promo:hover { color: #f87171; }
-
-/* ── Caja de total ───────────────────────────────────────────────────────── */
-.total-box {
-  background-color: rgba(0,0,0,0.4);
-  border: 1px solid #2a2a2a;
+input.invalido {
+    border-color: var(--danger);
 }
 
-/* ── Botones de acción ───────────────────────────────────────────────────── */
-.btn-continue {
-  background-color: #8a2be2;
-  color: #fff !important;
-  border: none;
-  transition: 0.3s;
-}
-.btn-continue:hover:not(:disabled) { background-color: #7c26cc; transform: scale(1.02); }
-.btn-continue:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-.btn-cancel {
-  border: 1px solid #555;
-  color: #888;
-  background-color: transparent;
-  transition: 0.3s;
-}
-.btn-cancel:hover:not(:disabled) { background-color: rgba(255,255,255,0.06); color: #ccc; border-color: #888; }
-.btn-cancel:disabled { opacity: 0.4; }
-
-/* ── Pantalla de éxito ───────────────────────────────────────────────────── */
-.success-screen {
-  max-width: 480px;
-  padding: 60px 24px;
-}
-.success-icon {
-  font-size: 5rem;
-  color: #00e676;
-  filter: drop-shadow(0 0 24px rgba(0, 230, 118, 0.4));
-}
-/* ══════════════ PANTALLA DE ÉXITO / TICKET ══════════════════════════════ */
-
-.ticket-screen { max-width: 440px; }
-
-.success-icon {
-  font-size: 4rem;
-  color: #00e676;
-  filter: drop-shadow(0 0 20px rgba(0,230,118,0.45));
+.error {
+    color: var(--danger);
+    font-size: 0.8rem;
 }
 
-/* ── Tarjeta de ticket ───────────────────────────────────────────────────── */
-.ticket-card {
-  max-width: 380px;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 12px 50px rgba(0,0,0,0.6);
+.telefono {
+    display: flex;
 }
 
-.ticket-header {
-  background: linear-gradient(135deg, #8a2be2 0%, #5b10a0 100%);
-  padding: 24px 28px 20px;
-  text-align: center;
-}
-.ticket-movie {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
-  line-height: 1.2;
-}
-.ticket-meta {
-  font-size: 0.78rem;
-  color: rgba(255,255,255,0.7);
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-.ticket-venue {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #e0c4ff;
-  margin-bottom: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.telefono span {
+    display: grid;
+    place-items: center;
+    padding: 0 0.8rem;
+    border: 1px solid #cfcdd6;
+    border-right: none;
+    border-radius: var(--radius) 0 0 var(--radius);
+    background: #f6f5f8;
+    color: var(--ink-muted);
 }
 
-.ticket-body {
-  background: #fff;
-  padding: 24px 24px 20px;
+.telefono input {
+    border-radius: 0 var(--radius) var(--radius) 0;
 }
 
-/* QR */
+.nota {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: 0.9rem;
+}
+
+.seguridad {
+    margin: 1.5rem 0 0;
+    color: var(--ink-muted);
+    font-size: 0.82rem;
+}
+
+/* Cupón e importes dentro del resumen */
+.cupon {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.cupon-campo {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.cupon-campo input {
+    text-transform: uppercase;
+}
+
+.cupon-campo input::placeholder {
+    text-transform: none;
+}
+
+.cupon-campo button {
+    padding: 0 0.9rem;
+    border: 1px solid var(--ink);
+    border-radius: var(--radius);
+    background: var(--ink);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.cupon-campo button:disabled {
+    border-color: var(--line);
+    background: var(--line);
+    color: var(--ink-muted);
+}
+
+.promo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius);
+    background: #e8f6ee;
+    color: #155c34;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.promo button {
+    border: none;
+    background: none;
+    color: inherit;
+}
+
+.importes {
+    margin: 0.25rem 0 0.5rem;
+}
+
+.importes div {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.3rem 0;
+    font-size: 0.9rem;
+}
+
+.importes dt {
+    color: var(--ink-muted);
+    font-weight: 500;
+}
+
+.importes dd {
+    margin: 0;
+    font-weight: 600;
+}
+
+.importes .descuento dt,
+.importes .descuento dd {
+    color: var(--success);
+}
+
+.importes .total {
+    margin-top: 0.35rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--font-display);
+    text-transform: uppercase;
+}
+
+.importes .total dt {
+    color: var(--ink);
+    font-size: 1.05rem;
+}
+
+.importes .total dd {
+    font-size: 1.5rem;
+}
+
+/* Compra confirmada */
+.exito {
+    max-width: 460px;
+    margin: 0 auto;
+}
+
+.exito-cabecera {
+    margin-bottom: 1.75rem;
+    text-align: center;
+}
+
+.exito-cabecera > i {
+    color: var(--success);
+    font-size: 2.75rem;
+}
+
+.exito-cabecera h1 {
+    margin: 0.5rem 0 0.35rem;
+}
+
+.exito-cabecera p {
+    margin: 0;
+    color: var(--ink-muted);
+}
+
+.ticket {
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+}
+
+.ticket-cabecera {
+    padding: 1.1rem 1.5rem;
+    background: var(--header-bg);
+    color: #fff;
+}
+
+.ticket-cabecera span {
+    display: block;
+    font-size: 1.4rem;
+    text-transform: uppercase;
+}
+
+.ticket-cabecera small {
+    color: #b9b7c2;
+}
+
 .ticket-qr {
-  width: 180px;
-  height: 180px;
-  border: 3px solid #f0e8ff;
-  border-radius: 12px;
-  padding: 6px;
-  background: #fff;
-}
-.ticket-qr-hint {
-  font-size: 0.75rem;
-  color: #999;
-  margin-bottom: 0;
+    padding: 1.5rem 1.5rem 1.25rem;
+    border-bottom: 2px dashed var(--line);
+    text-align: center;
 }
 
-/* Perforación */
-.ticket-perforation {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin: 0 -24px;
-  position: relative;
-}
-.perf-circle {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #0f0f13;
-  flex-shrink: 0;
-}
-.perf-left  { margin-left: -11px; }
-.perf-right { margin-right: -11px; margin-left: auto; }
-.perf-dashes {
-  flex: 1;
-  border-top: 2px dashed #ddd;
+.ticket-qr img {
+    width: 200px;
+    height: 200px;
 }
 
-/* Info grid */
-.ticket-info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px 8px;
-}
-.ticket-info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.ticket-info-label {
-  font-size: 0.65rem;
-  color: #aaa;
-  letter-spacing: 1px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-.ticket-info-val {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #1a1a1a;
+.ticket-qr p {
+    margin: 0.5rem 0 0;
+    color: var(--ink-muted);
+    font-size: 0.85rem;
 }
 
-/* Snacks */
-.ticket-snacks { }
-.ticket-snacks-title {
-  font-size: 0.65rem;
-  color: #aaa;
-  letter-spacing: 1px;
-  font-weight: 600;
-  margin-bottom: 6px;
+.ticket-datos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 0;
+    padding: 1.25rem 1.5rem;
 }
-.ticket-snack-name   { font-size: 0.82rem; color: #333; font-weight: 600; }
-.ticket-snack-status { font-size: 0.82rem; color: #8a2be2; font-weight: 700; }
 
-/* ── Botones de acción post-éxito ────────────────────────────────────────── */
-.btn-action-secondary {
-  border: 2px solid #555;
-  color: #ccc;
-  background: transparent;
-  transition: 0.2s;
+.ticket-datos dt,
+.ticket-snacks span {
+    color: var(--ink-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
 }
-.btn-action-secondary:hover { border-color: #fff; color: #fff; }
 
-.btn-action-primary {
-  background: #8a2be2;
-  color: #fff !important;
-  border: none;
-  transition: 0.2s;
+.ticket-datos dd {
+    margin: 0.15rem 0 0;
+    font-weight: 700;
 }
-.btn-action-primary:hover { background: #7c26cc; }
 
-.btn-action-ghost {
-  border: 1px solid #333;
-  color: #666;
-  background: transparent;
-  font-size: 0.85rem;
-  transition: 0.2s;
+.ticket-snacks {
+    padding: 1rem 1.5rem 1.25rem;
+    border-top: 1px solid var(--line);
 }
-.btn-action-ghost:hover { color: #999; border-color: #555; }
+
+.ticket-snacks ul {
+    margin: 0.35rem 0 0;
+    padding-left: 1.1rem;
+}
+
+.exito-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+}
+
+@media (max-width: 576px) {
+    .metodos,
+    .campos {
+        grid-template-columns: 1fr;
+    }
+}

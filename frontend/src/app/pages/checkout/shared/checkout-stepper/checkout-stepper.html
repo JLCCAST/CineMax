@@ -1,29 +1,11 @@
-<!-- ── Stepper de 4 pasos del flujo de compra ─────────────────────────────── -->
-<div class="progress-wrapper mb-5 mx-auto shadow-sm">
-    <div class="d-flex justify-content-between align-items-center position-relative w-100 px-4">
-    
-        <!-- Línea de fondo que une todos los íconos -->
-        <div class="progress-line position-absolute" style="z-index: 1;"></div>
-    
-        <!-- Nodo por cada paso -->
-        <div
-            *ngFor="let step of steps"
-            class="progress-step position-relative"
-            style="z-index: 2;"
-            [class.active]="estadoPaso(step.id) === 'activo'"
-            [class.completed]="estadoPaso(step.id) === 'completado'"
-            [title]="step.label">
-    
-            <!-- Ícono del paso; si está completado se muestra un check -->
-            <i
-            *ngIf="estadoPaso(step.id) !== 'completado'"
-            [class]="step.icon">
-            </i>
-            <i
-            *ngIf="estadoPaso(step.id) === 'completado'"
-            class="fa-solid fa-check">
-            </i>
-    
-        </div>
-    </div>
-  </div>
+<ol class="pasos">
+  @for (paso of pasos; track paso.id; let i = $index) {
+    @let e = estado(paso.id);
+    <li [class.activo]="e === 'activo'" [class.hecho]="e === 'hecho'" [attr.aria-current]="e === 'activo' ? 'step' : null">
+      <span class="numero">
+        @if (e === 'hecho') { <i class="fa-solid fa-check"></i> } @else { {{ i + 1 }} }
+      </span>
+      <span class="nombre">{{ paso.label }}</span>
+    </li>
+  }
+</ol>

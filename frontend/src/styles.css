@@ -10,6 +10,8 @@
     --brand-hover: #5b21b6;
     --brand-tint: #ede9fe;
     --accent: #e8a400;         /* precios y códigos de promoción */
+    --danger: #c62828;
+    --success: #1f8a4c;
     --radius: 4px;
     --radius-card: 6px;
     --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -127,4 +129,102 @@ body {
 main:has(> app-home) + footer,
 main:has(.pagina-clara) + footer {
     margin-top: 0 !important;
+}
+
+.btn-cine-secundario {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+.btn-cine-secundario:hover {
+    border-color: var(--ink-muted);
+    color: var(--ink);
+}
+
+/* Pestañas subrayadas (cartelera, confitería). */
+.pestanas {
+    display: flex;
+    gap: 1.75rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.pestanas button {
+    flex-shrink: 0;
+    margin-bottom: -1px;
+    padding: 0 0 0.6rem;
+    border: none;
+    border-bottom: 3px solid transparent;
+    background: none;
+    color: var(--ink-muted);
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.pestanas button.activa {
+    border-bottom-color: var(--brand);
+    color: var(--ink);
+}
+
+/* Checkout: título, contenido a la izquierda y resumen a la derecha. */
+.checkout-titulo {
+    margin: 0 0 1.25rem;
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.checkout-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 2rem;
+    align-items: start;
+}
+
+.panel {
+    padding: 1.5rem;
+    border-radius: var(--radius-card);
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+}
+
+.aviso-error {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-left: 4px solid var(--danger);
+    background: #fdecec;
+    color: #8a1c1c;
+}
+
+.cargando {
+    padding: 3rem 0;
+    color: var(--ink-muted);
+    text-align: center;
+}
+
+@media (max-width: 991px) {
+    .checkout-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .pestanas button {
+        font-size: 1.1rem;
+    }
 }

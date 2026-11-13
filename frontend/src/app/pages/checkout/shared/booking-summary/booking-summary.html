@@ -1,105 +1,48 @@
-<!-- ── Panel de resumen de compra ────────────────────────────────────────── -->
-<div class="summary-card p-4 rounded-4 shadow">
-    <h4 class="fw-bold mb-4 text-white">RESUMEN</h4>
+<aside class="resumen">
+  <h2 class="font-display">Tu compra</h2>
 
-    <!-- ── PELÍCULA ─────────────────────────────────────────────────────────── -->
-    <ng-container *ngIf="secciones.pelicula">
-        <h6 class="summary-label text-uppercase fw-bold mb-2">Película</h6>
-        <div class="d-flex gap-3 mb-4 align-items-center">
-            <img
-            [src]="resumen.pelicula.poster || 'Imagenes/poster-generico.svg'"
-            alt="Póster"
-            width="65"
-            class="rounded-3 shadow poster-img">
-            <div>
-            <p class="mb-1 fw-bold text-white lh-sm fs-5">
-                {{ resumen.pelicula.nombre || '—' }}
-            </p>
-            <span class="badge-formato">{{ resumen.pelicula.formato || '' }}</span>
-            </div>
-        </div>
-        <hr class="divider">
-    </ng-container>
-
-    <!-- ── CINE / FECHA ──────────────────────────────────────────────────────── -->
-    <ng-container *ngIf="secciones.cine">
-        <h6 class="summary-label text-uppercase fw-bold mb-2">Cine, Día y Función</h6>
-        <div class="d-flex align-items-center gap-3 mb-4">
-            <div class="icon-box">
-            <i class="fa-regular fa-calendar fs-5 text-white"></i>
-            </div>
-            <div>
-            <p class="mb-1 fw-bold text-white fs-6">{{ resumen.cine || '—' }}</p>
-            <p class="mb-0 text-secondary small">{{ resumen.fechaHora || '' }}</p>
-            </div>
-        </div>
-        <hr class="divider">
-    </ng-container>
-  
-    <!-- ── ASIENTOS ──────────────────────────────────────────────────────────── -->
-    <ng-container *ngIf="secciones.asientos">
-        <h6 class="summary-label text-uppercase fw-bold mb-2">Asientos</h6>
-        <div class="d-flex align-items-center gap-3 mb-4">
-            <div class="icon-box">
-            <i class="fa-solid fa-couch fs-5 text-white"></i>
-            </div>
-            <p class="mb-0 fw-bold text-white fs-6 selection-text">{{ asientosTexto }}</p>
-        </div>
-        <hr class="divider" *ngIf="secciones.tickets || secciones.snacks || secciones.total">
-    </ng-container>
-  
-    <!-- ── ENTRADAS ──────────────────────────────────────────────────────────── -->
-    <ng-container *ngIf="secciones.tickets">
-        <h6 class="summary-label text-uppercase fw-bold mb-2">Entradas</h6>
-        <div class="mb-3">
-            <ng-container *ngFor="let t of resumen.tickets">
-            <div class="d-flex justify-content-between text-light small mb-1">
-                <span>{{ t.categoryName }} × {{ t.cantidad }}</span>
-                <span>S/ {{ t.subtotal | number:'1.2-2' }}</span>
-            </div>
-            </ng-container>
-            <div *ngIf="!resumen.tickets.length" class="text-secondary small">
-            Ninguna elegida aún
-            </div>
-        </div>
-      <hr class="divider" *ngIf="secciones.snacks || secciones.total">
-    </ng-container>
-
-    <!-- ── CONFITERÍA ────────────────────────────────────────────────────────── -->
-    <ng-container *ngIf="secciones.snacks && resumen.snacks.length">
-        <h6 class="summary-label text-uppercase fw-bold mb-2">Confitería</h6>
-        <div class="mb-3">
-            <div *ngFor="let s of resumen.snacks"
-                class="d-flex justify-content-between text-light small mb-1">
-            <span>{{ s.nombre }} × {{ s.cantidad }}</span>
-            <span>S/ {{ s.subtotal | number:'1.2-2' }}</span>
-            </div>
-        </div>
-      <hr class="divider" *ngIf="secciones.total">
-    </ng-container>
-
-    <!-- ── TOTAL ─────────────────────────────────────────────────────────────── -->
-    <ng-container *ngIf="secciones.total">
-        <div class="total-box p-3 rounded-3">
-            <div class="d-flex justify-content-between mb-2 text-light small">
-            <span>Entradas</span>
-            <span class="fw-bold text-white">S/ {{ totalTickets | number:'1.2-2' }}</span>
-            </div>
-            <div *ngIf="totalSnacks > 0"
-                class="d-flex justify-content-between mb-2 text-light small">
-            <span>Confitería</span>
-            <span class="fw-bold text-white">S/ {{ totalSnacks | number:'1.2-2' }}</span>
-            </div>
-            <div class="d-flex justify-content-between border-top border-secondary pt-2 mt-2">
-            <span class="fw-bold text-white">TOTAL A PAGAR</span>
-            <span class="fw-bold text-warning fs-5">S/ {{ totalFinal | number:'1.2-2' }}</span>
-            </div>
-        </div>
-    </ng-container>
-
-    <!-- Botones de navegacion del paso -->
-    <div class="mt-4">
-        <ng-content></ng-content>
+  @if (secciones.pelicula && conFuncion) {
+    <div class="pelicula">
+      <img [src]="resumen.pelicula.poster || posterGenerico" alt="">
+      <div>
+        <strong>{{ resumen.pelicula.nombre || '—' }}</strong>
+        @if (resumen.pelicula.formato) { <span>{{ resumen.pelicula.formato }}</span> }
+      </div>
     </div>
+  }
 
-</div>
+  <dl class="datos">
+    @if (secciones.cine) {
+      <div><dt>{{ conFuncion ? 'Cine' : 'Recojo en' }}</dt><dd>{{ resumen.cine || '—' }}</dd></div>
+      @if (conFuncion && funcionTexto) { <div><dt>Función</dt><dd>{{ funcionTexto }}</dd></div> }
+    }
+    @if (secciones.asientos && conFuncion) {
+      <div><dt>Butacas</dt><dd>{{ asientosTexto }}</dd></div>
+    }
+  </dl>
+
+  @if (secciones.tickets && resumen.tickets.length) {
+    <ul class="lineas">
+      @for (t of resumen.tickets; track t.categoryCode) {
+        <li><span>{{ t.categoryName }} × {{ t.cantidad }}</span><span>S/ {{ t.subtotal | number:'1.2-2' }}</span></li>
+      }
+    </ul>
+  }
+
+  @if (secciones.snacks && resumen.snacks.length) {
+    <ul class="lineas">
+      @for (s of resumen.snacks; track s.idSnack) {
+        <li><span>{{ s.nombre }} × {{ s.cantidad }}</span><span>S/ {{ s.subtotal | number:'1.2-2' }}</span></li>
+      }
+    </ul>
+  }
+
+  @if (secciones.total) {
+    <div class="total">
+      <span>Total</span>
+      <strong>S/ {{ totalTickets + totalSnacks | number:'1.2-2' }}</strong>
+    </div>
+  }
+
+  <div class="acciones"><ng-content /></div>
+</aside>

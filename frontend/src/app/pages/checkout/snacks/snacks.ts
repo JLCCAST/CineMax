@@ -1,9 +1,11 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { DecimalPipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { BookingService, SnackEntry } from '../../../services/booking';
+import { BookingResumen, BookingService, SnackEntry } from '../../../services/booking';
 import { environment } from '../../../environments/environment';
+import { BookingSummaryComponent } from '../shared/booking-summary/booking-summary';
+import { CheckoutStepperComponent } from '../shared/checkout-stepper/checkout-stepper';
 
 interface SnackItem {
   idSnack: number;
@@ -22,38 +24,17 @@ interface Category {
   nameCategory: string;
 }
 
-/**
- * Icono por nombre de categoría (case-insensitive, parcial).
- * El icono de bebidas antes usaba fa-cup-straw pero es de FA Pro;
- * se reemplaza por fa-martini-glass-citrus (free) o fa-wine-glass (free).
- */
-function resolveIcon(nombre: string): string {
-  const n = nombre.toLowerCase();
-  if (n.includes('bebida') || n.includes('drink') || n.includes('refresco') || n.includes('jugo'))
-    return 'fa-solid fa-wine-glass';
-  if (n.includes('combos') || n.includes('combo'))
-    return 'fa-solid fa-box-open';
-  if (n.includes('comida') || n.includes('hot dog') || n.includes('nachos') || n.includes('salado'))
-    return 'fa-solid fa-bowl-food';
-  if (n.includes('dulce') || n.includes('golosina') || n.includes('chocolate'))
-    return 'fa-solid fa-candy-cane';
-  if (n.includes('galleta') || n.includes('cookie') || n.includes('snack'))
-    return 'fa-solid fa-cookie-bite';
-  if (n.includes('pop') || n.includes('crispeta') || n.includes('canchita') || n.includes('maíz'))
-    return 'fa-solid fa-popcorn';
-  return 'fa-solid fa-utensils';   // fallback genérico
-}
-
 @Component({
   selector: 'app-snacks',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [DecimalPipe, BookingSummaryComponent, CheckoutStepperComponent],
   templateUrl: './snacks.html',
   styleUrl: './snacks.css'
 })
 export class Snacks implements OnInit {
 
-  resumen: any;
+  resumen!: BookingResumen;
+  readonly snackGenerico = 'Imagenes/snack-generico.svg';
   categorias: Category[] = [];
   snacks: SnackItem[] = [];
   categoriaActiva: number = 1;
@@ -175,12 +156,6 @@ export class Snacks implements OnInit {
     }
   }
 
-  /** Resuelve el icono a partir del nombre de la categoría (no del id hardcodeado) */
-  iconCategoria(idCategoria: number): string {
-    const cat = this.categorias.find(c => c.idSnackCategory === idCategoria);
-    return cat ? resolveIcon(cat.nameCategory) : 'fa-solid fa-utensils';
-  }
-
   // ── Carrito ───────────────────────────────────────────────────────────────
 
   sumar(snack: SnackItem): void {
@@ -195,26 +170,12 @@ export class Snacks implements OnInit {
     return this.snacks.filter(s => s.cantidad > 0);
   }
 
-  get totalItems(): number {
-    return this.snacks.reduce((t, s) => t + s.cantidad, 0);
+  get resumenEnVivo(): BookingResumen {
+    return { ...this.resumen, snacks: this.seleccion() };
   }
 
-  get totalSnacks(): number {
-    return this.snacks.reduce((t, s) => t + s.price * s.cantidad, 0);
-  }
-
-  get totalTickets(): number {
-    return this.bookingService.calcularTotalTickets();
-  }
-
-  get totalGeneral(): number {
-    return this.totalTickets + this.totalSnacks;
-  }
-
-  // ── Navegación ────────────────────────────────────────────────────────────
-
-  continuarAlPago(): void {
-    const seleccionados: SnackEntry[] = this.carrito.map(s => ({
+  private seleccion(): SnackEntry[] {
+    return this.carrito.map(s => ({
       idSnack:  s.idSnack,
       nombre:   s.nameSnack,
       precio:   s.price,
@@ -222,7 +183,12 @@ export class Snacks implements OnInit {
       subtotal: s.price * s.cantidad,
       imagen:   s.imageUrlSnack
     }));
-    this.bookingService.guardarSnacks(seleccionados);
+  }
+
+  // ── Navegación ────────────────────────────────────────────────────────────
+
+  continuarAlPago(): void {
+    this.bookingService.guardarSnacks(this.seleccion());
     this.router.navigate(['/payment']);
   }
 
