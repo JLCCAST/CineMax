@@ -1,11 +1,11 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { BookingResumen, BookingService, SnackEntry } from '../../../services/booking';
 import { environment } from '../../../environments/environment';
 import { BookingSummaryComponent } from '../shared/booking-summary/booking-summary';
 import { CheckoutStepperComponent } from '../shared/checkout-stepper/checkout-stepper';
+import { TarjetaSnack } from '../../../shared/components/tarjeta-snack/tarjeta-snack';
 
 interface SnackItem {
   idSnack: number;
@@ -27,14 +27,13 @@ interface Category {
 @Component({
   selector: 'app-snacks',
   standalone: true,
-  imports: [DecimalPipe, BookingSummaryComponent, CheckoutStepperComponent],
+  imports: [BookingSummaryComponent, CheckoutStepperComponent, TarjetaSnack],
   templateUrl: './snacks.html',
   styleUrl: './snacks.css'
 })
 export class Snacks implements OnInit {
 
   resumen!: BookingResumen;
-  readonly snackGenerico = 'Imagenes/snack-generico.svg';
   categorias: Category[] = [];
   snacks: SnackItem[] = [];
   categoriaActiva: number = 1;

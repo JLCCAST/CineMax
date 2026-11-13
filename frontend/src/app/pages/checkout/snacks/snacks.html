@@ -22,30 +22,7 @@
           @if (snacksPagina.length) {
             <div class="productos">
               @for (snack of snacksPagina; track snack.idSnack) {
-                <article class="producto" [class.elegido]="snack.cantidad > 0">
-                  <img [src]="snack.imageUrlSnack || snackGenerico" [alt]="snack.nameSnack"
-                       (error)="$any($event.target).src = snackGenerico">
-                  <div class="producto-cuerpo">
-                    <h3>{{ snack.nameSnack }}</h3>
-                    <p>{{ snack.descriptionSnack }}</p>
-                    <div class="producto-pie">
-                      <strong>S/ {{ snack.price | number:'1.2-2' }}</strong>
-                      @if (snack.cantidad === 0) {
-                        <button type="button" class="agregar" [disabled]="snack.stock === 0" (click)="sumar(snack)">
-                          {{ snack.stock === 0 ? 'Agotado' : 'Agregar' }}
-                        </button>
-                      } @else {
-                        <div class="cantidad">
-                          <button type="button" (click)="restar(snack)" [attr.aria-label]="'Quitar ' + snack.nameSnack">
-                            <i class="fa-solid fa-minus"></i></button>
-                          <span>{{ snack.cantidad }}</span>
-                          <button type="button" (click)="sumar(snack)" [disabled]="snack.cantidad >= snack.stock"
-                                  [attr.aria-label]="'Agregar ' + snack.nameSnack"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                </article>
+                <app-tarjeta-snack [snack]="snack" [cantidad]="snack.cantidad" (sumar)="sumar(snack)" (restar)="restar(snack)" />
               }
             </div>
           } @else {

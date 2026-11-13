@@ -35,10 +35,21 @@
     font-size: 0.9rem;
 }
 
+.selector-cine button {
+    white-space: nowrap;
+}
+
 @media (max-width: 991px) {
     .selector-cine select {
         flex: 1;
         min-width: 0;
+    }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+    .selector-cine select {
+        min-width: 150px;
+        max-width: 170px;
     }
 }
 

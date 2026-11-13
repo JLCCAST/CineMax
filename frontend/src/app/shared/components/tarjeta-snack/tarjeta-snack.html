@@ -1,0 +1,25 @@
+@let s = snack();
+<article class="producto" [class.elegido]="cantidad() > 0">
+  <img [src]="s.imageUrlSnack || snackGenerico" [alt]="s.nameSnack" (error)="$any($event.target).src = snackGenerico">
+  <div class="cuerpo">
+    <h3>{{ s.nameSnack }}</h3>
+    <p>{{ s.descriptionSnack }}</p>
+    @if (s.stock > 0 && s.stock <= 5) { <small class="pocas">Quedan {{ s.stock }}</small> }
+    <div class="pie">
+      <strong>S/ {{ s.price | number:'1.2-2' }}</strong>
+      @if (cantidad() === 0) {
+        <button type="button" class="agregar" [disabled]="s.stock === 0" (click)="sumar.emit()">
+          {{ s.stock === 0 ? 'Agotado' : 'Agregar' }}
+        </button>
+      } @else {
+        <div class="cantidad">
+          <button type="button" (click)="restar.emit()" [attr.aria-label]="'Quitar ' + s.nameSnack">
+            <i class="fa-solid fa-minus"></i></button>
+          <span>{{ cantidad() }}</span>
+          <button type="button" (click)="sumar.emit()" [disabled]="cantidad() >= s.stock"
+                  [attr.aria-label]="'Agregar ' + s.nameSnack"><i class="fa-solid fa-plus"></i></button>
+        </div>
+      }
+    </div>
+  </div>
+</article>
