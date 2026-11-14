@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Promotion, PromotionService } from '../../../services/promotion.service';
 import { environment } from '../../../environments/environment';
+import { Pagina } from '../../../services/pagina';
+import { Paginador } from '../../../shared/components/paginador/paginador';
 
 interface Categoria {
   idSnackCategory: number;
@@ -18,7 +20,7 @@ const DIAS = [
 @Component({
   selector: 'app-admin-promotions',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Paginador],
   templateUrl: './promotions.html',
   styleUrl: './promotions.css'
 })
@@ -28,6 +30,7 @@ export class AdminPromotions implements OnInit {
 
   readonly dias = DIAS;
   readonly promociones = signal<Promotion[]>([]);
+  readonly pagina = signal<Pagina<Promotion> | null>(null);
   readonly tipos = signal<string[]>([]);
   readonly categorias = signal<Categoria[]>([]);
   readonly cargando = signal(true);
@@ -46,10 +49,16 @@ export class AdminPromotions implements OnInit {
       .subscribe(categorias => this.categorias.set(categorias));
   }
 
-  cargar(): void {
-    this.service.list().subscribe({
-      next: promociones => {
-        this.promociones.set(promociones);
+  cargar(pagina = this.pagina()?.page ?? 0): void {
+    this.service.list(pagina, 10).subscribe({
+      next: resultado => {
+        // Si la página quedó vacía (por ejemplo, la última), vuelve a la anterior.
+        if (!resultado.content.length && resultado.page > 0) {
+          this.cargar(resultado.page - 1);
+          return;
+        }
+        this.pagina.set(resultado);
+        this.promociones.set(resultado.content);
         this.cargando.set(false);
       },
       error: () => {

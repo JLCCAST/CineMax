@@ -149,3 +149,14 @@ def retirar_funcion(api: httpx.Client, headers: dict[str, str], funcion: dict) -
     cuerpo = {campo: funcion[campo] for campo in (
         "showDate", "startTime", "endTime", "languageFormat", "baseTicketPrice", "movieId", "idRoom")}
     api.put(f"/showtimes/{funcion['idShowtime']}", headers=headers, json={**cuerpo, "status": "Cancelada"})
+
+
+def todas_las_paginas(api: httpx.Client, ruta: str, headers: dict[str, str]) -> list[dict]:
+    """Junta el contenido de todas las páginas de un listado paginado."""
+    items, pagina = [], 0
+    while True:
+        cuerpo = api.get(ruta, headers=headers, params={"page": pagina, "size": 50}).json()
+        items.extend(cuerpo["content"])
+        pagina += 1
+        if pagina >= cuerpo["totalPages"]:
+            return items

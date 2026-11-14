@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Pagina } from './pagina';
 import { environment } from '../environments/environment';
 
 export interface Promotion {
@@ -36,8 +37,8 @@ export class PromotionService {
 
   constructor(private http: HttpClient) {}
 
-  list(): Observable<Promotion[]> {
-    return this.http.get<Promotion[]>(this.apiUrl);
+  list(page = 0, size = 10): Observable<Pagina<Promotion>> {
+    return this.http.get<Pagina<Promotion>>(this.apiUrl, { params: { page, size } });
   }
 
   types(): Observable<string[]> {

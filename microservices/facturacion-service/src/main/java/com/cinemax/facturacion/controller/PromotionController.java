@@ -5,6 +5,7 @@ import com.cinemax.facturacion.dto.external.UserDTO;
 import com.cinemax.facturacion.dto.request.CotizacionRequestDTO;
 import com.cinemax.facturacion.dto.request.PromotionAdminDTO;
 import com.cinemax.facturacion.dto.response.CotizacionResponseDTO;
+import com.cinemax.facturacion.dto.response.Pagina;
 import com.cinemax.facturacion.dto.response.PromocionPublicaDTO;
 import com.cinemax.facturacion.promociones.CotizacionService;
 import com.cinemax.facturacion.promociones.CotizacionService.EntradaPedida;
@@ -57,8 +58,9 @@ public class PromotionController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('MANAGE_PROMOTIONS')")
-    public ResponseEntity<List<PromotionAdminDTO>> listar() {
-        return ResponseEntity.ok(promotionAdminService.listar());
+    public ResponseEntity<Pagina<PromotionAdminDTO>> listar(@RequestParam(defaultValue = "0") int page,
+                                                            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(promotionAdminService.listar(page, size));
     }
 
     @GetMapping("/types")

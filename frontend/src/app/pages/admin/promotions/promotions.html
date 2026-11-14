@@ -163,5 +163,9 @@
         </tbody>
       </table>
     </div>
+    @if (pagina(); as p) {
+      <app-paginador [pagina]="p.page" [totalPaginas]="p.totalPages" [total]="p.totalElements" [tamano]="p.size"
+                     (cambiar)="cargar($event)" />
+    }
   }
 </div>

@@ -1,12 +1,15 @@
 package com.cinemax.facturacion.promociones;
 
 import com.cinemax.facturacion.dto.request.PromotionAdminDTO;
+import com.cinemax.facturacion.dto.response.Pagina;
 import com.cinemax.facturacion.dto.response.PromocionPublicaDTO;
 import com.cinemax.facturacion.model.entity.Promotion;
 import com.cinemax.facturacion.model.entity.PromotionType;
 import com.cinemax.facturacion.repository.PromotionRepository;
 import com.cinemax.facturacion.repository.PromotionTypeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,8 +41,9 @@ public class PromotionAdminService {
                 .toList();
     }
 
-    public List<PromotionAdminDTO> listar() {
-        return promotionRepository.findAllByOrderByIdPromotionAsc().stream().map(PromotionAdminDTO::from).toList();
+    public Pagina<PromotionAdminDTO> listar(int page, int size) {
+        Page<Promotion> promociones = promotionRepository.findAll(Pagina.pedido(page, size, Sort.by("idPromotion")));
+        return Pagina.de(promociones, promociones.getContent().stream().map(PromotionAdminDTO::from).toList());
     }
 
     public PromotionAdminDTO obtener(Integer id) {

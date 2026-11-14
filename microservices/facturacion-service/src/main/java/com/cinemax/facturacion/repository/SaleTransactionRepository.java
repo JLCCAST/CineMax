@@ -1,6 +1,8 @@
 package com.cinemax.facturacion.repository;
 
 import com.cinemax.facturacion.model.entity.SaleTransaction;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface SaleTransactionRepository extends JpaRepository<SaleTransaction, Integer> {
-    List<SaleTransaction> findByIdUserOrderByPaymentDateDesc(Integer idUser);
+    Page<SaleTransaction> findByIdUser(Integer idUser, Pageable pageable);
 
     // Compras completadas de un cliente con una promoción, en un periodo.
     @Query("""

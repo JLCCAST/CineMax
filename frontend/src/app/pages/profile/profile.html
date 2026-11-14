@@ -54,7 +54,7 @@
                 </div>
               } @else {
                 <ul class="compras">
-                  @for (compra of misCompras.slice(0, comprasVisibles); track compra.idTransaction) {
+                  @for (compra of misCompras; track compra.idTransaction) {
                     <li>
                       <div class="compra-datos">
                         <strong>{{ compra.movieTitle || 'Pedido de confitería' }}</strong>
@@ -71,9 +71,9 @@
                     </li>
                   }
                 </ul>
-                @if (misCompras.length > comprasVisibles) {
-                  <button type="button" class="btn-cine-secundario ver-mas" (click)="comprasVisibles = comprasVisibles + 10">
-                    Ver más ({{ misCompras.length - comprasVisibles }})
+                @if (misCompras.length < totalCompras) {
+                  <button type="button" class="btn-cine-secundario ver-mas" (click)="verMasCompras()" [disabled]="cargandoMasCompras">
+                    {{ cargandoMasCompras ? 'Cargando…' : 'Ver más (' + (totalCompras - misCompras.length) + ')' }}
                   </button>
                 }
               }
