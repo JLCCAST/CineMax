@@ -390,6 +390,7 @@ services:
       - MAIL_STARTTLS=${MAIL_STARTTLS:-false}
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - APP_MAIL_FROM=${MAIL_FROM:-CineMax <no-responder@cinemax.local>}
       # Si el SMTP no responde, el chequeo de correo deja el servicio como "unhealthy".
       - MANAGEMENT_HEALTH_MAIL_ENABLED=${MAIL_HEALTH_ENABLED:-false}
       - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
