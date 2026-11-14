@@ -57,8 +57,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponseDTO> getAllUsers() {
-        return userRepository.findAll().stream()
-                .filter(u -> u.getRole() == null || !CLIENTE.equals(u.getRole().getRoleName()))
+        return userRepository.findPersonal(CLIENTE).stream()
                 .map(this::mapToResponseDTO)
                 .toList();
     }

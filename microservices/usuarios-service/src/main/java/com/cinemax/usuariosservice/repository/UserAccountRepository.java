@@ -21,6 +21,10 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, Intege
     Optional<UserAccount> findByRole_IdRoleAndStatus(Integer idRole, String status);
     Optional<UserAccount> findByRole_IdRoleAndIdVenueAndStatus(Integer idRole, Integer idVenue, String status);
 
+    // Personal del cine: todos menos los clientes, filtrados en la base y no en memoria.
+    @Query("SELECT u FROM UserAccount u LEFT JOIN FETCH u.role r WHERE r IS NULL OR r.roleName <> :rolCliente ORDER BY u.idUser")
+    List<UserAccount> findPersonal(@Param("rolCliente") String rolCliente);
+
     @Query("SELECT u.idVenue FROM UserAccount u WHERE u.role.idRole = :roleId AND u.status = 'Activo' AND u.idVenue IS NOT NULL")
     List<Integer> findOccupiedVenueIdsByRole(@Param("roleId") Integer roleId);
 }

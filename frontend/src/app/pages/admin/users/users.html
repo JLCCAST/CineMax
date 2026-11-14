@@ -49,7 +49,7 @@
             <td><strong>{{ user.firstName }} {{ user.lastName }}</strong></td>
             <td>{{ user.email }}</td>
             <td><span class="estado info">{{ formatearRol(user.roleName) }}</span></td>
-            <td>{{ user.venueName || 'Todas' }}</td>
+            <td>{{ nombreSede(user) }}</td>
             <td><span class="estado" [class.ok]="user.status === 'Activo'" [class.mal]="user.status !== 'Activo'">{{ user.status }}</span></td>
             <td>
               <div class="acciones-fila">
