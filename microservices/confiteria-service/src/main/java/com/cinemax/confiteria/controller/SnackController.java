@@ -4,12 +4,15 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.cinemax.confiteria.dto.SnackRequestDTO;
 import com.cinemax.confiteria.dto.SnackResponseDTO;
+import com.cinemax.confiteria.service.FormularioSnack;
 import com.cinemax.confiteria.service.SnackSedeService;
 import com.cinemax.confiteria.service.SnackService;
 
@@ -24,6 +27,9 @@ public class SnackController {
 
     @Autowired
     private SnackSedeService snackSedeService;
+
+    @Autowired
+    private FormularioSnack formularioSnack;
 
     @GetMapping
     public ResponseEntity<List<SnackResponseDTO>> findAll(
@@ -134,6 +140,22 @@ public class SnackController {
     @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
     public ResponseEntity<SnackResponseDTO> update(@PathVariable Integer id, @Valid @RequestBody SnackRequestDTO dto) {
         return ResponseEntity.ok(snackService.update(id, dto));
+    }
+
+    // El formulario del admin: los datos en "snack" (JSON) y la foto opcional en "file".
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
+    public ResponseEntity<SnackResponseDTO> createFromForm(
+            @RequestPart("snack") String snack, @RequestPart(value = "file", required = false) MultipartFile file) {
+        SnackResponseDTO created = snackService.create(formularioSnack.leer(snack, file));
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('MANAGE_CONFITERIA')")
+    public ResponseEntity<SnackResponseDTO> updateFromForm(@PathVariable Integer id,
+            @RequestPart("snack") String snack, @RequestPart(value = "file", required = false) MultipartFile file) {
+        return ResponseEntity.ok(snackService.update(id, formularioSnack.leer(snack, file)));
     }
 
     @DeleteMapping("/{id}")

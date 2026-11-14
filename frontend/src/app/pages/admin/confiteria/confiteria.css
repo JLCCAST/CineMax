@@ -1,111 +1,90 @@
-.sede-selector-wrapper {
-  padding: 3rem 1rem;
+.producto {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    max-width: 360px;
 }
 
-.sede-card {
-  position: relative;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border: 1px solid rgba(138, 43, 226, 0.3);
-  border-radius: 16px;
-  cursor: pointer;
-  overflow: hidden;
-  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+.producto img {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: var(--radius);
+    object-fit: cover;
 }
 
-.sede-card:hover {
-  transform: translateY(-6px);
-  border-color: var(--primary-color);
-  box-shadow: 0 0 24px rgba(138, 43, 226, 0.4);
+.producto strong,
+.producto small {
+    display: block;
 }
 
-.sede-card-glow {
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 120px;
-  height: 120px;
-  background: radial-gradient(circle, rgba(138, 43, 226, 0.2) 0%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
+.producto small {
+    overflow: hidden;
+    color: var(--ink-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.sede-card-body {
-  position: relative;
-  padding: 2.5rem 1.5rem;
-  text-align: center;
-  z-index: 1;
+/* Elección de sede al crear o eliminar */
+.velo-eleccion {
+    position: fixed;
+    inset: 0;
+    z-index: 1060;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgb(0 0 0 / 50%);
 }
 
-.badge-sede {
-  display: inline-block;
-  padding: 0.4rem 1rem;
-  border-radius: 20px;
-  border: 1px solid var(--primary-color);
-  color: var(--primary-color);
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: background 0.2s ease;
+.eleccion {
+    width: min(460px, 100%);
+    padding: 1.75rem;
+    border-radius: var(--radius-card);
+    background: #fff;
+    text-align: center;
 }
 
-.sede-card:hover .badge-sede {
-  background: var(--primary-color);
-  color: white;
-}
-.sede-card {
-  height: 100%;
-}
-
-.sede-card-body {
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.sede-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--primary-color), #AFA9EC);
-}
-.sede-card {
-  height: 100%;
-  min-height: 220px;
+.eleccion h2 {
+    margin: 0 0 0.35rem;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 600;
+    text-transform: uppercase;
 }
 
-.sede-card-body {
-  min-height: 180px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.eleccion p {
+    color: var(--ink-muted);
 }
 
-.modal-overlay-sede {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.75);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
+.opciones {
+    display: grid;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
 }
 
-.modal-sede-card {
-  background: #1a1a2e;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 2.5rem;
-  max-width: 480px;
-  width: 90%;
-  text-align: center;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+.opciones button {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
+    text-align: left;
 }
 
-.modal-sede-icon {
-  margin-bottom: 1rem;
+.opciones button:hover {
+    border-color: var(--brand);
+    background: var(--brand-tint);
+}
+
+.opciones button.peligro:hover {
+    border-color: var(--danger);
+    background: #fdecec;
+}
+
+.opciones span {
+    color: var(--ink-muted);
+    font-size: 0.85rem;
 }

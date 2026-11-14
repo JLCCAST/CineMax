@@ -1,44 +1,25 @@
-<nav class="navbar-top d-flex justify-content-end align-items-center px-5">
-  
-  <div class="user-info d-flex align-items-center gap-4">
-    <div class="role-badge">
-      <span class="text-white fw-bold fs-5">Rol: </span>
-      <span class="text-uppercase fw-bold fs-5" style="color: var(--primary-color);">
-        {{ formatearRol(rolActual) }}
-      </span>
-    </div>
+<header class="barra">
+  <button type="button" class="hamburguesa" (click)="abrirMenu.emit()" aria-label="Abrir el menú">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+  <span class="titulo">Panel de administración</span>
 
-    <!-- Avatar con dropdown -->
-    <div class="position-relative">
-      <div class="profile-icon" (click)="toggleDropdown()" style="cursor: pointer;" title="Mi perfil">
-        <i class="fa-solid fa-circle-user text-white fs-2"></i>
-      </div>
+  <div class="usuario">
+    <span class="rol">{{ formatearRol(rolActual) }}</span>
+    <button type="button" class="avatar" (click)="toggleDropdown()" aria-label="Menú de mi cuenta"
+            [attr.aria-expanded]="dropdownAbierto">{{ inicial }}</button>
 
-      <div *ngIf="dropdownAbierto" class="admin-dropdown">
-        <div class="admin-dropdown-header">
-          <p class="mb-0 fw-bold text-white">{{ nombreUsuario }}</p>
-          <p class="mb-0 small" style="color: var(--primary-color);">{{ formatearRol(rolActual) }}</p>
+    @if (dropdownAbierto) {
+      <div class="cerrar-fuera" (click)="cerrarDropdown()"></div>
+      <div class="menu-usuario">
+        <div class="menu-cabecera">
+          <strong>{{ nombreUsuario }}</strong>
+          <small>{{ formatearRol(rolActual) }}</small>
         </div>
-        <hr class="my-2 border-secondary">
-        <a class="admin-dropdown-item" routerLink="/perfil" (click)="cerrarDropdown()">
-          <i class="fa-solid fa-user me-2"></i> Mis Datos
-        </a>
-        <a class="admin-dropdown-item" routerLink="/perfil" [queryParams]="{tab: 'compras'}" (click)="cerrarDropdown()">
-          <i class="fa-solid fa-ticket me-2"></i> Mis Compras
-        </a>
-        <a class="admin-dropdown-item" routerLink="/perfil" [queryParams]="{tab: 'seguridad'}" (click)="cerrarDropdown()">
-          <i class="fa-solid fa-shield me-2"></i> Seguridad
-        </a>
-        <hr class="my-2 border-secondary">
-        <a class="admin-dropdown-item text-danger" href="#" (click)="cerrarSesion(); $event.preventDefault()">
-          <i class="fa-solid fa-right-from-bracket me-2"></i> Cerrar Sesión
-        </a>
+        <a routerLink="/perfil" [queryParams]="{ tab: 'datos' }" (click)="cerrarDropdown()"><i class="fa-solid fa-user"></i> Mis datos</a>
+        <a routerLink="/perfil" [queryParams]="{ tab: 'seguridad' }" (click)="cerrarDropdown()"><i class="fa-solid fa-lock"></i> Contraseña</a>
+        <button type="button" class="salir" (click)="cerrarSesion()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</button>
       </div>
-    </div>
-
+    }
   </div>
-
-</nav>
-
-<!-- Overlay para cerrar al hacer click fuera -->
-<div *ngIf="dropdownAbierto" class="dropdown-overlay" (click)="cerrarDropdown()"></div>
+</header>

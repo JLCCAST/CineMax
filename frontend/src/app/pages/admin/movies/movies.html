@@ -1,81 +1,76 @@
-<div class="container mt-5 text-white">
-
-  <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
-    <h2 class="fw-bold text-uppercase" style="color: var(--primary-color);">Gestión de Películas</h2>
-    <button class="btn btn-success fw-bold"
-            data-bs-toggle="modal" data-bs-target="#modalPelicula"
-            (click)="abrirModalNuevo()">
-      <i class="fa-solid fa-plus me-2"></i>Nueva Película
-    </button>
+<div class="admin-encabezado">
+  <div>
+    <h1>Películas</h1>
+    <p>Las películas inhabilitadas dejan de verse en la cartelera.</p>
   </div>
+  <button type="button" class="btn-cine" data-bs-toggle="modal" data-bs-target="#modalPelicula" (click)="abrirModalNuevo()">
+    <i class="fa-solid fa-plus"></i> Nueva película
+  </button>
+</div>
 
-  <div *ngIf="cargando" class="text-center my-5">
-    <div class="spinner-border text-info" role="status"></div>
-    <p class="text-info mt-2">Cargando cartelera...</p>
-  </div>
-
-  <div *ngIf="!cargando" class="row mb-3 bg-dark p-3 rounded border border-secondary shadow-sm mx-0">
-    <div class="col-md-4">
-      <label class="form-label fw-bold text-white mb-1">
-        <i class="fa-solid fa-filter me-2"></i>Estado de Película
-      </label>
-      <select class="form-select bg-dark text-white border-secondary"
-              [(ngModel)]="filtroEstado" (ngModelChange)="onEstadoChange()"
-              [ngModelOptions]="{standalone: true}">
-        <option value="Cartelera">En Cartelera</option>
-        <option value="Estreno">Próximos Estrenos</option>
-        <option value="Preventa">En Preventa</option>
-      </select>
-    </div>
-  </div>
-
-  <div *ngIf="!cargando" class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
-    <div class="col" *ngFor="let peli of movies">
-      <div class="card h-100 bg-dark text-white border-secondary shadow-sm">
-        <img [src]="peli.posterUrl || 'Imagenes/poster-generico.svg'" class="card-img-top"
-             style="height:350px;object-fit:cover;border-bottom:1px solid var(--secondary-color);">
-        <div class="card-body">
-          <h5 class="card-title fw-bold text-truncate" style="color:var(--secondary-color);" [title]="peli.titleMovie">
-            {{ peli.titleMovie }}
-          </h5>
-          <p class="card-text small mb-2">
-            <i class="fa-solid fa-clock me-1 text-info"></i> {{ peli.durationMinutes || 'Ver detalles' }} min
-          </p>
-          <div>
-            <span class="badge bg-primary me-2">{{ peli.classification?.nameClassification || 'S/C' }}</span>
-            <span class="badge bg-success">{{ peli.status }}</span>
-          </div>
-        </div>
-        <div class="card-footer bg-transparent border-top border-secondary d-flex justify-content-between">
-          <button class="btn btn-sm btn-outline-info" title="Ver Detalles"
-                  data-bs-toggle="modal" data-bs-target="#modalDetalles"
-                  (click)="abrirModalDetalles(peli)">
-            <i class="fa-solid fa-eye"></i>
-          </button>
-          <button class="btn btn-sm btn-outline-warning" title="Editar"
-                  data-bs-toggle="modal" data-bs-target="#modalPelicula"
-                  (click)="abrirModalEditar(peli)">
-            <i class="fa-solid fa-pen-to-square"></i>
-          </button>
-          <button class="btn btn-sm btn-outline-danger" title="Inhabilitar"
-                  (click)="inhabilitarPelicula(peli.idMovie)">
-            <i class="fa-solid fa-ban"></i>
-          </button>
-        </div>
-      </div>
-    </div>
+<div class="admin-filtros">
+  <div>
+    <label class="form-label" for="filtroEstado">Estado</label>
+    <select id="filtroEstado" class="form-select" [(ngModel)]="filtroEstado" (ngModelChange)="onEstadoChange()"
+            [ngModelOptions]="{standalone: true}">
+      <option value="Cartelera">En cartelera</option>
+      <option value="Estreno">Estrenos</option>
+      <option value="Preventa">Preventa</option>
+    </select>
   </div>
 </div>
 
-<div class="modal fade text-dark" id="modalPelicula" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content bg-dark text-white border-secondary">
+@if (cargando) {
+  <p class="cargando">Cargando películas…</p>
+} @else if (!movies.length) {
+  <div class="admin-vacio">No hay películas con este estado.</div>
+} @else {
+  <div class="admin-tabla">
+    <table>
+      <thead>
+        <tr><th>Película</th><th>Duración</th><th>Clasificación</th><th>Estado</th><th></th></tr>
+      </thead>
+      <tbody>
+        @for (peli of movies; track peli.idMovie) {
+          <tr>
+            <td>
+              <div class="pelicula">
+                <img [src]="peli.posterUrl || 'Imagenes/poster-generico.svg'" alt="">
+                <div>
+                  <strong>{{ peli.titleMovie }}</strong>
+                  <small>{{ peli.director }}</small>
+                </div>
+              </div>
+            </td>
+            <td>{{ peli.durationMinutes }} min</td>
+            <td>{{ peli.classification?.nameClassification || 'Sin clasificar' }}</td>
+            <td><span class="estado" [class.ok]="peli.status === 'Cartelera'" [class.info]="peli.status !== 'Cartelera'">{{ peli.status }}</span></td>
+            <td>
+              <div class="acciones-fila">
+                <button type="button" class="btn-icono" title="Ver ficha" data-bs-toggle="modal" data-bs-target="#modalDetalles"
+                        (click)="abrirModalDetalles(peli)"><i class="fa-solid fa-eye"></i></button>
+                <button type="button" class="btn-icono" title="Editar" data-bs-toggle="modal" data-bs-target="#modalPelicula"
+                        (click)="abrirModalEditar(peli)"><i class="fa-solid fa-pen"></i></button>
+                <button type="button" class="btn-icono peligro" title="Inhabilitar" (click)="inhabilitarPelicula(peli.idMovie)">
+                  <i class="fa-solid fa-ban"></i></button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
 
-      <div class="modal-header border-secondary" style="background-color:var(--primary-dark);">
-        <h5 class="modal-title fw-bold text-white">
+<div class="modal fade" id="modalPelicula" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">
           {{ isEditMode ? 'Editar Película' : 'Registrar Nueva Película' }}
         </h5>
-        <button type="button" class="btn-close btn-close-white" 
+        <button type="button" class="btn-close" 
         data-bs-dismiss="modal" id="btnCerrarModalPelicula"></button>
       </div>
 
@@ -86,7 +81,7 @@
           <div class="col-md-6">
             <label class="form-label fw-bold">Título <span class="text-danger">*</span></label>
             <input type="text" formControlName="titleMovie" placeholder="Ej: El Rey León"
-                   class="form-control bg-dark text-white border-secondary"
+                   class="form-control"
                    [class.is-invalid]="invalido('titleMovie')">
             <div class="invalid-feedback" *ngIf="ctrl('titleMovie').hasError('required')">El título es obligatorio.</div>
             <div class="invalid-feedback" *ngIf="ctrl('titleMovie').hasError('minlength')">Mínimo 2 caracteres.</div>
@@ -97,7 +92,7 @@
           <div class="col-md-6">
             <label class="form-label fw-bold">Director <span class="text-danger">*</span></label>
             <input type="text" formControlName="director" placeholder="Ej: James Cameron"
-                   class="form-control bg-dark text-white border-secondary"
+                   class="form-control"
                    [class.is-invalid]="invalido('director')">
             <div class="invalid-feedback">El director es obligatorio.</div>
             <div class="invalid-feedback" *ngIf="ctrl('director').hasError('maxlength')">Máximo 100 caracteres.</div>
@@ -107,14 +102,14 @@
           <div class="col-12">
             <label class="form-label fw-bold">Sinopsis</label>
             <textarea formControlName="synopsis" rows="3" placeholder="Breve descripción de la película..."
-                      class="form-control bg-dark text-white border-secondary"></textarea>
+                      class="form-control"></textarea>
           </div>
 
           <!-- Duración -->
           <div class="col-md-6">
             <label class="form-label fw-bold">Duración (minutos) <span class="text-danger">*</span></label>
             <input type="number" formControlName="durationMinutes" min="1" placeholder="120"
-                   class="form-control bg-dark text-white border-secondary"
+                   class="form-control"
                    [class.is-invalid]="invalido('durationMinutes')">
             <div class="invalid-feedback" *ngIf="ctrl('durationMinutes').hasError('required')">La duración es obligatoria.</div>
             <div class="invalid-feedback" *ngIf="ctrl('durationMinutes').hasError('min')">Debe ser mayor a 0.</div>
@@ -125,14 +120,14 @@
           <div class="col-md-6">
             <label class="form-label fw-bold">Fecha de Estreno</label>
             <input type="date" formControlName="releaseDate"
-                   class="form-control bg-dark text-white border-secondary">
+                   class="form-control">
           </div>
 
           <!-- Clasificación -->
           <div class="col-md-6">
             <label class="form-label fw-bold">Clasificación <span class="text-danger">*</span></label>
             <select formControlName="idClassification"
-                    class="form-select bg-dark text-white border-secondary"
+                    class="form-select"
                     [class.is-invalid]="invalido('idClassification')">
               <option [ngValue]="null" disabled>Seleccione...</option>
               <option *ngFor="let c of classifications"
@@ -147,7 +142,7 @@
           <div class="col-md-6">
             <label class="form-label fw-bold">Estado <span class="text-danger">*</span></label>
             <select formControlName="status"
-                    class="form-select bg-dark text-white border-secondary">
+                    class="form-select">
               <option value="Cartelera">Cartelera</option>
               <option value="Estreno">Estreno</option>
               <option value="Preventa">Preventa</option>
@@ -158,7 +153,7 @@
           <div class="col-12">
             <label class="form-label fw-bold">Póster (Imagen)</label>
             <input type="file" accept="image/*"
-                   class="form-control bg-dark text-white border-secondary"
+                   class="form-control"
                    (change)="onFileSelected($event)">
           </div>
 
@@ -167,15 +162,12 @@
             <label class="form-label fw-bold d-block">
               Géneros <span class="text-danger">*</span>
             </label>
-            <div class="border rounded p-3 bg-dark"
-                  [class.border-danger]="sinGeneros && (form.touched || formEnviado)"
-                  [class.border-secondary]="!sinGeneros || !(form.touched || formEnviado)"
-                  style="max-height:120px;overflow-y:auto;">
+            <div class="generos" [class.invalido]="sinGeneros && (form.touched || formEnviado)">
               <div class="form-check form-check-inline" *ngFor="let genre of genres">
                 <input class="form-check-input" type="checkbox"
                        [checked]="isGenreSelected(genre.idGenre || genre.id_genre)"
                        (change)="toggleGenre(genre.idGenre || genre.id_genre)">
-                <label class="form-check-label text-white">
+                <label class="form-check-label">
                   {{ genre.nameGenre || genre.name_genre }}
                 </label>
               </div>
@@ -188,9 +180,9 @@
         </form>
       </div>
 
-      <div class="modal-footer border-secondary">
-        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-success fw-bold text-white"
+      <div class="modal-footer">
+        <button type="button" class="btn-cine-secundario" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn-cine"
                 [disabled]="form.invalid || sinGeneros"
                 (click)="guardarPelicula()">
           Guardar Película
@@ -203,37 +195,37 @@
 
 <div class="modal fade" id="modalDetalles" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content bg-dark text-white border-secondary">
+    <div class="modal-content">
 
-      <div class="modal-header border-secondary" style="background-color:var(--primary-dark);">
-        <h5 class="modal-title fw-bold text-white">Ficha Técnica</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Ficha Técnica</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body p-4" *ngIf="peliculaDetalle">
         <div class="row">
           <div class="col-md-4">
-            <img [src]="peliculaDetalle.posterUrl || 'Imagenes/poster-generico.svg'" class="img-fluid rounded border border-secondary shadow">
+            <img [src]="peliculaDetalle.posterUrl || 'Imagenes/poster-generico.svg'" class="img-fluid rounded border">
           </div>
           <div class="col-md-8">
-            <h3 class="fw-bold" style="color:var(--primary-color);">{{ peliculaDetalle.titleMovie }}</h3>
-            <p class="text-secondary mb-3">
+            <h3 class="fw-bold">{{ peliculaDetalle.titleMovie }}</h3>
+            <p class="text-muted mb-3">
               <i class="fa-solid fa-video me-2"></i>Director: {{ peliculaDetalle.director }}
             </p>
-            <p style="text-align:justify;">{{ peliculaDetalle.synopsis }}</p>
-            <ul class="list-group list-group-flush mt-3 border border-secondary rounded">
-              <li class="list-group-item bg-dark text-white border-secondary">
+            <p>{{ peliculaDetalle.synopsis }}</p>
+            <ul class="list-group list-group-flush mt-3 border rounded">
+              <li class="list-group-item">
                 <strong>Duración:</strong> {{ peliculaDetalle.durationMinutes }} min
               </li>
-              <li class="list-group-item bg-dark text-white border-secondary">
+              <li class="list-group-item">
                 <strong>Clasificación:</strong> {{ peliculaDetalle.classification?.nameClassification }}
               </li>
-              <li class="list-group-item bg-dark text-white border-secondary">
+              <li class="list-group-item">
                 <strong>Estreno:</strong> {{ peliculaDetalle.releaseDate }}
               </li>
-              <li class="list-group-item bg-dark text-white border-secondary">
+              <li class="list-group-item">
                 <strong>Géneros:</strong>
-                <span class="badge bg-secondary me-1" *ngFor="let g of peliculaDetalle.genres">{{ g.nameGenre }}</span>
+                <span class="estado me-1" *ngFor="let g of peliculaDetalle.genres">{{ g.nameGenre }}</span>
               </li>
             </ul>
           </div>

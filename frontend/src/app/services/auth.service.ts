@@ -92,7 +92,6 @@ export class AuthService {
     const rutasPorPermiso: [string, string][] = [
       ['VIEW_DASHBOARD', '/admin/dashboard'],
       ['MANAGE_USERS', '/admin/usuarios'],
-      ['VIEW_VENUES', '/admin/sedes'],
       ['MANAGE_VENUES', '/admin/sedes'],
       ['MANAGE_ROOMS', '/admin/salas'],
       ['MANAGE_MOVIES', '/admin/peliculas'],

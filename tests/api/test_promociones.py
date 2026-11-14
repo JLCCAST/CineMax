@@ -10,7 +10,7 @@ from datetime import date, timedelta
 import httpx
 import pytest
 
-from support import MISSING_MONGO_ID, retirar_funcion, unique
+from support import MISSING_MONGO_ID, retirar_funcion, todas_las_paginas, unique
 
 FIN_DE_VIGENCIA = date(2027, 12, 31)  # de las promociones semilla (V7)
 SALA = 2
@@ -200,6 +200,15 @@ def test_los_tipos_de_beneficio(api, staff_headers):
     assert set(response.json()) == {"PORCENTAJE", "MONTO_FIJO", "DOS_POR_UNO", "ENTRADA_GRATIS"}
 
 
+def test_el_listado_de_promociones_viene_por_paginas(api, staff_headers):
+    pagina = api.get("/promotions", headers=staff_headers, params={"size": 2}).json()
+    assert set(pagina) == {"content", "page", "size", "totalElements", "totalPages"}
+    assert len(pagina["content"]) == 2
+    assert pagina["totalElements"] >= 6
+    ids = [p["idPromotion"] for p in pagina["content"]]
+    assert ids == sorted(ids)
+
+
 def test_el_admin_gestiona_una_promocion_de_cupon(api, staff_headers, funciones):
     codigo = unique("C").upper()[:30]
     creada = api.post("/promotions", headers=staff_headers, json=_nueva_promocion(promotionCode=codigo))
@@ -208,7 +217,7 @@ def test_el_admin_gestiona_una_promocion_de_cupon(api, staff_headers, funciones)
     id_promocion = promocion["idPromotion"]
     funcion = funciones["viernes_noche"]
     try:
-        listadas = {p["idPromotion"] for p in api.get("/promotions", headers=staff_headers).json()}
+        listadas = {p["idPromotion"] for p in todas_las_paginas(api, "/promotions", staff_headers)}
         assert id_promocion in listadas
 
         # Inactiva: el cupón no aplica.

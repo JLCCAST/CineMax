@@ -16,6 +16,7 @@ import com.cinemax.usuariosservice.repository.UserAccountRepository;
 import com.cinemax.usuariosservice.service.email.EmailService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -57,8 +59,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponseDTO> getAllUsers() {
-        return userRepository.findAll().stream()
-                .filter(u -> u.getRole() == null || !CLIENTE.equals(u.getRole().getRoleName()))
+        return userRepository.findPersonal(CLIENTE).stream()
                 .map(this::mapToResponseDTO)
                 .toList();
     }
@@ -330,6 +331,7 @@ public class UserServiceImpl implements UserService {
         try {
             sedesActivas = venueFeignClient.getVenues(ESTADO_ACTIVO);
         } catch (Exception e) {
+            log.warn("No se pudieron leer las sedes de sucursales-service: {}", e.getMessage());
             throw new RuntimeException("Servicio de Sucursales no disponible. Intenta nuevamente.");
         }
 

@@ -8,6 +8,10 @@ llamadas entre servicios funcionan. No basta con mirar el estado de los
 contenedores: un servicio recién registrado en Eureka tarda hasta 30 segundos
 en ser visible para los demás.
 
+Además, las fallas del arranque quedan en la ventana de los circuitos de
+facturación: con 3 fallas, la 2.ª llamada buena después todavía abre el circuito
+(3 de 5). Por eso se exigen varias rondas seguidas sin fallas.
+
 Termina con código 0 si el stack está listo y con 1 si se agota el tiempo.
 """
 
@@ -77,6 +81,10 @@ def pending_services(api: httpx.Client, admin_email: str, admin_password: str) -
     return pending
 
 
+# Rondas seguidas sin fallas que se exigen antes de dar el stack por listo.
+RONDAS_ESTABLES = 4
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--timeout", type=int, default=600, help="segundos máximos de espera")
@@ -90,17 +98,25 @@ def main() -> int:
         return 1
 
     deadline = time.monotonic() + args.timeout
-    last_report = ""
+    last_report = report = ""
+    estables = 0
     with httpx.Client(base_url=settings.base_url, timeout=10.0) as api:
         while True:
             pending = pending_services(api, settings.admin_email, settings.admin_password)
             if not pending:
-                print(f"Stack listo en {settings.base_url}")
-                return 0
-            report = ", ".join(pending)
-            if report != last_report:
-                print(f"Esperando: {report}", flush=True)
-                last_report = report
+                estables += 1
+                if estables >= RONDAS_ESTABLES:
+                    print(f"Stack listo en {settings.base_url}")
+                    return 0
+                print(f"Todo responde; confirmando ({estables}/{RONDAS_ESTABLES})", flush=True)
+                last_report = ""
+                report = "las llamadas entre servicios todavía no son estables"
+            else:
+                estables = 0
+                report = ", ".join(pending)
+                if report != last_report:
+                    print(f"Esperando: {report}", flush=True)
+                    last_report = report
             if time.monotonic() >= deadline:
                 print(
                     f"Tiempo agotado tras {args.timeout} s. Sigue sin responder: {report}\n"

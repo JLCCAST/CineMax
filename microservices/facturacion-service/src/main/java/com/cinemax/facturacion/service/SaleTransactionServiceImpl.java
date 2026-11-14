@@ -9,6 +9,7 @@ import com.cinemax.facturacion.dto.external.SeatDTO;
 import com.cinemax.facturacion.dto.external.UserDTO;
 import com.cinemax.facturacion.dto.external.VenueDTO;
 import com.cinemax.facturacion.dto.request.SaleTransactionRequestDTO;
+import com.cinemax.facturacion.dto.response.Pagina;
 import com.cinemax.facturacion.dto.response.SaleTransactionHistoryDTO;
 import com.cinemax.facturacion.dto.response.SaleTransactionResponseDTO;
 import com.cinemax.facturacion.model.entity.SaleSnackDetail;
@@ -28,6 +29,8 @@ import com.cinemax.facturacion.repository.TransactionStatusRepository;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -259,7 +262,9 @@ public class SaleTransactionServiceImpl implements SaleTransactionService {
     }
 
     @Override
-    public List<SaleTransactionHistoryDTO> getMyPurchases() {
-        return historialCompras.armar(saleTransactionRepository.findByIdUserOrderByPaymentDateDesc(perfil().getIdUser()));
+    public Pagina<SaleTransactionHistoryDTO> getMyPurchases(int page, int size) {
+        Page<SaleTransaction> ventas = saleTransactionRepository.findByIdUser(perfil().getIdUser(),
+                Pagina.pedido(page, size, Sort.by(Sort.Direction.DESC, "paymentDate", "idTransaction")));
+        return Pagina.de(ventas, historialCompras.armar(ventas.getContent()));
     }
 }

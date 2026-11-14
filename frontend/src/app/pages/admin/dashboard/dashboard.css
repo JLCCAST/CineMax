@@ -1,0 +1,40 @@
+.accesos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1rem;
+}
+
+.acceso {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1.25rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-card);
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.acceso:hover {
+    border-color: var(--brand);
+}
+
+.acceso i {
+    margin-bottom: 0.4rem;
+    color: var(--brand);
+    font-size: 1.4rem;
+}
+
+.acceso strong {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.acceso span {
+    color: var(--ink-muted);
+    font-size: 0.88rem;
+}

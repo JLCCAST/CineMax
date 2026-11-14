@@ -7,6 +7,7 @@ import { AuthService } from '../../services/auth.service';
 import { finalize } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { Pagina } from '../../services/pagina';
 
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
 
@@ -41,7 +42,9 @@ export class Profile implements OnInit {
   perfilSoloLectura = { email: '', idDocumentType: 1, documentNumber: '', imageUrl: '' };
 
   misCompras: any[] = [];
-  comprasVisibles = 10;
+  totalCompras = 0;
+  cargandoMasCompras = false;
+  private paginaCompras = 0;
   cargandoCompras: boolean = false;
 
   imagenSeleccionada: File | null = null;
@@ -298,17 +301,27 @@ export class Profile implements OnInit {
       : dia.toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).replace(/[.,]/g, '');
   }
 
-  cargarMisCompras() {
-    this.cargandoCompras = true;
-    this.http.get<any[]>(`${environment.apiUrl}/sale-transactions/my-purchases`).subscribe({
-      next: (data: any[]) => {
-        this.misCompras = data;
+  verMasCompras() {
+    this.cargarMisCompras(this.paginaCompras + 1);
+  }
+
+  // Las compras llegan de 10 en 10, de la más reciente a la más antigua.
+  cargarMisCompras(pagina = 0) {
+    if (pagina === 0) this.cargandoCompras = true;
+    else this.cargandoMasCompras = true;
+    this.http.get<Pagina<any>>(`${environment.apiUrl}/sale-transactions/my-purchases`, { params: { page: pagina, size: 10 } }).subscribe({
+      next: (data) => {
+        this.misCompras = pagina === 0 ? data.content : [...this.misCompras, ...data.content];
+        this.totalCompras = data.totalElements;
+        this.paginaCompras = data.page;
         this.cargandoCompras = false;
+        this.cargandoMasCompras = false;
         this.cdr.detectChanges();
       },
       error: (err: any) => {
         console.error('Error al cargar compras:', err);
         this.cargandoCompras = false;
+        this.cargandoMasCompras = false;
       }
     });
   }

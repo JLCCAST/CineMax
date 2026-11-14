@@ -1,69 +1,65 @@
-<div class="container mt-5 text-white">
-  <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
-    <h2 class="fw-bold text-uppercase" style="color:var(--primary-color);">Gestión de Salas</h2>
-    <button class="btn btn-success fw-bold"
-            data-bs-toggle="modal" data-bs-target="#modalNuevaSala"
-            [disabled]="esAdminGlobal && sedeFiltroId === 0"
-            (click)="prepararCreacion()">
-      <i class="fa-solid fa-plus me-2"></i>Nueva Sala
-    </button>
+<div class="admin-encabezado">
+  <div>
+    <h1>Salas</h1>
+    <p>Crea las salas de cada sede y marca pasillos, butacas en mantenimiento y espacios para silla de ruedas.</p>
   </div>
-
-  <!-- Selector de sede (solo Gerente General) -->
-  <div *ngIf="esAdminGlobal" class="card bg-dark border-secondary mb-4 p-3 shadow-sm">
-    <label class="form-label text-info fw-bold mb-2">
-      <i class="fa-solid fa-building me-2"></i>Seleccione el Cine a administrar:
-    </label>
-    <select class="form-select bg-dark text-white border-secondary w-50"
-            [(ngModel)]="sedeFiltroId" (change)="onSedeChange()"
-            [ngModelOptions]="{standalone: true}">
-      <option [ngValue]="0">-- Elija una Sede --</option>
-      <option *ngFor="let sede of listaSedes" [ngValue]="sede.idVenue">{{ sede.nameVenue }}</option>
-    </select>
-  </div>
-
-  <div *ngIf="esAdminGlobal && sedeFiltroId === 0" class="text-center py-5">
-    <i class="fa-solid fa-arrow-pointer fs-1 mb-3 opacity-50"></i>
-    <h5>Seleccione una sede para ver sus salas.</h5>
-  </div>
-
-  <div class="row row-cols-1 row-cols-md-3 g-4" *ngIf="!esAdminGlobal || sedeFiltroId > 0">
-    <div class="col-12 text-center py-4" *ngIf="listaSalas.length === 0">
-      <i class="fa-solid fa-couch fs-2 mb-2 opacity-50"></i>
-      <p>Este cine aún no tiene salas registradas.</p>
-    </div>
-    <div class="col" *ngFor="let sala of listaSalas">
-      <div class="card h-100 text-white shadow-sm" style="background-color:#161619;border:1px solid #333;border-radius:12px;">
-        <div class="card-body p-4 text-center">
-          <i class="fa-solid fa-screen-users fs-1 mb-3 text-primary"></i>
-          <h4 class="fw-bold text-white">{{ sala.nameRoom }}</h4>
-          <span class="badge mb-3" [ngClass]="sala.status === 'Activo' ? 'bg-success' : 'bg-danger'">{{ sala.status }}</span>
-          <div class="d-flex justify-content-center gap-4 small mt-2 border-top border-secondary pt-3">
-            <div><i class="fa-solid fa-users me-1"></i> {{ sala.capacity }} Asientos</div>
-            <div><i class="fa-solid fa-building me-1"></i> Sede ID: {{ sala.idVenue }}</div>
-          </div>
-        </div>
-        <div class="card-footer bg-transparent border-top border-secondary p-3">
-          <button class="btn btn-outline-info w-100 fw-bold btn-sm"
-                  data-bs-toggle="modal" data-bs-target="#modalMatriz"
-                  (click)="abrirMatriz(sala)">
-            <i class="fa-solid fa-table-cells me-2"></i>CONFIGURAR MATRIZ
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <button type="button" class="btn-cine" data-bs-toggle="modal" data-bs-target="#modalNuevaSala"
+          [disabled]="esAdminGlobal && sedeFiltroId === 0" (click)="prepararCreacion()">
+    <i class="fa-solid fa-plus"></i> Nueva sala
+  </button>
 </div>
 
-<div class="modal fade text-white" id="modalNuevaSala" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-dark text-white border-secondary">
+@if (esAdminGlobal) {
+  <div class="admin-filtros">
+    <div>
+      <label class="form-label" for="filtroSede">Sede</label>
+      <select id="filtroSede" class="form-select" [(ngModel)]="sedeFiltroId" (change)="onSedeChange()"
+              [ngModelOptions]="{standalone: true}">
+        <option [ngValue]="0">Elige una sede</option>
+        @for (sede of listaSedes; track sede.idVenue) { <option [ngValue]="sede.idVenue">{{ sede.nameVenue }}</option> }
+      </select>
+    </div>
+  </div>
+}
 
-      <div class="modal-header border-secondary" style="background-color:var(--primary-dark);">
+@if (esAdminGlobal && sedeFiltroId === 0) {
+  <div class="admin-vacio">Elige una sede para ver sus salas.</div>
+} @else if (!listaSalas.length) {
+  <div class="admin-vacio">Esta sede todavía no tiene salas.</div>
+} @else {
+  <div class="admin-tabla">
+    <table>
+      <thead>
+        <tr><th>Sala</th><th>Capacidad</th><th>Estado</th><th></th></tr>
+      </thead>
+      <tbody>
+        @for (sala of listaSalas; track sala.idRoom) {
+          <tr>
+            <td><strong>{{ sala.nameRoom }}</strong></td>
+            <td>{{ sala.capacity }} butacas</td>
+            <td><span class="estado" [class.ok]="sala.status === 'Activo'" [class.mal]="sala.status !== 'Activo'">{{ sala.status }}</span></td>
+            <td>
+              <div class="acciones-fila">
+                <button type="button" class="btn-cine-secundario" data-bs-toggle="modal" data-bs-target="#modalMatriz"
+                        (click)="abrirMatriz(sala)"><i class="fa-solid fa-table-cells"></i> Butacas</button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<div class="modal fade" id="modalNuevaSala" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
         <h5 class="modal-title fw-bold">
-          <i class="fa-solid fa-plus-square me-2"></i>Registrar Sala Físicamente
+          Nueva sala
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" id="btnCerrarModalSala"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" id="btnCerrarModalSala"></button>
       </div>
 
       <div class="modal-body p-4">
@@ -72,33 +68,33 @@
           <!-- Nombre -->
           <div class="mb-4">
             <label class="form-label fw-bold">
-              Identificador de la Sala <span class="text-danger">*</span>
+              Nombre de la sala <span class="text-danger">*</span>
             </label>
             <input type="text" formControlName="nameRoom"
-                   class="form-control bg-dark text-white border-secondary"
+                   class="form-control"
                    [class.is-invalid]="invalido('nameRoom')"
                    placeholder="Ej: Sala 1, Sala XD, Prime 1">
             <div class="invalid-feedback" *ngIf="ctrl('nameRoom').hasError('required')">El nombre es obligatorio.</div>
             <div class="invalid-feedback" *ngIf="ctrl('nameRoom').hasError('minlength')">Mínimo 2 caracteres.</div>
             <div class="invalid-feedback" *ngIf="ctrl('nameRoom').hasError('maxlength')">Máximo 50 caracteres.</div>
-            <small class="text-secondary">El nombre no puede repetirse en esta sede.</small>
+            <small class="text-muted">El nombre no puede repetirse en esta sede.</small>
           </div>
 
-          <h6 class="text-info fw-bold mb-3 border-bottom border-secondary pb-2">Distribución Base de Butacas</h6>
+          <h6 class="subtitulo">Distribución de butacas</h6>
 
           <div class="row g-3 mb-3">
             <div class="col-6">
-              <label class="form-label text-white small fw-bold">FILAS <span class="text-danger">*</span></label>
+              <label class="form-label">Filas <span class="text-danger">*</span></label>
               <input type="number" formControlName="numRows" min="1" max="26"
-                     class="form-control bg-dark text-white border-secondary fs-4 text-center"
+                     class="form-control text-center"
                      [class.is-invalid]="invalido('numRows')">
               <div class="invalid-feedback" *ngIf="ctrl('numRows').hasError('required')">Obligatorio.</div>
               <div class="invalid-feedback" *ngIf="ctrl('numRows').hasError('min') || ctrl('numRows').hasError('max')">Entre 1 y 26.</div>
             </div>
             <div class="col-6">
-              <label class="form-label text-white small fw-bold">ASIENTOS/FILA <span class="text-danger">*</span></label>
+              <label class="form-label">Butacas por fila <span class="text-danger">*</span></label>
               <input type="number" formControlName="seatsPerRow" min="1" max="50"
-                     class="form-control bg-dark text-white border-secondary fs-4 text-center"
+                     class="form-control text-center"
                      [class.is-invalid]="invalido('seatsPerRow')">
               <div class="invalid-feedback" *ngIf="ctrl('seatsPerRow').hasError('required')">Obligatorio.</div>
               <div class="invalid-feedback" *ngIf="ctrl('seatsPerRow').hasError('min') || ctrl('seatsPerRow').hasError('max')">Entre 1 y 50.</div>
@@ -106,23 +102,20 @@
           </div>
 
           <!-- Capacidad calculada -->
-          <div class="p-3 rounded text-center" style="background-color:#1a1a1f;border:1px dashed var(--primary-color);">
-            <span class="text-white small d-block mb-1">CAPACIDAD TOTAL GENERADA</span>
-            <span class="fs-2 fw-bold" [class.text-white]="capacidadCalculada > 0" [class.text-secondary]="capacidadCalculada === 0">
-              {{ capacidadCalculada }}
-            </span>
-            <span class="text-secondary"> Butacas</span>
+          <div class="capacidad">
+            <span>Capacidad</span>
+            <strong>{{ capacidadCalculada }}</strong> butacas
           </div>
 
         </form>
       </div>
 
-      <div class="modal-footer border-secondary">
-        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary fw-bold"
+      <div class="modal-footer">
+        <button type="button" class="btn-cine-secundario" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn-cine"
                 [disabled]="form.invalid || capacidadCalculada === 0"
                 (click)="guardarSala()">
-          Crear e Inicializar Asientos
+          Crear sala
         </button>
       </div>
 
@@ -130,74 +123,58 @@
   </div>
 </div>
 
-<div class="modal fade text-white" id="modalMatriz" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalMatriz" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content bg-dark text-white border-secondary">
+    <div class="modal-content">
 
-      <div class="modal-header border-secondary" style="background-color:var(--primary-dark);">
+      <div class="modal-header">
         <h5 class="modal-title fw-bold">
-          <i class="fa-solid fa-pen-ruler me-2"></i>Diseñar Sala: {{ salaSeleccionadaMatriz?.nameRoom }}
+          Butacas de {{ salaSeleccionadaMatriz?.nameRoom }}
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
-      <div class="modal-body p-4 bg-dark">
+      <div class="modal-body p-4">
         <div class="row">
-          <div class="col-md-3 border-end border-secondary">
-            <h6 class="text-info fw-bold mb-3"><i class="fa-solid fa-paint-roller me-2"></i>Herramientas</h6>
-            <p class="small text-white mb-4">Selecciona un pincel y haz clic en los asientos.</p>
-            <div class="d-grid gap-2">
-              <button class="btn text-start text-white"
-                      [ngClass]="pincelSeleccionado === 'OCULTO' ? 'btn-secondary fw-bold' : 'btn-outline-secondary'"
-                      (click)="seleccionarPincel('OCULTO')">
-                <i class="fa-solid fa-eraser me-2"></i> Crear Pasillo (Ocultar)
-              </button>
-              <button class="btn text-start text-white"
-                      [ngClass]="pincelSeleccionado === 'MANTENIMIENTO' ? 'btn-danger fw-bold' : 'btn-outline-danger'"
-                      (click)="seleccionarPincel('MANTENIMIENTO')">
-                <i class="fa-solid fa-wrench me-2"></i> Mantenimiento
-              </button>
-              <button class="btn text-start text-white"
-                      [ngClass]="pincelSeleccionado === 'WHEELCHAIR' ? 'btn-info fw-bold text-dark' : 'btn-outline-info'"
-                      (click)="seleccionarPincel('WHEELCHAIR')">
-                <i class="fa-solid fa-wheelchair me-2"></i> Discapacitados
-              </button>
-              <button class="btn text-start text-white"
-                      [ngClass]="pincelSeleccionado === 'ACTIVO' ? 'btn-success fw-bold' : 'btn-outline-success'"
-                      (click)="seleccionarPincel('ACTIVO')">
-                <i class="fa-solid fa-check me-2"></i> Restaurar a Activo
-              </button>
+          <div class="col-md-3 herramientas">
+            <h6 class="subtitulo">Pincel</h6>
+            <p class="text-muted small">Elige un pincel y haz clic en las butacas.</p>
+            <div class="pinceles">
+              <button type="button" [class.activo]="pincelSeleccionado === 'OCULTO'" (click)="seleccionarPincel('OCULTO')">
+                <span class="muestra seat-oculto"></span> Pasillo</button>
+              <button type="button" [class.activo]="pincelSeleccionado === 'MANTENIMIENTO'" (click)="seleccionarPincel('MANTENIMIENTO')">
+                <span class="muestra seat-mantenimiento"></span> Mantenimiento</button>
+              <button type="button" [class.activo]="pincelSeleccionado === 'WHEELCHAIR'" (click)="seleccionarPincel('WHEELCHAIR')">
+                <span class="muestra seat-wheelchair"></span> Silla de ruedas</button>
+              <button type="button" [class.activo]="pincelSeleccionado === 'ACTIVO'" (click)="seleccionarPincel('ACTIVO')">
+                <span class="muestra seat-activo"></span> Butaca normal</button>
             </div>
           </div>
 
-          <div class="col-md-9 text-center overflow-auto" style="max-height:60vh;">
-            <div class="cinema-screen w-75 mx-auto mb-5 d-flex align-items-end justify-content-center pb-1">
-              <span class="text-white small fw-bold">PANTALLA</span>
-            </div>
-            <div *ngIf="matrizFilas.length === 0" class="spinner-border text-info my-5"></div>
-            <div class="d-flex justify-content-center align-items-center mb-2" *ngFor="let fila of matrizFilas">
-              <div class="text-info fw-bold me-3" style="width:20px;">{{ fila.fila }}</div>
-              <div class="d-flex gap-1">
-                <div *ngFor="let asiento of fila.asientos"
-                     class="seat-box shadow-sm"
-                     [ngClass]="obtenerClaseAsiento(asiento)"
-                     (click)="aplicarPincel(asiento)"
-                     [title]="'Fila ' + fila.fila + ' - Butaca ' + asiento.columnNumber">
-                  <i class="fa-solid fa-wheelchair fa-xs" *ngIf="asiento.idSeatType === 2"></i>
-                  <i class="fa-solid fa-wrench fa-xs" *ngIf="asiento.status === 'MANTENIMIENTO'"></i>
-                  <span style="font-size:0.6rem;" *ngIf="asiento.status === 'ACTIVO' && asiento.idSeatType !== 2">
-                    {{ asiento.columnNumber }}
-                  </span>
+          <div class="col-md-9 sala">
+            <div class="pantalla">Pantalla</div>
+            @if (!matrizFilas.length) { <p class="cargando">Cargando la sala…</p> }
+            @for (fila of matrizFilas; track fila.fila) {
+              <div class="fila">
+                <span class="letra">{{ fila.fila }}</span>
+                <div class="butacas">
+                  @for (asiento of fila.asientos; track asiento.idSeat) {
+                    <button type="button" class="seat-box" [ngClass]="obtenerClaseAsiento(asiento)" (click)="aplicarPincel(asiento)"
+                            [title]="'Fila ' + fila.fila + ', butaca ' + asiento.columnNumber">
+                      @if (asiento.idSeatType === 2) { <i class="fa-solid fa-wheelchair"></i> }
+                      @else if (asiento.status === 'ACTIVO') { {{ asiento.columnNumber }} }
+                    </button>
+                  }
                 </div>
+                <span class="letra">{{ fila.fila }}</span>
               </div>
-              <div class="text-info fw-bold ms-3" style="width:20px;">{{ fila.fila }}</div>
-            </div>
+            }
           </div>
         </div>
       </div>
 
-      <div class="modal-footer border-secondary">
-        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cerrar y Volver</button>
+      <div class="modal-footer">
+        <button type="button" class="btn-cine" data-bs-dismiss="modal">Listo</button>
       </div>
 
     </div>

@@ -88,12 +88,17 @@ public class SnackService {
             snack.setSnackCategory(category);
         }
 
-        snack.setIdVenue(dto.getIdVenue());
+        // Si no vienen, se conservan la sede y la foto que ya tenía.
+        if (dto.getIdVenue() != null) {
+            snack.setIdVenue(dto.getIdVenue());
+        }
         snack.setNameSnack(dto.getNameSnack());
         snack.setDescriptionSnack(dto.getDescriptionSnack());
         snack.setPrice(dto.getPrice());
         snack.setStock(dto.getStock());
-        snack.setImageUrlSnack(dto.getImageUrlSnack());
+        if (dto.getImageUrlSnack() != null) {
+            snack.setImageUrlSnack(dto.getImageUrlSnack());
+        }
 
         if (dto.getStatus() != null) {
             snack.setStatus(dto.getStatus());

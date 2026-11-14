@@ -1,31 +1,145 @@
+.subtitulo {
+    margin: 0 0 0.75rem;
+    color: var(--ink-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.capacidad {
+    padding: 0.85rem;
+    border-radius: var(--radius);
+    background: var(--brand-tint);
+    text-align: center;
+}
+
+.capacidad span {
+    display: block;
+    color: var(--ink-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.capacidad strong {
+    color: var(--brand);
+    font-size: 1.6rem;
+}
+
+.herramientas {
+    border-right: 1px solid var(--line);
+}
+
+.pinceles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.pinceles button {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
+    text-align: left;
+}
+
+.pinceles button.activo {
+    border-color: var(--brand);
+    background: var(--brand-tint);
+    font-weight: 600;
+}
+
+.muestra {
+    width: 18px;
+    height: 16px;
+    border-radius: 4px 4px 2px 2px;
+}
+
+.sala {
+    max-height: 60vh;
+    overflow: auto;
+    text-align: center;
+}
+
+.pantalla {
+    max-width: 420px;
+    margin: 0 auto 1.75rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 5px solid #c9c7d1;
+    border-radius: 0 0 50% 50% / 0 0 10px 10px;
+    color: var(--ink-muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+}
+
+.fila {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-bottom: 0.35rem;
+}
+
+.letra {
+    width: 1.2rem;
+    color: var(--ink-muted);
+    font-weight: 700;
+}
+
+.butacas {
+    display: flex;
+    gap: 0.3rem;
+}
+
 .seat-box {
-  width: 35px;
-  height: 35px;
-  border-radius: 8px 8px 4px 4px; /* Forma de butaca */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 2px solid transparent;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid #c9c7d1;
+    border-radius: 6px 6px 3px 3px;
+    background: #fff;
+    color: var(--ink-muted);
+    font-size: 0.68rem;
+    font-weight: 600;
 }
+
 .seat-box:hover {
-  transform: scale(1.1);
-  border-color: #fff;
+    border-color: var(--brand);
 }
 
-/* Colores de los estados */
-.seat-activo { background-color: #28a745; color: white; } /* Verde */
-.seat-wheelchair { background-color: #0dcaf0; color: white; } /* Azul claro */
-.seat-mantenimiento { background-color: #dc3545; color: white; } /* Rojo */
-.seat-oculto { background-color: transparent; border: 1px dashed #444; opacity: 0.5; } /* Vacío */
+.seat-activo {
+    border: 1px solid #c9c7d1;
+    background: #fff;
+}
 
-/* Pantalla del cine */
-.cinema-screen {
-  height: 40px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.8), transparent);
-  border-top-left-radius: 50% 10px;
-  border-top-right-radius: 50% 10px;
-  border-top: 5px solid #fff;
-  filter: drop-shadow(0 15px 15px rgba(255,255,255,0.1));
+.seat-wheelchair {
+    border: 1px solid #2f6fd6;
+    background: #e7effc;
+    color: #2f6fd6;
+}
+
+.seat-mantenimiento {
+    border: 1px solid #dcdbe1;
+    background: repeating-linear-gradient(45deg, #ececf0, #ececf0 4px, #dcdbe1 4px, #dcdbe1 8px);
+}
+
+.seat-oculto {
+    border: 1px dashed #c9c7d1;
+    background: transparent;
+    opacity: 0.6;
+}
+
+@media (max-width: 767px) {
+    .herramientas {
+        margin-bottom: 1rem;
+        border-right: none;
+    }
 }

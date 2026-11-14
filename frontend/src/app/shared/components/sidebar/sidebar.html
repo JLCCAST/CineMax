@@ -1,80 +1,19 @@
-<aside class="sidebar d-flex flex-column p-3 text-white">
-  <div class="logo-container mb-4">
-    <img src="/Imagenes/logo_CINEMAX.jpeg" alt="CINEMAX" class="img-fluid">
-  </div>
+<aside class="menu">
+  <a routerLink="/admin/dashboard" class="marca" (click)="navego.emit()">
+    <img src="/Imagenes/logo_CINEMAX.jpeg" alt="CINEMAX">
+    <span>Administración</span>
+  </a>
 
-  <ul class="nav flex-column mb-auto">
-
-    <!-- Dashboard: todos los roles -->
-    <li class="nav-item mb-2" *ngIf="tiene('VIEW_DASHBOARD')">
-      <a class="nav-link text-white d-flex align-items-center rounded hover-effect p-3"
-         routerLink="/admin/dashboard" routerLinkActive="bg-primary fw-bold shadow-sm">
-        <i class="fa-solid fa-chart-line fs-5 me-3 text-info"></i> Dashboard
+  <nav aria-label="Secciones del panel">
+    @for (s of secciones; track s.ruta) {
+      <a [routerLink]="s.ruta" routerLinkActive="activo" (click)="navego.emit()">
+        <i [class]="s.icono"></i> {{ s.texto }}
       </a>
-    </li>
+    }
+  </nav>
 
-    <!-- Sedes: ADMIN y GERENTE_GENERAL -->
-    <li class="nav-item mb-2" *ngIf="tiene('VIEW_VENUES')">
-      <a class="nav-link text-white d-flex align-items-center rounded hover-effect p-3"
-         routerLink="/admin/sedes" routerLinkActive="bg-primary fw-bold shadow-sm">
-        <i class="fa-solid fa-building fs-5 me-3 text-info"></i> Sedes
-      </a>
-    </li>
-
-    <!-- Salas: GERENTE_GENERAL y GERENTE_DE_OPERACIONES -->
-    <li class="nav-item mb-2" *ngIf="tiene('MANAGE_ROOMS')">
-      <a class="nav-link text-white d-flex align-items-center rounded hover-effect p-3"
-         routerLink="/admin/salas" routerLinkActive="bg-primary fw-bold shadow-sm">
-        <i class="fa-solid fa-couch fs-5 me-3 text-info"></i> Salas y Aforo
-      </a>
-    </li>
-
-    <!-- Películas: GERENTE_GENERAL y GERENTE_DE_OPERACIONES -->
-    <li class="nav-item mb-2" *ngIf="tiene('MANAGE_MOVIES')">
-      <a class="nav-link text-white d-flex align-items-center rounded hover-effect p-3"
-         routerLink="/admin/peliculas" routerLinkActive="bg-primary fw-bold shadow-sm">
-        <i class="fa-solid fa-film fs-5 me-3 text-info"></i> Películas
-      </a>
-    </li>
-
-    <!-- Funciones: GERENTE_GENERAL y GERENTE_DE_OPERACIONES -->
-    <li class="nav-item mb-2" *ngIf="tiene('MANAGE_SHOWTIMES')">
-      <a class="nav-link text-white d-flex align-items-center rounded hover-effect p-3"
-         routerLink="/admin/funciones" routerLinkActive="bg-primary fw-bold shadow-sm">
-        <i class="fa-solid fa-clapperboard fs-5 me-3 text-info"></i> Funciones
-      </a>
-    </li>
-
-    <!-- Confitería: GERENTE_GENERAL y GERENTE_DE_MARKETING -->
-    <li class="nav-item mb-2" *ngIf="tiene('MANAGE_CONFITERIA')">
-      <a class="nav-link text-white d-flex align-items-center rounded hover-effect p-3"
-         routerLink="/admin/confiteria" routerLinkActive="bg-primary fw-bold shadow-sm">
-        <i class="fa-solid fa-cookie-bite fs-5 me-3 text-info"></i> Confitería
-      </a>
-    </li>
-
-    <!-- Promociones: GERENTE_GENERAL y GERENTE_DE_MARKETING -->
-    <li class="nav-item mb-2" *ngIf="tiene('MANAGE_PROMOTIONS')">
-      <a class="nav-link text-white d-flex align-items-center rounded hover-effect p-3"
-         routerLink="/admin/promociones" routerLinkActive="bg-primary fw-bold shadow-sm">
-        <i class="fa-solid fa-tags fs-5 me-3 text-info"></i> Promociones
-      </a>
-    </li>
-
-    <!-- Usuarios: solo ADMIN -->
-    <li class="nav-item mb-2" *ngIf="tiene('MANAGE_USERS')">
-      <a class="nav-link text-white d-flex align-items-center rounded hover-effect p-3"
-         routerLink="/admin/usuarios" routerLinkActive="bg-primary fw-bold shadow-sm">
-        <i class="fa-solid fa-users fs-5 me-3 text-info"></i> Usuarios
-      </a>
-    </li>
-
-  </ul>
-
-  <hr>
-  <div class="logout-section">
-    <a href="#" class="nav-link text-white" (click)="cerrarSesion(); $event.preventDefault()">
-      <i class="fa-solid fa-right-from-bracket me-2"></i> Cerrar Sesión
-    </a>
+  <div class="pie-menu">
+    <a routerLink="/"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver el sitio</a>
+    <button type="button" (click)="cerrarSesion()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</button>
   </div>
 </aside>

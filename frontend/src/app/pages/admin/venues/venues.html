@@ -1,92 +1,63 @@
-<div class="container mt-5 text-white">
-  
-  <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
-    <h2 class="fw-bold text-uppercase" style="color: var(--primary-color);">Gestión de Sedes</h2>
-    <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevaSede" (click)="prepararCreacion()">
-      <i class="fa-solid fa-plus me-2"></i>Nueva Sede
-    </button>
+<div class="admin-encabezado">
+  <div>
+    <h1>Sedes</h1>
+    <p>Una sede inactiva deja de aparecer en el sitio.</p>
   </div>
-
-
-  
-  <div *ngIf="!cargando" class="shadow-lg rounded p-4" style="background-color: var(--background-color);">
-    
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-      
-      <div class="col" *ngFor="let sede of listaSedes">
-        
-        <div class="card h-100 text-white shadow-sm hover-card" style="background-color: #161619; border: 1px solid #333; border-radius: 12px; overflow: hidden;">
-          
-          <div class="position-relative" style="height: 190px; background-color: #0d0d11; border-bottom: 2px solid var(--primary-color);">
-            
-            <img *ngIf="sede.imageUrl" [src]="sede.imageUrl" 
-                 class="w-100 h-100" 
-                 alt="{{ sede.nameVenue }}" 
-                 style="object-fit: cover;">
-            
-            <div *ngIf="!sede.imageUrl" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-secondary">
-               <i class="fa-solid fa-camera fs-2 mb-2" style="opacity: 0.3;"></i>
-               <small style="opacity: 0.5; letter-spacing: 2px; font-weight: 600;">SIN IMAGEN</small>
-            </div>
-            
-            <span class="badge position-absolute top-0 end-0 m-3 shadow-sm px-3 py-2" 
-                  [ngClass]="sede.status === 'Activo' ? 'bg-success' : 'bg-danger'"
-                  style="border-radius: 6px; font-weight: 700; letter-spacing: 0.5px;">
-              {{ sede.status }}
-            </span>
-          </div>
-
-          <div class="card-body d-flex flex-column p-4">
-            <h4 class="card-title fw-bold mb-1" style="color: var(--primary-color);">{{ sede.nameVenue }}</h4>
-            <p class="text-muted small mb-3 border-bottom border-secondary pb-3">
-              <i class="fa-solid fa-map-location-dot me-1"></i> {{ sede.departmentName || 'Dpto. No asignado' }}
-            </p>
-            
-            <div class="mb-2 flex-grow-1">
-              <p class="mb-2" style="font-size: 0.9rem;"><i class="fa-solid fa-location-dot text-secondary me-2"></i> {{ sede.addressVenue }}</p>
-              <p class="mb-0" style="font-size: 0.9rem;"><i class="fa-solid fa-city text-secondary me-2"></i> {{ sede.districtName || 'Distrito' }}</p>
-            </div>
-          </div>
-
-          <div class="card-footer bg-transparent p-3 d-flex justify-content-between align-items-center" style="border-top: 1px solid #333;">
-            <small class="text-secondary fw-bold">ID: {{ sede.idVenue }}</small>
-            
-            <div class="d-flex gap-2">
-              <button class="btn btn-outline-info btn-sm shadow-sm px-3" 
-                      data-bs-toggle="modal" 
-                      data-bs-target="#modalNuevaSede" 
-                      (click)="prepararEdicion(sede)"
-                      style="border-radius: 6px;"
-                      title="Editar Sede">
-                <i class="fa-solid fa-pen me-1"></i> Editar
-              </button>
-              
-              <button class="btn btn-sm shadow-sm px-3" 
-                      [ngClass]="sede.status === 'Activo' ? 'btn-outline-danger' : 'btn-outline-success'" 
-                      (click)="toggleEstado(sede)"
-                      [title]="sede.status === 'Activo' ? 'Desactivar Sede' : 'Activar Sede'"
-                      style="border-radius: 6px;">
-                <i class="fa-solid" [ngClass]="sede.status === 'Activo' ? 'fa-ban' : 'fa-check'"></i>
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-      
-    </div>
-  </div>
+  <button type="button" class="btn-cine" data-bs-toggle="modal" data-bs-target="#modalNuevaSede" (click)="prepararCreacion()">
+    <i class="fa-solid fa-plus"></i> Nueva sede
+  </button>
 </div>
 
-<div class="modal fade text-white" id="modalNuevaSede" tabindex="-1" aria-labelledby="modalNuevaSedeLabel" aria-hidden="true">
+@if (cargando) {
+  <p class="cargando">Cargando sedes…</p>
+} @else if (!listaSedes.length) {
+  <div class="admin-vacio">Todavía no hay sedes.</div>
+} @else {
+  <div class="admin-tabla">
+    <table>
+      <thead>
+        <tr><th>Sede</th><th>Dirección</th><th>Teléfono</th><th>Estado</th><th></th></tr>
+      </thead>
+      <tbody>
+        @for (sede of listaSedes; track sede.idVenue) {
+          <tr>
+            <td>
+              <div class="sede">
+                @if (sede.imageUrl) { <img [src]="sede.imageUrl" alt=""> } @else { <span class="sin-foto"><i class="fa-solid fa-building"></i></span> }
+                <div>
+                  <strong>{{ sede.nameVenue }}</strong>
+                  <small>{{ sede.districtName }}{{ sede.departmentName ? ', ' + sede.departmentName : '' }}</small>
+                </div>
+              </div>
+            </td>
+            <td>{{ sede.addressVenue }}</td>
+            <td>{{ sede.phoneNumber || '—' }}</td>
+            <td><span class="estado" [class.ok]="sede.status === 'Activo'" [class.mal]="sede.status !== 'Activo'">{{ sede.status }}</span></td>
+            <td>
+              <div class="acciones-fila">
+                <button type="button" class="btn-icono" title="Editar" data-bs-toggle="modal" data-bs-target="#modalNuevaSede"
+                        (click)="prepararEdicion(sede)"><i class="fa-solid fa-pen"></i></button>
+                <button type="button" class="btn-icono" [class.peligro]="sede.status === 'Activo'" [class.exito]="sede.status !== 'Activo'"
+                        [title]="sede.status === 'Activo' ? 'Desactivar' : 'Activar'" (click)="toggleEstado(sede)">
+                  <i class="fa-solid" [class.fa-ban]="sede.status === 'Activo'" [class.fa-check]="sede.status !== 'Activo'"></i></button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<div class="modal fade" id="modalNuevaSede" tabindex="-1" aria-labelledby="modalNuevaSedeLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content bg-dark text-white border-secondary">
+    <div class="modal-content">
       
-      <div class="modal-header border-secondary" style="background-color: var(--primary-dark); color: white;">
+      <div class="modal-header">
         <h5 class="modal-title fw-bold" id="modalNuevaSedeLabel">
           {{ esEdicion ? 'Editar Sede' : 'Registrar Nueva Sede' }}
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
       <div class="modal-body p-4">
@@ -94,7 +65,7 @@
           <div class="row g-3">
             <div class="col-md-6">
                 <label class="form-label fw-bold">Nombre del Cine <span class="text-danger">*</span></label>
-                <input type="text" class="form-control bg-dark text-white border-secondary"
+                <input type="text" class="form-control"
                        formControlName="nameVenue"
                        [class.is-invalid]="campoInvalido('nameVenue')"
                        placeholder="Ej: CineMax San Miguel">
@@ -106,7 +77,7 @@
             
             <div class="col-md-6">
               <label class="form-label fw-bold">Teléfono <span class="text-muted small">(opcional)</span></label>
-              <input type="text" class="form-control bg-dark text-white border-secondary"
+              <input type="text" class="form-control"
                      formControlName="phoneNumber"
                      [class.is-invalid]="campoInvalido('phoneNumber')"
                      placeholder="Ej: 01-456-7890">
@@ -117,7 +88,7 @@
 
             <div class="col-md-12">
               <label class="form-label fw-bold">Dirección Exacta <span class="text-danger">*</span></label>
-              <input type="text" class="form-control bg-dark text-white border-secondary"
+              <input type="text" class="form-control"
                      formControlName="addressVenue"
                      [class.is-invalid]="campoInvalido('addressVenue')"
                      placeholder="Ej: Av. La Marina 2000">
@@ -128,26 +99,26 @@
             </div>
             
             <div class="col-md-12 mt-3">
-              <label class="form-label fw-bold text-info mb-1">
+              <label class="form-label fw-bold text-muted mb-1">
                 <i class="fa-solid fa-map-location-dot me-2"></i>Ubicación en el Mapa <span class="text-danger">*</span>
               </label>
-              <p class="text-white small mb-2">Busca un lugar de referencia y haz clic en el mapa para ajustar el pin exacto.</p>
+              <p class="small mb-2">Busca un lugar de referencia y haz clic en el mapa para ajustar el pin exacto.</p>
               
-              <div class="input-group mb-2 shadow-sm">
-                <span class="input-group-text bg-dark border-secondary text-info">
+              <div class="input-group mb-2">
+                <span class="input-group-text text-muted">
                   <i class="fa-solid fa-magnifying-glass"></i>
                 </span>
-                <input type="text" class="form-control bg-dark text-white border-secondary" 
+                <input type="text" class="form-control" 
                        placeholder="Buscar zona en el mapa..." 
                        [(ngModel)]="textoBusquedaMapa" [ngModelOptions]="{standalone: true}" name="mapSearch">
-                <button class="btn btn-outline-info fw-bold" type="button" (click)="buscarUbicacionLibre()">
+                <button class="btn-cine-secundario" type="button" (click)="buscarUbicacionLibre()">
                   Buscar Zona
                 </button>
               </div>
 
-              <div id="mapa-sede" class="shadow-sm border border-secondary" style="height: 300px; width: 100%; border-radius: 8px; z-index: 1;"></div>
+              <div id="mapa-sede" class="mapa"></div>
               
-              <div class="d-flex gap-3 mt-2 text-white small">
+              <div class="d-flex gap-3 mt-2 small">
                 <span><strong>Lat:</strong> {{ latitude | number:'1.4-4' }}</span>
                 <span><strong>Lng:</strong> {{ longitude | number:'1.4-4' }}</span>
               </div>
@@ -158,7 +129,7 @@
 
             <div class="col-md-4">
                 <label class="form-label fw-bold">Departamento <span class="text-danger">*</span></label>
-                <select class="form-select bg-dark text-white border-secondary"
+                <select class="form-select"
                         formControlName="idDepartment"
                         [class.is-invalid]="campoInvalido('idDepartment')"
                         (change)="onDepartamentoChange()">
@@ -174,7 +145,7 @@
 
             <div class="col-md-4">
                 <label class="form-label fw-bold">Provincia <span class="text-danger">*</span></label>
-                <select class="form-select bg-dark text-white border-secondary"
+                <select class="form-select"
                         formControlName="idProvince"
                         [class.is-invalid]="campoInvalido('idProvince')"
                         (change)="onProvinciaChange()" [attr.disabled]="listaProvincias.length === 0 ? true : null">
@@ -190,7 +161,7 @@
 
             <div class="col-md-4">
                 <label class="form-label fw-bold">Distrito <span class="text-danger">*</span></label>
-                <select class="form-select bg-dark text-white border-secondary"
+                <select class="form-select"
                         formControlName="idDistrict"
                         [class.is-invalid]="campoInvalido('idDistrict')"
                         [attr.disabled]="listaDistritos.length === 0 ? true : null">
@@ -207,14 +178,13 @@
             <div class="col-md-12 mt-3">
               <label class="form-label fw-bold">Imagen de la Sede <span class="text-muted small">(opcional)</span></label>
               
-              <div class="drag-drop-zone p-4 text-center rounded bg-dark border border-secondary"
-                  style="border-style: dashed !important; cursor: pointer; transition: 0.3s;"
+              <div class="zona-imagen"
                   (dragover)="onDragOver($event)"
                   (dragleave)="onDragLeave($event)"
                   (drop)="onDrop($event)"
                   (click)="fileInput.click()">
                   
-                <i class="fa-solid fa-cloud-arrow-up fs-1 text-info mb-2"></i>
+                <i class="fa-solid fa-cloud-arrow-up fs-1 text-muted mb-2"></i>
                 <p class="fw-bold mb-0">Arrastra y suelta tu imagen aquí o <span class="text-primary">examina</span></p>
                 <small class="text-muted">Formatos: JPG, PNG, WEBP (Máx. 2MB)</small>
                 
@@ -222,23 +192,23 @@
               </div>
 
               <div *ngIf="imagenPrevia || imagenUrlActual" class="mt-3 text-center position-relative">
-                <img [src]="imagenPrevia || imagenUrlActual" alt="Vista previa" class="img-thumbnail bg-dark border-secondary" style="max-height: 200px; object-fit: cover;">
-                <button type="button" class="btn btn-sm btn-danger mt-2 d-block mx-auto fw-bold" (click)="quitarImagen()">
-                  <i class="fa-solid fa-trash me-1"></i> Quitar Imagen
+                <img [src]="imagenPrevia || imagenUrlActual" alt="Vista previa" class="vista-previa">
+                <button type="button" class="btn-cine-secundario mt-2" (click)="quitarImagen()">
+                  Quitar imagen
                 </button>
               </div>
             </div>
 
-            <p class="text-secondary small mb-0 mt-2"><span class="text-danger">*</span> Campos obligatorios</p>
+            <p class="text-muted small mb-0 mt-2"><span class="text-danger">*</span> Campos obligatorios</p>
           </div>
         </form>
       </div>
 
-      <div class="modal-footer border-secondary">
-        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal" id="btnCerrarModalSede">Cancelar</button>
-        <button type="button" class="btn btn-success fw-bold text-white" (click)="guardarSede()" [disabled]="guardandoSede">
+      <div class="modal-footer">
+        <button type="button" class="btn-cine-secundario" data-bs-dismiss="modal" id="btnCerrarModalSede">Cancelar</button>
+        <button type="button" class="btn-cine" (click)="guardarSede()" [disabled]="guardandoSede">
           <span *ngIf="guardandoSede" class="spinner-border spinner-border-sm me-2" role="status"></span>
-          {{ guardandoSede ? 'Guardando...' : 'Guardar Cambios' }}
+          {{ guardandoSede ? 'Guardando…' : 'Guardar' }}
         </button>
       </div>
 

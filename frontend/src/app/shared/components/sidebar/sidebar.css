@@ -1,0 +1,88 @@
+:host {
+    display: block;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1.25rem 0.85rem;
+    overflow-y: auto;
+    border-right: 1px solid #1f1f23;
+    background: var(--header-bg);
+}
+
+.marca {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin: 0 0.4rem 1.75rem;
+    text-decoration: none;
+}
+
+.marca img {
+    width: 140px;
+}
+
+.marca span {
+    color: #8d8b96;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+nav {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+nav a,
+.pie-menu a,
+.pie-menu button {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border: none;
+    border-radius: var(--radius);
+    background: none;
+    color: #c9c8cf;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+}
+
+nav i,
+.pie-menu i {
+    width: 1.1rem;
+    color: #8d8b96;
+    text-align: center;
+}
+
+nav a:hover,
+.pie-menu a:hover,
+.pie-menu button:hover {
+    background: #18181b;
+    color: #fff;
+}
+
+nav a.activo {
+    background: rgb(109 40 217 / 25%);
+    box-shadow: inset 3px 0 0 var(--brand);
+    color: #fff;
+}
+
+nav a.activo i {
+    color: #b794f6;
+}
+
+.pie-menu {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #26262b;
+}

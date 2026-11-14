@@ -17,6 +17,7 @@ const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 export class Users implements OnInit {
   listaUsuarios: any[] = [];
   listaSedes: any[] = [];
+  private todasLasSedes: { idVenue?: number; nameVenue?: string }[] = [];
   listaRoles: Role[] = [];       // roles que vienen de la BD
   cargando: boolean = false;
 
@@ -65,15 +66,21 @@ export class Users implements OnInit {
     return [...new Set(this.listaUsuarios.map(u => u.roleName))];
   }
 
+  // El servicio de usuarios solo guarda el id de la sede; el nombre sale de la lista de sedes.
+  nombreSede(user: any): string {
+    if (!user.idVenue) return 'Todas';
+    return this.todasLasSedes.find(s => s.idVenue === user.idVenue)?.nameVenue ?? `Sede ${user.idVenue}`;
+  }
+
   get sedesDisponibles() {
-    return [...new Set(this.listaUsuarios.map(u => u.venueName || 'Acceso Total'))];
+    return [...new Set(this.listaUsuarios.map(u => this.nombreSede(u)))];
   }
 
   get usuariosFiltrados() {
     return this.listaUsuarios.filter(user => {
       const cumpleEstado = this.filtroEstado === 'TODOS' || user.status === this.filtroEstado;
       const cumpleRol    = this.filtroRol === 'TODOS'    || user.roleName === this.filtroRol;
-      const cumpleSede   = this.filtroSede === 'TODOS'   || (user.venueName || 'Acceso Total') === this.filtroSede;
+      const cumpleSede   = this.filtroSede === 'TODOS'   || this.nombreSede(user) === this.filtroSede;
       return cumpleEstado && cumpleRol && cumpleSede;
     });
   }
@@ -87,6 +94,10 @@ export class Users implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // El ADMIN no gestiona sedes: los nombres salen de la lista pública.
+    this.venueService.getPublicVenues().subscribe({
+      next: sedes => { this.todasLasSedes = sedes; this.cdr.detectChanges(); }
+    });
     this.construirFormularioNuevoUsuario();
     this.construirFormularioCambiarRol();
     this.cargarUsuarios();

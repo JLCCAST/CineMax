@@ -127,6 +127,16 @@ export class Confiteria implements OnInit {
 
   // --- Selección de sede ---
 
+  elegirSede(valor: string) {
+    const sede = this.sedes.find((s: any) => s.idVenue === Number(valor));
+    if (sede) {
+      this.seleccionarSede(sede);
+    } else {
+      this.sedeSeleccionada = null;
+      this.snacks = [];
+    }
+  }
+
   seleccionarSede(sede: any) {
     this.sedeSeleccionada = sede;
     this.cdr.detectChanges();

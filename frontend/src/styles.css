@@ -206,6 +206,14 @@ body {
     color: #8a1c1c;
 }
 
+.aviso-ok {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-left: 4px solid var(--success);
+    background: #e8f6ee;
+    color: #155c34;
+}
+
 .cargando {
     padding: 3rem 0;
     color: var(--ink-muted);

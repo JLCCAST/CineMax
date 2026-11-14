@@ -1,201 +1,144 @@
-<div class="container mt-5 text-white">
-
-  <!-- Selector de sede: todos pasan por aquí (General ve 2 sedes, Marketing/Operaciones ve solo la suya) -->
-  <div *ngIf="!sedeSeleccionada" class="sede-selector-wrapper">
-    <div class="text-center mb-5">
-      <i class="fa-solid fa-popcorn fs-1 mb-3" style="color: var(--primary-color);"></i>
-      <h2 class="fw-bold text-uppercase" style="color: var(--primary-color);">Selecciona una Sede</h2>
-      <p class="text-secondary">Elige la sede para gestionar su inventario de confitería</p>
-    </div>
-
-    <div *ngIf="cargandoSedes" class="text-center my-5">
-      <div class="spinner-border text-info" role="status"></div>
-      <p class="text-info mt-2">Cargando sedes...</p>
-    </div>
-
-    <div *ngIf="!cargandoSedes" class="row g-4 justify-content-center">
-      <div *ngFor="let sede of sedes" class="col-md-4">
-        <div class="sede-card" (click)="seleccionarSede(sede)">
-          <div class="sede-card-glow"></div>
-          <div class="sede-card-body">
-            <i class="fa-solid fa-film fs-2 mb-3" style="color: var(--primary-color);"></i>
-            <h5 class="fw-bold mb-1" style="color: var(--primary-color);">{{ sede.nameVenue }}</h5>
-            <p class="text-secondary small mb-3">{{ sede.address }}</p>
-            <span class="badge-sede">Ver inventario →</span>
-          </div>
-        </div>
-      </div>
-    </div>
+<div class="admin-encabezado">
+  <div>
+    <h1>Confitería</h1>
+    <p>El precio es el mismo en todas las sedes; el stock y el estado son de cada sede.</p>
   </div>
+  <button type="button" class="btn-cine" [disabled]="!sedeSeleccionada" data-bs-toggle="modal" data-bs-target="#modalSnack"
+          (click)="abrirModalNuevo()"><i class="fa-solid fa-plus"></i> Nuevo producto</button>
+</div>
 
-  <!-- Inventario: solo visible cuando ya se seleccionó una sede -->
-  <div *ngIf="sedeSeleccionada">
+<div class="admin-filtros">
+  <div>
+    <label class="form-label" for="filtroSede">Sede</label>
+    <select id="filtroSede" class="form-select" (change)="elegirSede($any($event.target).value)" [disabled]="cargandoSedes">
+      <option value="" [selected]="!sedeSeleccionada">Elige una sede</option>
+      @for (sede of sedes; track sede.idVenue) {
+        <option [value]="sede.idVenue" [selected]="sede.idVenue === sedeSeleccionada?.idVenue">{{ sede.nameVenue }}</option>
+      }
+    </select>
+  </div>
+</div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
-      <div>
-        <h2 class="fw-bold text-uppercase mb-0" style="color: var(--primary-color);">Inventario Confitería</h2>
-        <small class="text-secondary">Sede: {{ sedeSeleccionada.nameVenue }}
-          <span class="ms-2" style="cursor:pointer; color: var(--primary-color);" (click)="sedeSeleccionada = null">Cambiar sede</span>
-        </small>
-      </div>
-      <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalSnack" (click)="abrirModalNuevo()">
-        <i class="fa-solid fa-plus me-2"></i>Agregar Producto
-      </button>
-    </div>
-
-    <div *ngIf="cargando" class="text-center my-5">
-      <div class="spinner-border text-info" role="status"></div>
-      <p class="text-info mt-2">Cargando productos...</p>
-    </div>
-
-    <div *ngIf="!cargando" class="table-responsive">
-      <table class="table table-dark table-bordered table-hover align-middle text-center">
-        <thead style="background-color: var(--primary-dark);">
+@if (!sedeSeleccionada) {
+  <div class="admin-vacio">{{ cargandoSedes ? 'Cargando sedes…' : 'Elige una sede para ver su inventario.' }}</div>
+} @else if (cargando) {
+  <p class="cargando">Cargando productos…</p>
+} @else if (!snacks.length) {
+  <div class="admin-vacio">Esta sede todavía no tiene productos.</div>
+} @else {
+  <div class="admin-tabla">
+    <table>
+      <thead>
+        <tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th><th></th></tr>
+      </thead>
+      <tbody>
+        @for (snack of snacks; track snack.idSnack) {
           <tr>
-            <th>SKU</th>
-            <th>Imagen</th>
-            <th>Nombre</th>
-            <th>Categoría</th>
-            <th>Precio (S/.)</th>
-            <th>Stock</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngIf="snacks.length === 0">
-            <td colspan="8" class="text-secondary py-4">No hay productos registrados aún.</td>
-          </tr>
-          <tr *ngFor="let snack of snacks; let i = index">
-            <td>CK-{{ (i + 1).toString().padStart(3, '0') }}</td>
             <td>
-              <img [src]="snack.imageUrlSnack || 'Imagenes/snack-generico.svg'"
-                   style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+              <div class="producto">
+                <img [src]="snack.imageUrlSnack || 'Imagenes/snack-generico.svg'" alt="">
+                <div>
+                  <strong>{{ snack.nameSnack }}</strong>
+                  <small>{{ snack.descriptionSnack }}</small>
+                </div>
+              </div>
             </td>
-            <td>{{ snack.nameSnack }}</td>
             <td>{{ snack.nameCategory }}</td>
-            <td>{{ snack.price }}</td>
-            <td>{{ snack.stock }}</td>
+            <td>S/ {{ snack.price | number:'1.2-2' }}</td>
+            <td [class.text-danger]="snack.stock === 0">{{ snack.stock }}</td>
+            <td><span class="estado" [class.ok]="snack.status === 'Activo'" [class.mal]="snack.status !== 'Activo'">{{ snack.status }}</span></td>
             <td>
-              <span class="badge" [ngClass]="snack.status === 'Activo' ? 'bg-success' : 'bg-danger'">
-                {{ snack.status }}
-              </span>
-            </td>
-            <td>
-              <button class="btn btn-sm btn-outline-warning me-2" data-bs-toggle="modal" data-bs-target="#modalSnack" (click)="abrirModalEditar(snack)" title="Editar">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
-              <button *ngIf="snack.status === 'Activo'" class="btn btn-sm btn-outline-danger me-2" (click)="inhabilitarSnack(snack.idSnack)" title="Inhabilitar">
-                <i class="fa-solid fa-ban"></i>
-              </button>
-              <button *ngIf="snack.status === 'Inactivo'" class="btn btn-sm btn-outline-success me-2" (click)="habilitarSnack(snack.idSnack)" title="Habilitar">
-                <i class="fa-solid fa-circle-check"></i>
-              </button>
-              <button class="btn btn-sm btn-outline-light" (click)="eliminarSnack(snack.idSnack)" title="Eliminar">
-                <i class="fa-solid fa-trash"></i>
-              </button>
+              <div class="acciones-fila">
+                <button type="button" class="btn-icono" title="Editar" data-bs-toggle="modal" data-bs-target="#modalSnack"
+                        (click)="abrirModalEditar(snack)"><i class="fa-solid fa-pen"></i></button>
+                @if (snack.status === 'Activo') {
+                  <button type="button" class="btn-icono peligro" title="Inhabilitar" (click)="inhabilitarSnack(snack.idSnack)"><i class="fa-solid fa-ban"></i></button>
+                } @else {
+                  <button type="button" class="btn-icono exito" title="Habilitar" (click)="habilitarSnack(snack.idSnack)"><i class="fa-solid fa-check"></i></button>
+                }
+                <button type="button" class="btn-icono peligro" title="Eliminar" (click)="eliminarSnack(snack.idSnack)"><i class="fa-solid fa-trash"></i></button>
+              </div>
             </td>
           </tr>
-        </tbody>
-      </table>
-    </div>
-
+        }
+      </tbody>
+    </table>
   </div>
+}
 
-</div>
-
-<!-- Modal selección de sede para producto nuevo -->
-<div *ngIf="mostrarModalSede" class="modal-overlay-sede">
-  <div class="modal-sede-card">
-    <div class="modal-sede-icon">
-      <i class="fa-solid fa-popcorn" style="color: var(--primary-color); font-size: 2.5rem;"></i>
-    </div>
-    <h4 class="fw-bold text-uppercase mb-1" style="color: var(--primary-color);">¿Dónde disponibilizar el producto?</h4>
-    <p class="text-secondary mb-4 small">Elige si el nuevo producto estará disponible solo en esta sede o en todas las sedes del cine.</p>
-
-    <div class="d-flex gap-3 justify-content-center flex-wrap">
-      <button class="btn btn-outline-info fw-bold px-4" (click)="agregarASede(true)">
-        <i class="fa-solid fa-location-dot me-2"></i>Solo esta sede
-        <div class="small fw-normal opacity-75 mt-1">{{ sedeSeleccionada?.nameVenue }}</div>
-      </button>
-      <button *ngIf="esGerenteGeneral" class="btn btn-success fw-bold px-4" (click)="agregarASede(false)">
-        <i class="fa-solid fa-film me-2"></i>Todas las sedes
-        <div class="small fw-normal opacity-75 mt-1">VMT + Miraflores</div>
-      </button>
+@if (mostrarModalSede) {
+  <div class="velo-eleccion">
+    <div class="eleccion" role="dialog" aria-labelledby="tituloSedeProducto">
+      <h2 id="tituloSedeProducto">¿Dónde se vende el producto?</h2>
+      <p>Puede quedar solo en esta sede o en todas.</p>
+      <div class="opciones">
+        <button type="button" (click)="agregarASede(true)"><strong>Solo esta sede</strong><span>{{ sedeSeleccionada?.nameVenue }}</span></button>
+        @if (esGerenteGeneral) {
+          <button type="button" (click)="agregarASede(false)"><strong>Todas las sedes</strong><span>Se agrega en cada sede</span></button>
+        }
+      </div>
     </div>
   </div>
-</div>
+}
 
-<!-- Modal eliminar de varias sedes -->
-<div *ngIf="mostrarModalEliminar" class="modal-overlay-sede">
-  <div class="modal-sede-card">
-    <div class="modal-sede-icon">
-      <i class="fa-solid fa-trash" style="color: #dc3545; font-size: 2.5rem;"></i>
+@if (mostrarModalEliminar) {
+  <div class="velo-eleccion">
+    <div class="eleccion" role="dialog" aria-labelledby="tituloEliminarProducto">
+      <h2 id="tituloEliminarProducto">¿De dónde se elimina?</h2>
+      <p>El producto está en varias sedes.</p>
+      <div class="opciones">
+        <button type="button" (click)="confirmarEliminar(false)"><strong>Solo de esta sede</strong><span>{{ sedeSeleccionada?.nameVenue }}</span></button>
+        <button type="button" class="peligro" (click)="confirmarEliminar(true)"><strong>De todas las sedes</strong><span>No se puede deshacer</span></button>
+      </div>
+      <button type="button" class="btn-cine-secundario" (click)="mostrarModalEliminar = false; snackAEliminar = null">Cancelar</button>
     </div>
-    <h4 class="fw-bold text-uppercase mb-1" style="color: #dc3545;">¿Dónde eliminar el producto?</h4>
-    <p class="text-secondary mb-4 small">Este producto está disponible en varias sedes. Elige si quieres eliminarlo solo de esta sede o de todas.</p>
-
-    <div class="d-flex gap-3 justify-content-center flex-wrap">
-      <button class="btn btn-outline-info fw-bold px-4" (click)="confirmarEliminar(false)">
-        <i class="fa-solid fa-location-dot me-2"></i>Solo esta sede
-        <div class="small fw-normal opacity-75 mt-1">{{ sedeSeleccionada?.nameVenue }}</div>
-      </button>
-      <button class="btn btn-danger fw-bold px-4" (click)="confirmarEliminar(true)">
-        <i class="fa-solid fa-trash me-2"></i>Todas las sedes
-        <div class="small fw-normal opacity-75 mt-1">Eliminación total</div>
-      </button>
-    </div>
-
-    <button class="btn btn-sm btn-outline-secondary mt-4" (click)="mostrarModalEliminar = false; snackAEliminar = null">
-      Cancelar
-    </button>
   </div>
-</div>
+}
 
 <!-- Modal -->
 <div class="modal fade" id="modalSnack" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content bg-dark text-white border-secondary">
-      <div class="modal-header border-secondary">
-        <h5 class="modal-title fw-bold">{{ isEditMode ? 'Modificar Producto' : 'Agregar Producto' }}</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">{{ isEditMode ? 'Editar producto' : 'Nuevo producto' }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-4">
         <div class="row g-3">
           <div class="col-12">
             <label class="form-label fw-bold">Nombre del producto</label>
-            <input type="text" class="form-control bg-dark text-white border-secondary" placeholder="Nombre" [(ngModel)]="currentSnack.nameSnack">
+            <input type="text" class="form-control" placeholder="Nombre" [(ngModel)]="currentSnack.nameSnack">
           </div>
           <div class="col-12">
             <label class="form-label fw-bold">Descripción del producto</label>
-            <textarea class="form-control bg-dark text-white border-secondary" rows="2" placeholder="Descripción" [(ngModel)]="currentSnack.descriptionSnack"></textarea>
+            <textarea class="form-control" rows="2" placeholder="Descripción" [(ngModel)]="currentSnack.descriptionSnack"></textarea>
           </div>
           <div class="col-md-6">
             <label class="form-label fw-bold">Categoría</label>
-            <select class="form-select bg-dark text-white border-secondary" [(ngModel)]="currentSnack.idSnackCategory">
+            <select class="form-select" [(ngModel)]="currentSnack.idSnackCategory">
               <option [ngValue]="null" disabled>Seleccionar categoría</option>
               <option *ngFor="let c of categories" [ngValue]="c.idSnackCategory">{{ c.nameCategory }}</option>
             </select>
           </div>
           <div class="col-md-3">
             <label class="form-label fw-bold">Precio (S/.)</label>
-            <input type="number" class="form-control bg-dark text-white border-secondary"
+            <input type="number" class="form-control"
               [(ngModel)]="currentSnack.price" min="0.01" step="0.01">
           </div>
           <div class="col-md-3">
             <label class="form-label fw-bold">Stock Inicial</label>
-            <input type="number" class="form-control bg-dark text-white border-secondary" [(ngModel)]="currentSnack.stock">
+            <input type="number" class="form-control" [(ngModel)]="currentSnack.stock">
           </div>
           <div class="col-12">
             <label class="form-label fw-bold">Añadir imagen</label>
-            <input type="file" class="form-control bg-dark text-white border-secondary" accept="image/*" (change)="onFileSelected($event)">
+            <input type="file" class="form-control" accept="image/*" (change)="onFileSelected($event)">
           </div>
         </div>
       </div>
-      <div class="modal-footer border-secondary">
-        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-success fw-bold" (click)="guardarSnack()">
-          {{ isEditMode ? 'Modificar' : 'Guardar Producto' }}
+      <div class="modal-footer">
+        <button type="button" class="btn-cine-secundario" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn-cine" (click)="guardarSnack()">
+          Guardar
         </button>
       </div>
     </div>

@@ -88,7 +88,7 @@ def test_compra_de_una_entrada(purchase):
 
 def test_la_compra_aparece_en_mis_compras(api, client_headers, purchase):
     assert purchase["response"].status_code == 200, purchase["response"].text
-    history = api.get("/sale-transactions/my-purchases", headers=client_headers).json()
+    history = api.get("/sale-transactions/my-purchases", headers=client_headers).json()["content"]
     assert purchase["response"].json()["idTransaction"] in {item["idTransaction"] for item in history}
 
 
@@ -153,11 +153,34 @@ def test_compra_exige_iniciar_sesion(api, showtimes):
 def test_mis_compras_devuelve_el_historial_del_cliente(api, client_headers):
     response = api.get("/sale-transactions/my-purchases", headers=client_headers)
     assert response.status_code == 200
-    history = response.json()
-    assert isinstance(history, list)
-    for item in history:
+    pagina = response.json()
+    assert set(pagina) == {"content", "page", "size", "totalElements", "totalPages"}
+    assert pagina["page"] == 0 and pagina["size"] == 10
+    assert len(pagina["content"]) <= 10
+    for item in pagina["content"]:
         assert item["idTransaction"] > 0
         assert item["status"]
+
+
+def test_mis_compras_se_pagina_de_la_mas_reciente_a_la_mas_antigua(api, client_headers, purchase):
+    assert purchase["response"].status_code == 200, purchase["response"].text
+    primera = api.get("/sale-transactions/my-purchases", headers=client_headers, params={"size": 1}).json()
+    assert len(primera["content"]) == 1
+    assert primera["totalPages"] == primera["totalElements"] >= 1
+
+    if primera["totalElements"] > 1:
+        segunda = api.get("/sale-transactions/my-purchases", headers=client_headers,
+                          params={"page": 1, "size": 1}).json()
+        assert segunda["page"] == 1
+        # Los ids crecen con el tiempo: la primera página trae la compra más nueva.
+        assert primera["content"][0]["idTransaction"] > segunda["content"][0]["idTransaction"]
+
+
+def test_mis_compras_acota_la_pagina_pedida(api, client_headers):
+    pagina = api.get("/sale-transactions/my-purchases", headers=client_headers,
+                     params={"page": -3, "size": 1000}).json()
+    assert pagina["page"] == 0
+    assert pagina["size"] == 50
 
 
 def test_mis_compras_exige_iniciar_sesion(api):
@@ -193,7 +216,7 @@ def test_mis_compras_muestra_pelicula_sala_butaca_y_snacks(api, client_headers, 
     compra = api.post("/sale-transactions", headers=client_headers, json=body)
     assert compra.status_code == 200, compra.text
 
-    historial = api.get("/sale-transactions/my-purchases", headers=client_headers).json()
+    historial = api.get("/sale-transactions/my-purchases", headers=client_headers).json()["content"]
     # La más reciente va primero (la fecha de pago se guarda en UTC, como las anteriores).
     assert historial[0]["idTransaction"] == compra.json()["idTransaction"]
     item = historial[0]
@@ -229,7 +252,7 @@ def test_una_funcion_con_entradas_vendidas_no_se_borra_ni_cambia_de_sala(
         cambio = api.put(f"/showtimes/{funcion['idShowtime']}", headers=staff_headers,
                          json={**datos, "startTime": "20:30:00", "endTime": "22:30:00"})
         assert cambio.status_code == 200, cambio.text
-        historial = api.get("/sale-transactions/my-purchases", headers=client_headers).json()
+        historial = api.get("/sale-transactions/my-purchases", headers=client_headers).json()["content"]
         item = next(h for h in historial if h["idTransaction"] == compra.json()["idTransaction"])
         assert item["movieTitle"] == funcion["movieTitle"]
         assert item["time"] == "19:00"
@@ -258,7 +281,7 @@ def test_pedido_solo_de_confiteria(api, client_headers):
     assert compra.json()["totalAmount"] == pytest.approx(8.5)
     assert _stock(api, client_headers, GASEOSA, sede) == antes - 1
 
-    historial = api.get("/sale-transactions/my-purchases", headers=client_headers).json()
+    historial = api.get("/sale-transactions/my-purchases", headers=client_headers).json()["content"]
     item = next(h for h in historial if h["idTransaction"] == compra.json()["idTransaction"])
     assert item["movieTitle"] is None
     assert item["venueName"] == "CineMax Villa María del Triunfo"

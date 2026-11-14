@@ -1,3 +1,29 @@
-.table td .badge {
-  font-weight: 500;
+.titulo-form {
+    margin: 0 0 1rem;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.dia {
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--ink);
+    font-size: 0.85rem;
+}
+
+.dia.activo {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: #fff;
+}
+
+.condiciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    max-width: 320px;
 }

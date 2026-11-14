@@ -1,6 +1,7 @@
 package com.cinemax.facturacion.controller;
 
 import com.cinemax.facturacion.dto.request.SaleTransactionRequestDTO;
+import com.cinemax.facturacion.dto.response.Pagina;
 import com.cinemax.facturacion.dto.response.SaleTransactionHistoryDTO;
 import com.cinemax.facturacion.dto.response.SaleTransactionResponseDTO;
 import com.cinemax.facturacion.service.SaleTransactionService;
@@ -8,7 +9,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/sale-transactions")
@@ -27,7 +27,8 @@ public class SaleTransactionController {
     }
 
     @GetMapping("/my-purchases")
-    public List<SaleTransactionHistoryDTO> getMyPurchases() {
-        return saleTransactionService.getMyPurchases();
+    public Pagina<SaleTransactionHistoryDTO> getMyPurchases(@RequestParam(defaultValue = "0") int page,
+                                                            @RequestParam(defaultValue = "10") int size) {
+        return saleTransactionService.getMyPurchases(page, size);
     }
 }

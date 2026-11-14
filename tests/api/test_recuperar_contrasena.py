@@ -1,22 +1,27 @@
 """Recuperar la contraseña con el enlace que llega por correo.
 
 En local y en CI los correos van a Mailpit (servicio del compose), que guarda
-cada mensaje y los expone en su API: http://127.0.0.1:8025/api/v1.
+cada mensaje y los expone en su API: http://127.0.0.1:8025/api/v1. Si el .env
+apunta a un correo real (MAIL_HOST distinto de mailpit), la prueba se salta.
 """
 
+import os
 import re
 import time
 
 import httpx
 import pytest
 
-from support import login, register_client, unique
+from support import ENV_FILE, login, read_env_file, register_client, unique
 
 MAILPIT = "http://127.0.0.1:8025"
 
 
 @pytest.fixture(scope="module")
 def mailpit():
+    host = os.environ.get("MAIL_HOST") or read_env_file(ENV_FILE).get("MAIL_HOST")
+    if host and host != "mailpit":
+        pytest.skip(f"Los correos salen por {host}, no por Mailpit.")
     try:
         httpx.get(f"{MAILPIT}/api/v1/messages", timeout=5.0).raise_for_status()
     except httpx.HTTPError:

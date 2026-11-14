@@ -4,6 +4,7 @@ import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
@@ -12,6 +13,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.function.Supplier;
 
+@Slf4j
 @Component
 public class Circuitos {
 
@@ -36,6 +38,11 @@ public class Circuitos {
                 .permittedNumberOfCallsInHalfOpenState(2)
                 .ignoreException(Circuitos::esRechazoDeNegocio)
                 .build());
+        // Cada apertura o cierre queda en el log: sin esto, un circuito abierto solo se
+        // nota por los 503 de los clientes.
+        this.registro.getEventPublisher().onEntryAdded(evento ->
+                evento.getAddedEntry().getEventPublisher().onStateTransition(cambio ->
+                        log.warn("Circuito {}: {}", cambio.getCircuitBreakerName(), cambio.getStateTransition())));
     }
 
     public <T> T llamar(String servicio, Supplier<T> llamada) {
