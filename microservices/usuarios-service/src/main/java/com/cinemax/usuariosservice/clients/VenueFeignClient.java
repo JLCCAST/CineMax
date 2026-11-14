@@ -10,6 +10,7 @@ import java.util.List;
 @FeignClient(name = "sucursales-service")
 public interface VenueFeignClient {
 
-    @GetMapping("/api/venues")
+    // Ruta interna: no depende de los permisos del usuario que hace la petición.
+    @GetMapping("/internal/venues")
     List<VenueDTO> getVenues(@RequestParam("status") String status);
 }

@@ -317,3 +317,15 @@ def test_con_manage_confiteria_se_gestionan_snacks_y_su_stock(api, staff_headers
         assert deleted.status_code == 204
     finally:
         assert api.delete(f"/snacks/{snack_id}", headers=staff_headers).status_code == 204
+
+
+def test_el_admin_ve_las_sedes_que_puede_asignar_a_un_gerente(api, admin_token):
+    """El formulario de Usuarios lista las sedes libres para el rol, aunque el ADMIN no gestione sedes."""
+    headers = bearer(admin_token)
+    roles = {r["roleName"]: r["idRole"] for r in api.get("/roles", headers=headers).json()}
+    response = api.get(f"/users/venues/available-for-role/{roles['GERENTE_MARKETING']}", headers=headers)
+    assert response.status_code == 200, response.text
+    for sede in response.json():
+        assert sede["idVenue"] > 0
+        assert sede["nameVenue"]
+        assert sede["status"] == "Activo"

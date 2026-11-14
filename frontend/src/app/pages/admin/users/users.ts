@@ -94,8 +94,8 @@ export class Users implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Todas las sedes, también las inactivas, para mostrar el nombre de cada una.
-    this.venueService.getVenues().subscribe({
+    // El ADMIN no gestiona sedes: los nombres salen de la lista pública.
+    this.venueService.getPublicVenues().subscribe({
       next: sedes => { this.todasLasSedes = sedes; this.cdr.detectChanges(); }
     });
     this.construirFormularioNuevoUsuario();

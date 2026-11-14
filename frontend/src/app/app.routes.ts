@@ -55,12 +55,12 @@ export const routes: Routes = [
         data: { expectedPermissions: ['VIEW_DASHBOARD'] }
       },
 
-      // Sedes: ADMIN (VIEW_VENUES) y GERENTE_GENERAL (VIEW_VENUES + MANAGE_VENUES)
+      // Sedes: solo GERENTE_GENERAL. El ADMIN ve las sedes únicamente al asignarlas en Usuarios.
       {
         path: 'sedes',
         component: Venues,
         canActivate: [authGuard],
-        data: { expectedPermissions: ['VIEW_VENUES'] }
+        data: { expectedPermissions: ['MANAGE_VENUES'] }
       },
 
       // Salas: GERENTE_GENERAL y GERENTE_DE_OPERACIONES

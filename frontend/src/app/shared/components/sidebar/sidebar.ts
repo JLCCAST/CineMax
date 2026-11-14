@@ -12,7 +12,7 @@ export interface Seccion {
 
 export const SECCIONES: Seccion[] = [
   { ruta: '/admin/dashboard',   texto: 'Inicio',      icono: 'fa-solid fa-house',        permiso: 'VIEW_DASHBOARD', detalle: 'Accesos a cada sección' },
-  { ruta: '/admin/sedes',       texto: 'Sedes',       icono: 'fa-solid fa-building',     permiso: 'VIEW_VENUES', detalle: 'Cines, direcciones y ubicación en el mapa' },
+  { ruta: '/admin/sedes',       texto: 'Sedes',       icono: 'fa-solid fa-building',     permiso: 'MANAGE_VENUES', detalle: 'Cines, direcciones y ubicación en el mapa' },
   { ruta: '/admin/salas',       texto: 'Salas',       icono: 'fa-solid fa-couch',        permiso: 'MANAGE_ROOMS', detalle: 'Salas y distribución de butacas' },
   { ruta: '/admin/peliculas',   texto: 'Películas',   icono: 'fa-solid fa-film',         permiso: 'MANAGE_MOVIES', detalle: 'Cartelera, estrenos y preventa' },
   { ruta: '/admin/funciones',   texto: 'Funciones',   icono: 'fa-solid fa-clapperboard', permiso: 'MANAGE_SHOWTIMES', detalle: 'Horarios, salas y precios' },
