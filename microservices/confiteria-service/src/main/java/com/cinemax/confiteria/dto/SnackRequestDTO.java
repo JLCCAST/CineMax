@@ -2,6 +2,8 @@ package com.cinemax.confiteria.dto;
 
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -18,7 +20,9 @@ public class SnackRequestDTO {
 
     private Integer idVenue;
 
+    // El admin la manda como idSnackCategory.
     @NotNull(message = "La categoría es obligatoria")
+    @JsonAlias("idSnackCategory")
     private Integer snackCategoryId;
 
     @NotBlank(message = "El nombre del snack es obligatorio")

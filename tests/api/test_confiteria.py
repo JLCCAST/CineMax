@@ -1,5 +1,7 @@
 """Confitería por sede: lo que ve el cliente y lo que gestiona el administrador."""
 
+import json
+
 import pytest
 
 from support import MISSING_SQL_ID, unique
@@ -51,6 +53,36 @@ def snack(api, staff_headers):
     snack_id = created.json()["idSnack"]
     yield snack_id
     api.delete(f"/snacks/{snack_id}/venue/todas", headers=staff_headers)
+
+
+def test_el_formulario_del_admin_crea_y_edita_sin_perder_la_foto(api, staff_headers):
+    categoria = api.get("/snack-categories").json()[0]["idSnackCategory"]
+    # El admin manda multipart, con la categoría como idSnackCategory.
+    datos = {"idSnackCategory": categoria, "nameSnack": unique("form"), "price": 4.5, "stock": 0, "status": "Activo"}
+    creado = api.post("/snacks", headers=staff_headers, files={"snack": (None, json.dumps(datos))})
+    assert creado.status_code == 201, creado.text
+    id_snack = creado.json()["idSnack"]
+    try:
+        foto = "https://example.com/snack.jpg"
+        con_foto = api.put(f"/snacks/{id_snack}", headers=staff_headers,
+                           json={"snackCategoryId": categoria, "nameSnack": datos["nameSnack"], "price": 4.5,
+                                 "stock": 0, "imageUrlSnack": foto})
+        assert con_foto.status_code == 200, con_foto.text
+
+        editado = api.put(f"/snacks/{id_snack}", headers=staff_headers,
+                          files={"snack": (None, json.dumps({**datos, "price": 5}))})
+        assert editado.status_code == 200, editado.text
+        assert editado.json()["imageUrlSnack"] == foto
+        assert float(editado.json()["price"]) == 5
+    finally:
+        api.delete(f"/snacks/{id_snack}", headers=staff_headers)
+
+
+def test_el_formulario_del_admin_valida_los_datos(api, staff_headers):
+    datos = {"nameSnack": unique("form"), "price": 4.5, "stock": 0}
+    response = api.post("/snacks", headers=staff_headers, files={"snack": (None, json.dumps(datos))})
+    assert response.status_code == 400, response.text
+    assert "categoría" in response.json()["message"]
 
 
 def _ids(api, path, headers=None):
