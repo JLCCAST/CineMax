@@ -1,159 +1,100 @@
-<div class="container mt-5 text-white">
-
-  <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
-    <h2 class="fw-bold text-uppercase" style="color:var(--primary-color);">Gestión de Funciones</h2>
-    <button class="btn btn-success fw-bold"
-            [disabled]="!idVenueEfectivo"
-            data-bs-toggle="modal" data-bs-target="#modalShowtime"
-            (click)="abrirModalNuevo()">
-      <i class="fa-solid fa-plus me-2"></i>Nueva Función
-    </button>
+<div class="admin-encabezado">
+  <div>
+    <h1>Funciones</h1>
+    <p>Programa las funciones de cada sala. Una función con ventas solo se puede cancelar.</p>
   </div>
+  <button type="button" class="btn-cine" [disabled]="!idVenueEfectivo" data-bs-toggle="modal" data-bs-target="#modalShowtime"
+          (click)="abrirModalNuevo()"><i class="fa-solid fa-plus"></i> Nueva función</button>
+</div>
 
-  <div *ngIf="mensajeError" class="alert alert-danger alert-dismissible d-flex align-items-center mb-3">
-    <i class="fa-solid fa-triangle-exclamation me-2"></i>
-    <span>{{ mensajeError }}</span>
-    <button type="button" class="btn-close btn-close-white" (click)="mensajeError=''"></button>
-  </div>
-  <div *ngIf="mensajeExito" class="alert alert-success alert-dismissible d-flex align-items-center mb-3">
-    <i class="fa-solid fa-circle-check me-2"></i>
-    <span>{{ mensajeExito }}</span>
-    <button type="button" class="btn-close btn-close-white" (click)="mensajeExito=''"></button>
-  </div>
+@if (mensajeError) { <div class="aviso-error">{{ mensajeError }}</div> }
+@if (mensajeExito) { <div class="aviso-ok">{{ mensajeExito }}</div> }
 
-  <div *ngIf="esGerGeneral" class="card bg-dark border-secondary mb-4 p-3 shadow-sm">
-    <label class="form-label fw-bold mb-2">
-      <i class="fa-solid fa-building me-2 text-info"></i>Selecciona el cine a administrar:
-    </label>
-    <select class="form-select bg-dark text-white border-secondary w-50"
-            [(ngModel)]="sedeSeleccionadaId" (change)="onSedeChange()"
-            [ngModelOptions]="{standalone: true}">
-      <option [ngValue]="null">— Elige una sede —</option>
-      <option *ngFor="let s of sedes" [ngValue]="s.idVenue">{{ s.nameVenue }}</option>
-    </select>
-  </div>
-
-  <div *ngIf="esGerGeneral && !sedeSeleccionadaId" class="text-center py-5">
-    <i class="fa-solid fa-arrow-pointer fs-1 mb-3 opacity-50"></i>
-    <h5>Selecciona una sede para ver sus funciones.</h5>
-  </div>
-
-  <ng-container *ngIf="idVenueEfectivo">
-
-    <div class="row mb-4 bg-dark p-3 rounded border border-secondary shadow-sm mx-0 g-3">
-      <div class="col-md-3">
-        <label class="form-label fw-bold text-white mb-1"><i class="fa-solid fa-calendar me-2"></i>Fecha</label>
-        <input type="date" class="form-control bg-dark text-white border-secondary"
-               [(ngModel)]="filtroFecha" (change)="cargarFunciones()"
-               [ngModelOptions]="{standalone: true}">
-      </div>
-      <div class="col-md-3">
-        <label class="form-label fw-bold text-white mb-1"><i class="fa-solid fa-door-open me-2"></i>Sala</label>
-        <select class="form-select bg-dark text-white border-secondary"
-                [(ngModel)]="filtroSala" [ngModelOptions]="{standalone: true}">
-          <option [ngValue]="null">Todas las salas</option>
-          <option *ngFor="let r of rooms" [ngValue]="r.idRoom">{{ r.nameRoom }}</option>
-        </select>
-      </div>
-      <div class="col-md-3">
-        <label class="form-label fw-bold text-white mb-1"><i class="fa-solid fa-film me-2"></i>Formato</label>
-        <select class="form-select bg-dark text-white border-secondary"
-                [(ngModel)]="filtroFormato" [ngModelOptions]="{standalone: true}">
-          <option value="">Todos los formatos</option>
-          <option *ngFor="let fmt of formatos" [value]="fmt">{{ fmt }}</option>
-        </select>
-      </div>
-      <div class="col-md-3 d-flex align-items-end">
-        <button class="btn btn-outline-secondary w-100" (click)="filtroSala=null; filtroFormato=''">
-          <i class="fa-solid fa-xmark me-1"></i>Limpiar filtros
-        </button>
-      </div>
+<div class="admin-filtros">
+  @if (esGerGeneral) {
+    <div>
+      <label class="form-label" for="filtroSede">Sede</label>
+      <select id="filtroSede" class="form-select" [(ngModel)]="sedeSeleccionadaId" (change)="onSedeChange()"
+              [ngModelOptions]="{standalone: true}">
+        <option [ngValue]="null">Elige una sede</option>
+        @for (s of sedes; track s.idVenue) { <option [ngValue]="s.idVenue">{{ s.nameVenue }}</option> }
+      </select>
     </div>
-
-    <!-- Spinner -->
-    <div *ngIf="cargando" class="text-center my-5">
-      <div class="spinner-border text-warning" role="status"></div>
-      <p class="text-secondary mt-2">Cargando funciones...</p>
+  }
+  @if (idVenueEfectivo) {
+    <div>
+      <label class="form-label" for="filtroFecha">Fecha</label>
+      <input id="filtroFecha" type="date" class="form-control" [(ngModel)]="filtroFecha" (change)="cargarFunciones()"
+             [ngModelOptions]="{standalone: true}">
     </div>
-
-    <!-- Sin resultados -->
-    <div *ngIf="!cargando && funcionesFiltradas.length === 0" class="text-center py-5">
-      <i class="fa-solid fa-clapperboard fs-1 mb-3 opacity-50"></i>
-      <h5>No hay funciones programadas para esta fecha.</h5>
-      <button class="btn btn-success fw-bold mt-2"
-              data-bs-toggle="modal" data-bs-target="#modalShowtime"
-              (click)="abrirModalNuevo()">
-        <i class="fa-solid fa-plus me-2"></i>Programar primera función
-      </button>
+    <div>
+      <label class="form-label" for="filtroSala">Sala</label>
+      <select id="filtroSala" class="form-select" [(ngModel)]="filtroSala" [ngModelOptions]="{standalone: true}">
+        <option [ngValue]="null">Todas las salas</option>
+        @for (r of rooms; track r.idRoom) { <option [ngValue]="r.idRoom">{{ r.nameRoom }}</option> }
+      </select>
     </div>
+    <div>
+      <label class="form-label" for="filtroFormato">Formato</label>
+      <select id="filtroFormato" class="form-select" [(ngModel)]="filtroFormato" [ngModelOptions]="{standalone: true}">
+        <option value="">Todos los formatos</option>
+        @for (fmt of formatos; track fmt) { <option [value]="fmt">{{ fmt }}</option> }
+      </select>
+    </div>
+    <button type="button" class="btn-cine-secundario" (click)="filtroSala = null; filtroFormato = ''">Limpiar filtros</button>
+  }
+</div>
 
-    <!-- Tabla -->
-    <div *ngIf="!cargando && funcionesFiltradas.length > 0"
-         class="shadow-lg rounded overflow-hidden border border-secondary">
-      <table class="table table-dark table-hover align-middle mb-0">
+@if (esGerGeneral && !sedeSeleccionadaId) {
+  <div class="admin-vacio">Elige una sede para ver sus funciones.</div>
+} @else if (idVenueEfectivo) {
+  @if (cargando) {
+    <p class="cargando">Cargando funciones…</p>
+  } @else if (!funcionesFiltradas.length) {
+    <div class="admin-vacio">No hay funciones para esta fecha y filtros.</div>
+  } @else {
+    <div class="admin-tabla">
+      <table>
         <thead>
-          <tr>
-            <th class="ps-3">Película</th>
-            <th>Sala</th>
-            <th class="text-center">Inicio</th>
-            <th class="text-center">Fin</th>
-            <th class="text-center">Formato</th>
-            <th class="text-center">Precio</th>
-            <th class="text-center">Asientos</th>
-            <th class="text-center">Estado</th>
-            <th class="text-center">Acciones</th>
-          </tr>
+          <tr><th>Película</th><th>Sala</th><th>Horario</th><th>Formato</th><th>Precio</th><th>Libres</th><th>Estado</th><th></th></tr>
         </thead>
         <tbody>
-          <tr *ngFor="let f of funcionesFiltradas">
-            <td class="ps-3">
-              <span class="fw-semibold">{{ f.movieTitle }}</span>
-              <small class="d-block text-secondary">{{ f.durationMinutes }} min</small>
-            </td>
-            <td>{{ f.nameRoom }}</td>
-            <td class="text-center fw-bold">{{ f.startTime }}</td>
-            <td class="text-center text-secondary">{{ f.endTime }}</td>
-            <td class="text-center">
-              <span class="badge" style="background:rgba(229,9,20,0.15);color:#ff6b6b;border:1px solid rgba(229,9,20,0.3);">
-                {{ f.languageFormat }}
-              </span>
-            </td>
-            <td class="text-center">S/ {{ f.baseTicketPrice | number:'1.2-2' }}</td>
-            <td class="text-center" [class.text-danger]="f.availableSeats === 0">
-              {{ f.availableSeats }} / {{ f.roomCapacity }}
-            </td>
-            <td class="text-center"><span [ngClass]="getBadgeClase(f.status)">{{ f.status }}</span></td>
-            <td class="text-center">
-              <ng-container *ngIf="f.status === 'Programada'">
-                <button class="btn btn-sm btn-outline-warning me-1"
-                        data-bs-toggle="modal" data-bs-target="#modalShowtime"
-                        (click)="abrirModalEditar(f)">
-                  <i class="fa-solid fa-pen"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger" (click)="cancelarFuncion(f)">
-                  <i class="fa-solid fa-xmark"></i>
-                </button>
-              </ng-container>
-              <span *ngIf="f.status !== 'Programada'" class="text-secondary small">—</span>
-            </td>
-          </tr>
+          @for (f of funcionesFiltradas; track f.idShowtime) {
+            <tr>
+              <td><strong>{{ f.movieTitle }}</strong><small class="d-block text-muted">{{ f.durationMinutes }} min</small></td>
+              <td>{{ f.nameRoom }}</td>
+              <td><strong>{{ f.startTime?.slice(0, 5) }}</strong> <span class="text-muted">a {{ f.endTime?.slice(0, 5) }}</span></td>
+              <td>{{ f.languageFormat }}</td>
+              <td>S/ {{ f.baseTicketPrice | number:'1.2-2' }}</td>
+              <td [class.text-danger]="f.availableSeats === 0">{{ f.availableSeats }} / {{ f.roomCapacity }}</td>
+              <td><span class="estado" [ngClass]="claseEstado(f.status)">{{ f.status }}</span></td>
+              <td>
+                @if (f.status === 'Programada') {
+                  <div class="acciones-fila">
+                    <button type="button" class="btn-icono" title="Editar" data-bs-toggle="modal" data-bs-target="#modalShowtime"
+                            (click)="abrirModalEditar(f)"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" class="btn-icono peligro" title="Cancelar función" (click)="cancelarFuncion(f)">
+                      <i class="fa-solid fa-xmark"></i></button>
+                  </div>
+                }
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
-
-  </ng-container>
-</div>
+  }
+}
 
 <div class="modal fade" id="modalShowtime" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content text-white" style="background-color:#161619;border:1px solid #333;border-radius:12px;">
+    <div class="modal-content">
 
-      <div class="modal-header border-secondary">
-        <h5 class="modal-title fw-bold text-uppercase" style="color:var(--primary-color);">
-          <i class="fa-solid fa-clapperboard me-2"></i>
-          {{ isEditMode ? 'Editar Función' : 'Nueva Función' }}
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-uppercase">
+                    {{ isEditMode ? 'Editar Función' : 'Nueva Función' }}
         </h5>
-        <button id="btnCerrarModal" type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button id="btnCerrarModal" type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body p-4">
@@ -171,10 +112,10 @@
           <!-- Película -->
           <div class="col-12">
             <label class="form-label fw-bold">
-              <i class="fa-solid fa-film me-1 text-danger"></i>Película <span class="text-danger">*</span>
+              Película <span class="text-danger">*</span>
             </label>
             <select formControlName="idMovie"
-                    class="form-select bg-dark text-white border-secondary"
+                    class="form-select"
                     [class.is-invalid]="invalido('idMovie')">
               <option [ngValue]="null" disabled>— Selecciona una película —</option>
               <option *ngFor="let p of movies" [ngValue]="p.idMovie">
@@ -187,10 +128,10 @@
           <!-- Sala -->
           <div class="col-md-6">
             <label class="form-label fw-bold">
-              <i class="fa-solid fa-door-open me-1 text-danger"></i>Sala <span class="text-danger">*</span>
+              Sala <span class="text-danger">*</span>
             </label>
             <select formControlName="idRoom"
-                    class="form-select bg-dark text-white border-secondary"
+                    class="form-select"
                     [class.is-invalid]="invalido('idRoom')">
               <option [ngValue]="null" disabled>— Selecciona una sala —</option>
               <option *ngFor="let r of rooms" [ngValue]="r.idRoom">
@@ -198,16 +139,16 @@
               </option>
             </select>
             <div class="invalid-feedback">Selecciona una sala.</div>
-            <small class="text-secondary">Solo se muestran salas activas.</small>
+            <small class="text-muted">Solo se muestran salas activas.</small>
           </div>
 
           <!-- Formato -->
           <div class="col-md-6">
             <label class="form-label fw-bold">
-              <i class="fa-solid fa-glasses me-1 text-danger"></i>Formato <span class="text-danger">*</span>
+              Formato <span class="text-danger">*</span>
             </label>
             <select formControlName="languageFormat"
-                    class="form-select bg-dark text-white border-secondary">
+                    class="form-select">
               <option>Doblada 2D</option>
               <option>Subtitulada 2D</option>
               <option>Doblada 3D</option>
@@ -220,10 +161,10 @@
           <!-- Fecha -->
           <div class="col-md-4">
             <label class="form-label fw-bold">
-              <i class="fa-solid fa-calendar me-1 text-danger"></i>Fecha <span class="text-danger">*</span>
+              Fecha <span class="text-danger">*</span>
             </label>
             <input type="date" formControlName="showDate"
-                   class="form-control bg-dark text-white border-secondary"
+                   class="form-control"
                    [class.is-invalid]="invalido('showDate')">
               <div class="invalid-feedback" *ngIf="ctrl('showDate').hasError('required')">
                 La fecha es obligatoria.
@@ -236,10 +177,10 @@
           <!-- Hora inicio -->
           <div class="col-md-4">
             <label class="form-label fw-bold">
-              <i class="fa-solid fa-clock me-1 text-danger"></i>Hora de inicio <span class="text-danger">*</span>
+              Hora de inicio <span class="text-danger">*</span>
             </label>
             <input type="time" formControlName="startTime"
-                   class="form-control bg-dark text-white border-secondary"
+                   class="form-control"
                    [class.is-invalid]="invalido('startTime')">
             <div class="invalid-feedback" *ngIf="ctrl('startTime').hasError('required')">
               La hora es obligatoria.
@@ -251,55 +192,55 @@
 
           <!-- Hora fin estimada (solo lectura) -->
           <div class="col-md-4">
-            <label class="form-label fw-bold text-secondary">
-              <i class="fa-solid fa-hourglass-end me-1"></i>Hora fin estimada
+            <label class="form-label fw-bold text-muted">
+              Hora fin estimada
             </label>
-            <div class="form-control bg-dark border-secondary text-secondary d-flex align-items-center">
-              <i class="fa-solid fa-clock me-2" style="color:var(--primary-color);"></i>
+            <div class="form-control text-muted d-flex align-items-center">
+              <i class="fa-solid fa-clock me-2"></i>
               {{ horaFinEstimada || '—' }}
             </div>
-            <small class="text-secondary">Duración + 30 min limpieza</small>
+            <small class="text-muted">Duración + 30 min limpieza</small>
           </div>
 
           <!-- Precio -->
           <div class="col-md-6">
             <label class="form-label fw-bold">
-              <i class="fa-solid fa-tag me-1 text-danger"></i>Precio base (S/) <span class="text-danger">*</span>
+              Precio base (S/) <span class="text-danger">*</span>
             </label>
             <div class="input-group">
-              <span class="input-group-text bg-dark border-secondary text-secondary">S/</span>
+              <span class="input-group-text text-muted">S/</span>
               <input type="number" formControlName="baseTicketPrice" min="1" step="0.50" placeholder="15.00"
-                     class="form-control bg-dark text-white border-secondary"
+                     class="form-control"
                      [class.is-invalid]="invalido('baseTicketPrice')">
               <div class="invalid-feedback">El precio debe ser mayor a 0.</div>
               <div class="invalid-feedback" *ngIf="ctrl('baseTicketPrice').hasError('max')">
                 El precio no puede superar S/ 999.
               </div>
             </div>
-            <small class="text-secondary">Los descuentos se calculan automáticamente.</small>
+            <small class="text-muted">Los descuentos se calculan automáticamente.</small>
           </div>
 
           <!-- Tarifas estimadas (computed) -->
           <div class="col-md-6">
-            <label class="form-label fw-bold text-secondary">
-              <i class="fa-solid fa-receipt me-1"></i>Tarifas estimadas
+            <label class="form-label fw-bold text-muted">
+              Tarifas estimadas
             </label>
-            <div class="p-2 rounded border border-secondary bg-dark" *ngIf="precioBase > 0; else sinTarifas">
-              <div class="d-flex justify-content-between small py-1 border-bottom border-secondary">
+            <div class="p-2 rounded border" *ngIf="precioBase > 0; else sinTarifas">
+              <div class="d-flex justify-content-between small py-1 border-bottom">
                 <span>Adulto</span>
                 <span class="fw-bold">S/ {{ precioBase | number:'1.2-2' }}</span>
               </div>
-              <div class="d-flex justify-content-between small py-1 border-bottom border-secondary text-secondary">
+              <div class="d-flex justify-content-between small py-1 border-bottom text-muted">
                 <span>Niño</span>
                 <span>S/ {{ precioNino | number:'1.2-2' }}</span>
               </div>
-              <div class="d-flex justify-content-between small py-1 text-secondary">
+              <div class="d-flex justify-content-between small py-1 text-muted">
                 <span>Adulto mayor / Discapacidad</span>
                 <span>S/ {{ precioMayor | number:'1.2-2' }}</span>
               </div>
             </div>
             <ng-template #sinTarifas>
-              <div class="p-2 rounded border border-secondary bg-dark text-secondary small">
+              <div class="p-2 rounded border text-muted small">
                 Ingresa un precio para ver las tarifas.
               </div>
             </ng-template>
@@ -308,14 +249,13 @@
         </form>
       </div>
 
-      <div class="modal-footer border-secondary">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-success fw-bold"
+      <div class="modal-footer">
+        <button type="button" class="btn-cine-secundario" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn-cine"
                 [disabled]="guardando || form.invalid"
                 (click)="guardarFuncion()">
           <span *ngIf="guardando" class="spinner-border spinner-border-sm me-2"></span>
-          <i *ngIf="!guardando" class="fa-solid fa-floppy-disk me-2"></i>
-          {{ guardando ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Programar función') }}
+                    {{ guardando ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Programar función') }}
         </button>
       </div>
 

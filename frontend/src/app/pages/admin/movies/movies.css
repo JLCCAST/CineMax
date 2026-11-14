@@ -1,0 +1,33 @@
+.pelicula {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.pelicula img {
+    width: 40px;
+    aspect-ratio: 2 / 3;
+    border-radius: 3px;
+    object-fit: cover;
+}
+
+.pelicula strong,
+.pelicula small {
+    display: block;
+}
+
+.pelicula small {
+    color: var(--ink-muted);
+}
+
+.generos {
+    max-height: 140px;
+    padding: 0.75rem 1rem;
+    overflow-y: auto;
+    border: 1px solid #cfcdd6;
+    border-radius: var(--radius);
+}
+
+.generos.invalido {
+    border-color: var(--danger);
+}

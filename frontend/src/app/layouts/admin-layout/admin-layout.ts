@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
 import { NavbarAdmin } from '../../shared/components/navbar-admin/navbar-admin';
@@ -11,6 +11,9 @@ import { NavbarAdmin } from '../../shared/components/navbar-admin/navbar-admin';
   styleUrl: './admin-layout.css'
 })
 export class AdminLayout {
+
+  // En pantallas angostas la barra lateral se abre encima del contenido.
+  readonly menuAbierto = signal(false);
 
   constructor(private router: Router) {}
 

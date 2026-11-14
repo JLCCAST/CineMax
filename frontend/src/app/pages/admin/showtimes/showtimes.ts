@@ -294,13 +294,13 @@ export class AdminShowtimes implements OnInit {
     return err?.message || fallback;
   }
 
-  getBadgeClase(status: string): string {
+  claseEstado(status: string): string {
     const map: Record<string, string> = {
-      'Programada': 'badge bg-success',
-      'En Curso':   'badge bg-warning text-dark',
-      'Finalizada': 'badge bg-secondary',
-      'Cancelada':  'badge bg-danger'
+      'Programada': 'ok',
+      'En Curso':   'alerta',
+      'Cancelada':  'mal'
     };
-    return map[status] ?? 'badge bg-light text-dark';
+    return map[status] ?? '';
   }
+
 }

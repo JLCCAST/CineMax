@@ -1,1 +1,16 @@
-<p>dashboard works!</p>
+<div class="admin-encabezado">
+  <div>
+    <h1>Hola{{ nombre ? ', ' + nombre : '' }}</h1>
+    <p>Elige qué quieres administrar.</p>
+  </div>
+</div>
+
+<div class="accesos">
+  @for (s of secciones; track s.ruta) {
+    <a [routerLink]="s.ruta" class="acceso">
+      <i [class]="s.icono"></i>
+      <strong>{{ s.texto }}</strong>
+      <span>{{ s.detalle }}</span>
+    </a>
+  }
+</div>

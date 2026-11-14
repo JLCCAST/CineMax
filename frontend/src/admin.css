@@ -1,0 +1,226 @@
+/* Piezas comunes de las páginas del panel de administración. */
+
+.admin-encabezado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-encabezado h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.admin-encabezado p {
+    margin: 0.2rem 0 0;
+    color: var(--ink-muted);
+}
+
+.admin-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-card);
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+}
+
+.admin-filtros > * {
+    min-width: 180px;
+}
+
+.admin-tabla {
+    overflow-x: auto;
+    border-radius: var(--radius-card);
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+}
+
+.admin-tabla table {
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+}
+
+.admin-tabla th {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--line);
+    background: #f7f6f9;
+    color: var(--ink-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.admin-tabla td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+}
+
+.admin-tabla tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-tabla tbody tr:hover {
+    background: #faf9fc;
+}
+
+.admin-vacio {
+    padding: 3rem 1rem;
+    border-radius: var(--radius-card);
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+    color: var(--ink-muted);
+    text-align: center;
+}
+
+.estado {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: #eceaf1;
+    color: var(--ink-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.estado.ok {
+    background: #e8f6ee;
+    color: #155c34;
+}
+
+.estado.alerta {
+    background: #fff4dc;
+    color: #7a5300;
+}
+
+.estado.mal {
+    background: #fdecec;
+    color: #8a1c1c;
+}
+
+.estado.info {
+    background: var(--brand-tint);
+    color: var(--brand);
+}
+
+.acciones-fila {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.35rem;
+}
+
+.btn-icono {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink-muted);
+}
+
+.btn-icono:hover:not(:disabled) {
+    border-color: var(--brand);
+    color: var(--brand);
+}
+
+.btn-icono.peligro:hover:not(:disabled) {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.btn-icono.exito:hover:not(:disabled) {
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.btn-icono:disabled {
+    opacity: 0.45;
+}
+
+.btn-cine-peligro {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--danger);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.btn-cine-peligro:disabled {
+    opacity: 0.6;
+}
+
+/* Formularios y modales (los modales de Bootstrap quedan claros) */
+.admin .form-label,
+.modal .form-label {
+    color: var(--ink-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.admin .form-control,
+.admin .form-select {
+    border-color: #cfcdd6;
+    border-radius: var(--radius);
+}
+
+.admin .form-control:focus,
+.admin .form-select:focus,
+.admin .form-check-input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 0.2rem var(--brand-tint);
+}
+
+.admin .form-check-input:checked {
+    border-color: var(--brand);
+    background-color: var(--brand);
+}
+
+.admin .modal-content {
+    border: none;
+    border-radius: var(--radius-card);
+    color: var(--ink);
+}
+
+.admin .modal-header,
+.admin .modal-footer {
+    border-color: var(--line);
+}
+
+.admin .modal-title {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.admin .card {
+    border: none;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+}

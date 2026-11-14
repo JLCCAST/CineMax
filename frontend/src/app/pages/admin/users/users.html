@@ -1,109 +1,90 @@
-<div class="container mt-5 text-white">
-    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
-        <h2 class="fw-bold text-uppercase" style="color: var(--primary-color);">Gestión de Usuarios</h2>
-        <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoUsuario" (click)="abrirModalNuevoUsuario()">
-            <i class="fa-solid fa-plus me-2"></i>Nuevo Colaborador
-        </button>
-    </div>
-
-  <div *ngIf="cargando" class="text-center my-5">
-    <div class="spinner-border text-info" role="status"></div>
-    <p class="text-info mt-2">Cargando equipo de CineMax...</p>
+<div class="admin-encabezado">
+  <div>
+    <h1>Usuarios</h1>
+    <p>Colaboradores del cine y sus permisos. Un gerente de sede solo ve su sede.</p>
   </div>
+  <button type="button" class="btn-cine" data-bs-toggle="modal" data-bs-target="#modalNuevoUsuario" (click)="abrirModalNuevoUsuario()">
+    <i class="fa-solid fa-plus"></i> Nuevo colaborador
+  </button>
+</div>
 
-  <div *ngIf="!cargando" class="row mb-3 bg-dark p-3 rounded border border-secondary shadow-sm mx-0">
-    <div class="col-md-4">
-      <label class="form-label fw-bold text-white mb-1"><i class="fa-solid fa-filter me-2"></i>Estado</label>
-      <select class="form-select bg-dark text-white border-secondary" [(ngModel)]="filtroEstado">
-        <option value="TODOS">Todos los Estados</option>
-        <option value="Activo">Solo Activos</option>
-        <option value="Inactivo">Solo Inactivos</option>
-      </select>
-    </div>
-    
-    <div class="col-md-4">
-      <label class="form-label fw-bold text-white mb-1"><i class="fa-solid fa-briefcase me-2"></i>Filtrar por Rol</label>
-      <select class="form-select bg-dark text-white border-secondary" [(ngModel)]="filtroRol">
-        <option value="TODOS">Todos los Roles</option>
-        <option *ngFor="let rol of rolesDisponibles" [value]="rol">{{ formatearRol(rol) }}</option>
-      </select>
-    </div>
-
-    <div class="col-md-4">
-      <label class="form-label fw-bold text-white mb-1"><i class="fa-solid fa-location-dot me-2"></i>Filtrar por Sede</label>
-      <select class="form-select bg-dark text-white border-secondary" [(ngModel)]="filtroSede">
-        <option value="TODOS">Todas las Sedes</option>
-        <option *ngFor="let sede of sedesDisponibles" [value]="sede">{{ sede }}</option>
-      </select>
-    </div>
+<div class="admin-filtros">
+  <div>
+    <label class="form-label" for="filtroEstado">Estado</label>
+    <select id="filtroEstado" class="form-select" [(ngModel)]="filtroEstado">
+      <option value="TODOS">Todos</option>
+      <option value="Activo">Activos</option>
+      <option value="Inactivo">Inactivos</option>
+    </select>
   </div>
+  <div>
+    <label class="form-label" for="filtroRol">Rol</label>
+    <select id="filtroRol" class="form-select" [(ngModel)]="filtroRol">
+      <option value="TODOS">Todos los roles</option>
+      @for (rol of rolesDisponibles; track rol) { <option [value]="rol">{{ formatearRol(rol) }}</option> }
+    </select>
+  </div>
+  <div>
+    <label class="form-label" for="filtroSede">Sede</label>
+    <select id="filtroSede" class="form-select" [(ngModel)]="filtroSede">
+      <option value="TODOS">Todas las sedes</option>
+      @for (sede of sedesDisponibles; track sede) { <option [value]="sede">{{ sede }}</option> }
+    </select>
+  </div>
+</div>
 
-  <div *ngIf="!cargando" class="table-responsive shadow-lg rounded border border-secondary" style="background-color: var(--surface-color);">
-    <table class="table table-dark table-hover mb-0 align-middle">
+@if (cargando) {
+  <p class="cargando">Cargando usuarios…</p>
+} @else if (!usuariosFiltrados.length) {
+  <div class="admin-vacio">No hay usuarios con estos filtros.</div>
+} @else {
+  <div class="admin-tabla">
+    <table>
       <thead>
-        <tr style="border-bottom: 2px solid var(--primary-color);">
-          <th class="p-3">Colaborador</th>
-          <th class="p-3">Correo</th>
-          <th class="p-3">Rol Actual</th>
-          <th class="p-3">Sede Asignada</th>
-          <th class="p-3">Estado</th>
-          <th class="p-3 text-center">Acciones</th>
-        </tr>
+        <tr><th>Colaborador</th><th>Correo</th><th>Rol</th><th>Sede</th><th>Estado</th><th></th></tr>
       </thead>
       <tbody>
-        <tr *ngFor="let user of usuariosFiltrados">
-          <td class="p-3">
-            <div class="d-flex align-items-center">
-              <i class="fa-solid fa-circle-user fs-4 me-2" style="color: var(--secondary-color);"></i>
-              {{ user.firstName }} {{ user.lastName }}
-            </div>
-          </td>
-          <td class="p-3">{{ user.email }}</td>
-          <td class="p-3">
-            <span class="badge bg-primary">{{ formatearRol(user.roleName) }}</span>
-          </td>
-          <td class="p-3 text-white">{{ user.venueName || 'Acceso Total' }}</td>
-          <td class="p-3">
-            <span class="badge" [ngClass]="user.status === 'Activo' ? 'bg-success' : 'bg-danger'">
-              {{ user.status }}
-            </span>
-          </td>
-          <td class="p-3 text-center">
-            <button class="btn btn-sm btn-outline-warning me-2" title="Cambiar Rol"
-                data-bs-toggle="modal" data-bs-target="#modalCambiarRol" (click)="abrirModalRol(user)">
-                <i class="fa-solid fa-user-shield"></i>
-            </button>
-            
-            <button *ngIf="user.status === 'Activo'" class="btn btn-sm btn-outline-danger" title="Desactivar" (click)="desactivarUsuario(user.idUser)">
-              <i class="fa-solid fa-user-minus"></i>
-            </button>
-
-            <button *ngIf="user.status === 'Inactivo'" class="btn btn-sm btn-outline-success" title="Reactivar" (click)="activarUsuario(user.idUser)">
-              <i class="fa-solid fa-user-check"></i>
-            </button>
-          </td>
-        </tr>
+        @for (user of usuariosFiltrados; track user.idUser) {
+          <tr>
+            <td><strong>{{ user.firstName }} {{ user.lastName }}</strong></td>
+            <td>{{ user.email }}</td>
+            <td><span class="estado info">{{ formatearRol(user.roleName) }}</span></td>
+            <td>{{ user.venueName || 'Todas' }}</td>
+            <td><span class="estado" [class.ok]="user.status === 'Activo'" [class.mal]="user.status !== 'Activo'">{{ user.status }}</span></td>
+            <td>
+              <div class="acciones-fila">
+                <button type="button" class="btn-icono" title="Cambiar rol" data-bs-toggle="modal" data-bs-target="#modalCambiarRol"
+                        (click)="abrirModalRol(user)"><i class="fa-solid fa-user-shield"></i></button>
+                @if (user.status === 'Activo') {
+                  <button type="button" class="btn-icono peligro" title="Desactivar" (click)="desactivarUsuario(user.idUser)"><i class="fa-solid fa-user-minus"></i></button>
+                } @else {
+                  <button type="button" class="btn-icono exito" title="Reactivar" (click)="activarUsuario(user.idUser)"><i class="fa-solid fa-user-check"></i></button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
       </tbody>
     </table>
   </div>
-</div>
+}
 
 <!-- Modal Cambiar Rol -->
 <div class="modal fade" id="modalCambiarRol" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-dark text-white border-secondary">
+    <div class="modal-content">
       
-      <div class="modal-header border-secondary" style="background-color: var(--primary-dark);">
-        <h5 class="modal-title fw-bold text-white">Cambiar Rol de Usuario</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" id="cerrarModalRol"></button>
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Cambiar rol</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" id="cerrarModalRol"></button>
       </div>
       
       <div class="modal-body p-4" *ngIf="usuarioSeleccionado">
         <p>Estás modificando los permisos de: <br>
-           <strong class="fs-5" style="color: #6f42c1;">{{ usuarioSeleccionado.firstName }} {{ usuarioSeleccionado.lastName }}</strong>
+           <strong class="fs-5">{{ usuarioSeleccionado.firstName }} {{ usuarioSeleccionado.lastName }}</strong>
         </p>
 
-        <div class="alert alert-danger py-2" *ngIf="errorServidorRol">
+        <div class="aviso-error" *ngIf="errorServidorRol">
           <i class="fa-solid fa-circle-exclamation me-2"></i>{{ errorServidorRol }}
         </div>
 
@@ -111,7 +92,7 @@
           <div class="mt-4">
             <label class="form-label fw-bold">Selecciona el nuevo Rol <span class="text-danger">*</span></label>
             <!-- Roles cargados dinámicamente desde la BD -->
-            <select class="form-select bg-dark text-white shadow-sm border-secondary"
+            <select class="form-select"
                     formControlName="idRole"
                     [class.is-invalid]="campoRolInvalido('idRole')">
               <option *ngFor="let rol of listaRoles" [ngValue]="rol.idRole">
@@ -125,7 +106,7 @@
 
           <div class="mt-3" *ngIf="mostrarSedeUpdate">
             <label class="form-label fw-bold">Asignar Nueva Sede <span class="text-danger">*</span></label>
-            <select class="form-select bg-dark text-white shadow-sm border-secondary"
+            <select class="form-select"
                     formControlName="idVenue"
                     [class.is-invalid]="campoRolInvalido('idVenue')">
               <option [ngValue]="0">Seleccione sede...</option>
@@ -136,18 +117,18 @@
             <div class="invalid-feedback" *ngIf="campoRolInvalido('idVenue')">
               Este rol requiere una sede asignada.
             </div>
-            <div class="form-text text-secondary">
+            <div class="form-text text-muted">
               Un Gerente debe tener una sede asignada obligatoriamente.
             </div>
           </div>
         </form>
       </div>
       
-      <div class="modal-footer border-secondary">
-        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-success fw-bold text-white" (click)="guardarNuevoRol()" [disabled]="guardandoRol">
+      <div class="modal-footer">
+        <button type="button" class="btn-cine-secundario" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn-cine" (click)="guardarNuevoRol()" [disabled]="guardandoRol">
           <span *ngIf="guardandoRol" class="spinner-border spinner-border-sm me-2" role="status"></span>
-          {{ guardandoRol ? 'Guardando...' : 'Guardar Cambios' }}
+          {{ guardandoRol ? 'Guardando…' : 'Guardar' }}
         </button>
       </div>
     </div>
@@ -155,16 +136,16 @@
 </div>
 
 <!-- Modal Nuevo Colaborador -->
-<div class="modal fade text-dark" id="modalNuevoUsuario" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalNuevoUsuario" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg"> 
-    <div class="modal-content bg-dark text-white border-secondary">
-      <div class="modal-header" style="background-color: var(--primary-dark); color: white;">
-        <h5 class="modal-title fw-bold">Registrar Nuevo Colaborador</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" id="cerrarModalNuevoUser"></button>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Nuevo colaborador</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" id="cerrarModalNuevoUser"></button>
       </div>
       <div class="modal-body p-4">
 
-        <div class="alert alert-danger py-2" *ngIf="errorServidor">
+        <div class="aviso-error" *ngIf="errorServidor">
           <i class="fa-solid fa-circle-exclamation me-2"></i>{{ errorServidor }}
         </div>
 
@@ -172,7 +153,7 @@
 
           <div class="col-md-6">
             <label class="form-label fw-bold">Nombre <span class="text-danger">*</span></label>
-            <input type="text" class="form-control bg-dark text-white border-secondary"
+            <input type="text" class="form-control"
                    formControlName="firstName"
                    [class.is-invalid]="campoInvalido('firstName')">
             <div class="invalid-feedback" *ngIf="campoInvalido('firstName')">
@@ -183,7 +164,7 @@
 
           <div class="col-md-6">
             <label class="form-label fw-bold">Apellidos <span class="text-danger">*</span></label>
-            <input type="text" class="form-control bg-dark text-white border-secondary"
+            <input type="text" class="form-control"
                    formControlName="lastName"
                    [class.is-invalid]="campoInvalido('lastName')">
             <div class="invalid-feedback" *ngIf="campoInvalido('lastName')">
@@ -194,7 +175,7 @@
 
           <div class="col-md-6">
             <label class="form-label fw-bold">Tipo Doc. <span class="text-danger">*</span></label>
-            <select class="form-select bg-dark text-white border-secondary"
+            <select class="form-select"
                     formControlName="idDocumentType">
               <option [ngValue]="1">DNI</option>
               <option [ngValue]="2">Carné de Extranjería</option>
@@ -202,7 +183,7 @@
           </div>
           <div class="col-md-6">
             <label class="form-label fw-bold">Nro. Documento <span class="text-danger">*</span></label>
-            <input type="text" class="form-control bg-dark text-white border-secondary"
+            <input type="text" class="form-control"
                    formControlName="documentNumber"
                    [class.is-invalid]="campoInvalido('documentNumber')">
             <div class="invalid-feedback" *ngIf="campoInvalido('documentNumber')">
@@ -213,7 +194,7 @@
 
           <div class="col-md-6">
             <label class="form-label fw-bold">Correo Corporativo <span class="text-danger">*</span></label>
-            <input type="email" class="form-control bg-dark text-white border-secondary"
+            <input type="email" class="form-control"
                    formControlName="email"
                    [class.is-invalid]="campoInvalido('email')">
             <div class="invalid-feedback" *ngIf="campoInvalido('email')">
@@ -223,7 +204,7 @@
           </div>
           <div class="col-md-6">
             <label class="form-label fw-bold">Contraseña Temporal <span class="text-danger">*</span></label>
-            <input type="password" class="form-control bg-dark text-white border-secondary"
+            <input type="password" class="form-control"
                    formControlName="password"
                    [class.is-invalid]="campoInvalido('password')"
                    autocomplete="new-password">
@@ -236,7 +217,7 @@
           <div class="col-md-6">
             <label class="form-label">Rol del Colaborador <span class="text-danger">*</span></label>
             <!-- Roles cargados dinámicamente desde la BD -->
-            <select class="form-select bg-dark text-white border-secondary"
+            <select class="form-select"
                     formControlName="idRole"
                     [class.is-invalid]="campoInvalido('idRole')">
               <option [ngValue]="0" disabled>Seleccione un rol...</option>
@@ -253,7 +234,7 @@
             <label class="form-label">
               Asignar Sede <span class="text-danger">*</span>
             </label>
-            <select class="form-select bg-dark text-white border-secondary"
+            <select class="form-select"
                     formControlName="idVenue"
                     [class.is-invalid]="campoInvalido('idVenue')">
               <option [ngValue]="0">Seleccione sede...</option>
@@ -264,19 +245,19 @@
             <div class="invalid-feedback" *ngIf="campoInvalido('idVenue')">
               Este rol requiere una sede asignada.
             </div>
-            <div class="form-text text-secondary">
+            <div class="form-text text-muted">
               Solo se muestran sedes disponibles para este rol.
             </div>
           </div>
 
-          <p class="text-secondary small mb-0 mt-2"><span class="text-danger">*</span> Campos obligatorios</p>
+          <p class="text-muted small mb-0 mt-2"><span class="text-danger">*</span> Campos obligatorios</p>
         </form>
       </div>
-      <div class="modal-footer border-secondary">
-        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-success fw-bold" (click)="guardarNuevoUsuario()" [disabled]="creandoUsuario">
+      <div class="modal-footer">
+        <button type="button" class="btn-cine-secundario" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn-cine" (click)="guardarNuevoUsuario()" [disabled]="creandoUsuario">
           <span *ngIf="creandoUsuario" class="spinner-border spinner-border-sm me-2" role="status"></span>
-          {{ creandoUsuario ? 'Creando...' : 'Crear Colaborador' }}
+          {{ creandoUsuario ? 'Creando…' : 'Crear colaborador' }}
         </button>
       </div>
     </div>

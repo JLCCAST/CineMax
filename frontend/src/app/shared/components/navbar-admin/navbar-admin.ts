@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
@@ -7,7 +6,7 @@ import { AuthService } from '../../../services/auth.service';
 @Component({
   selector: 'app-navbar-admin',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink],
   templateUrl: './navbar-admin.html',
   styleUrl: './navbar-admin.css'
 })
@@ -16,6 +15,11 @@ export class NavbarAdmin implements OnInit {
   rolActual: string = '';
   nombreUsuario: string = '';
   dropdownAbierto: boolean = false;
+  abrirMenu = output<void>();
+
+  get inicial(): string {
+    return this.nombreUsuario.charAt(0).toUpperCase() || 'U';
+  }
 
   constructor(
     private authService: AuthService,

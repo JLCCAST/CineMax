@@ -1,11 +1,11 @@
-<div class="admin-wrapper">
-  <app-sidebar class="sidebar-container"></app-sidebar>
+<div class="admin" [class.menu-abierto]="menuAbierto()">
+  <app-sidebar class="lateral" (navego)="menuAbierto.set(false)" />
+  <div class="velo" (click)="menuAbierto.set(false)"></div>
 
-  <div class="main-content">
-    <app-navbar-admin></app-navbar-admin>
-
-    <main class="content-area">
-      <router-outlet></router-outlet>
+  <div class="principal">
+    <app-navbar-admin (abrirMenu)="menuAbierto.set(true)" />
+    <main class="contenido">
+      <router-outlet />
     </main>
   </div>
 </div>
