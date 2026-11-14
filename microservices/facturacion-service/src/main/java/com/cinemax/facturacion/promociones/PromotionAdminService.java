@@ -1,6 +1,7 @@
 package com.cinemax.facturacion.promociones;
 
 import com.cinemax.facturacion.dto.request.PromotionAdminDTO;
+import com.cinemax.facturacion.dto.response.PromocionPublicaDTO;
 import com.cinemax.facturacion.model.entity.Promotion;
 import com.cinemax.facturacion.model.entity.PromotionType;
 import com.cinemax.facturacion.repository.PromotionRepository;
@@ -12,7 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 // Gestión de promociones desde el admin. No se borran: las ventas las referencian.
@@ -22,6 +26,17 @@ public class PromotionAdminService {
 
     private final PromotionRepository promotionRepository;
     private final PromotionTypeRepository promotionTypeRepository;
+    private final Clock reloj;
+
+    // Las que hoy se pueden aplicar, para la portada.
+    public List<PromocionPublicaDTO> vigentes() {
+        LocalDate hoy = LocalDate.now(reloj);
+        return promotionRepository.findByStatus("Activo").stream()
+                .filter(p -> !hoy.isBefore(p.getStartDate()) && !hoy.isAfter(p.getEndDate()))
+                .sorted(Comparator.comparing(Promotion::getIdPromotion))
+                .map(PromocionPublicaDTO::from)
+                .toList();
+    }
 
     public List<PromotionAdminDTO> listar() {
         return promotionRepository.findAllByOrderByIdPromotionAsc().stream().map(PromotionAdminDTO::from).toList();
@@ -97,6 +112,8 @@ public class PromotionAdminService {
         p.setMaxUsesPerUser(dto.getMaxUsesPerUser());
         p.setAppliesTo(dto.getAppliesTo() != null ? dto.getAppliesTo() : "TODO");
         p.setPriority(dto.getPriority() != null ? dto.getPriority() : 0);
+        p.setDescription(dto.getDescription() == null || dto.getDescription().isBlank() ? null : dto.getDescription().trim());
+        p.setImageUrlPromotion(dto.getImageUrlPromotion() == null || dto.getImageUrlPromotion().isBlank() ? null : dto.getImageUrlPromotion().trim());
     }
 
     private void validar(PromotionAdminDTO dto, PromotionType tipo, String codigo, Integer id) {

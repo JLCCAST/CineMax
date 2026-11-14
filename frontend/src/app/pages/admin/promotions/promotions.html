@@ -38,6 +38,16 @@
           <option value="TODO">Todo</option>
         </select>
       </div>
+      <div class="col-md-8">
+        <label class="form-label small fw-bold">Descripción para la portada</label>
+        <textarea class="form-control bg-dark text-white border-secondary" rows="2" maxlength="300"
+                  [(ngModel)]="form.description" placeholder="Ej.: Todos los miércoles, 50 % en tus entradas."></textarea>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-bold">Imagen (ruta o URL)</label>
+        <input class="form-control bg-dark text-white border-secondary" maxlength="250"
+               [(ngModel)]="form.imageUrlPromotion" placeholder="Imagenes/Promos/mi-promo.jpg">
+      </div>
 
       <div class="col-md-3" *ngIf="form.promotionType === 'PORCENTAJE'">
         <label class="form-label small fw-bold">Porcentaje (%)</label>

@@ -1,18 +1,17 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { ConfiteriaService } from '../../services/confiteria.service';
 import { environment } from '../../environments/environment';
 import { AuthService } from '../../services/auth.service';
-import { BookingService, SnackEntry } from '../../services/booking';
+import { BookingResumen, BookingService, SnackEntry } from '../../services/booking';
 import { Offcanvas } from 'bootstrap';
+import { TarjetaSnack } from '../../shared/components/tarjeta-snack/tarjeta-snack';
+import { BookingSummaryComponent } from '../checkout/shared/booking-summary/booking-summary';
 
 @Component({
   selector: 'app-confiteria',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [TarjetaSnack, BookingSummaryComponent],
   templateUrl: './confiteria.html',
   styleUrl: './confiteria.css'
 })
@@ -32,7 +31,6 @@ export class Confiteria implements OnInit {
   error = false;
 
   constructor(
-    private snackService: ConfiteriaService,
     private cdr: ChangeDetectorRef,
     private http: HttpClient,
     private authService: AuthService,
@@ -55,7 +53,12 @@ export class Confiteria implements OnInit {
       next: (res) => {
         this.sedes = res;
         this.cargandoSedes = false;
-        this.cdr.detectChanges();
+        // Abre el cine del pedido en curso (si vuelve del pago) o el elegido en la cabecera.
+        const pedido = this.pedidoEnCurso();
+        const guardado = pedido?.idVenue ?? Number(localStorage.getItem('cinemax_cine'));
+        const sede = res.find(s => s.idVenue === guardado);
+        if (sede) this.seleccionarSede(sede);
+        else this.cdr.detectChanges();
       },
       error: () => {
         this.cargandoSedes = false;
@@ -67,7 +70,15 @@ export class Confiteria implements OnInit {
 
   // --- Selección y cambio de sede ---
 
+  elegirSede(valor: string): void {
+    const sede = this.sedes.find(s => s.idVenue === Number(valor));
+    if (sede) this.seleccionarSede(sede);
+    else this.cambiarSede();
+  }
+
+  // El stock es de cada cine: al cambiar de cine se vacía el pedido.
   seleccionarSede(sede: any): void {
+    if (this.sedeSeleccionada?.idVenue !== sede.idVenue) this.carrito = [];
     this.sedeSeleccionada = sede;
     this.cargando = true;
     this.error = false;
@@ -119,6 +130,7 @@ export class Confiteria implements OnInit {
     this.http.get<any[]>(`${environment.apiUrl}/snacks/venue/${this.sedeSeleccionada.idVenue}`).subscribe({
       next: (res: any[]) => {
         this.snacks = res.filter((s: any) => s.status === 'Activo'); // solo snacks activos
+        this.recuperarPedido();
         snacksOk = true;
         verificarFin();
       },
@@ -128,6 +140,20 @@ export class Confiteria implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  private pedidoEnCurso(): BookingResumen | null {
+    const r = this.bookingService.obtenerResumen();
+    return !r.idShowtime && r.idVenue && r.snacks?.length ? r : null;
+  }
+
+  private recuperarPedido(): void {
+    const pedido = this.pedidoEnCurso();
+    if (!pedido || pedido.idVenue !== this.sedeSeleccionada?.idVenue || this.carrito.length) return;
+    for (const linea of pedido.snacks) {
+      const snack = this.snacks.find(s => s.idSnack === linea.idSnack);
+      if (snack?.stock > 0) this.carrito.push({ snack, cantidad: Math.min(linea.cantidad, snack.stock) });
+    }
   }
 
   // --- Filtrado por categoría activa ---
@@ -163,14 +189,28 @@ export class Confiteria implements OnInit {
     return this.carrito.find(c => c.snack.idSnack === snack.idSnack)?.cantidad ?? 0;
   }
 
-  // --- Totales del carrito ---
+  // --- Resumen lateral ---
 
-  get totalCarrito(): number {
-    return this.carrito.reduce((acc, c) => acc + c.snack.price * c.cantidad, 0);
+  private lineasPedido(): SnackEntry[] {
+    return this.carrito.map(item => ({
+      idSnack:  item.snack.idSnack,
+      nombre:   item.snack.nameSnack,
+      precio:   item.snack.price,
+      cantidad: item.cantidad,
+      subtotal: item.snack.price * item.cantidad,
+      imagen:   item.snack.imageUrlSnack
+    }));
   }
 
-  get totalItems(): number {
-    return this.carrito.reduce((acc, c) => acc + c.cantidad, 0);
+  get resumen(): BookingResumen {
+    const snacks = this.lineasPedido();
+    const total = snacks.reduce((t, s) => t + s.subtotal, 0);
+    return {
+      idShowtime: null, pelicula: { nombre: '', formato: '', poster: '' },
+      cine: this.sedeSeleccionada?.nameVenue ?? '', sala: '', idVenue: this.sedeSeleccionada?.idVenue ?? null,
+      fechaHora: '', asientos: [], asientosIds: [], tickets: [], totalTickets: 0,
+      snacks, totalSnacks: total, totalPagar: total
+    };
   }
 
   // --- Flujo de compra ---
@@ -186,20 +226,10 @@ export class Confiteria implements OnInit {
       return;
     }
 
-    // Mapea el carrito al formato que espera BookingService
-    const snackEntries: SnackEntry[] = this.carrito.map(item => ({
-      idSnack:  item.snack.idSnack,
-      nombre:   item.snack.nameSnack,
-      precio:   item.snack.price,
-      cantidad: item.cantidad,
-      subtotal: item.snack.price * item.cantidad,
-      imagen:   item.snack.imageUrlSnack
-    }));
-
     // Limpia cualquier reserva previa y guarda solo los snacks, luego va al pago
     this.bookingService.limpiar();
     this.bookingService.guardarSede(this.sedeSeleccionada.idVenue, this.sedeSeleccionada.nameVenue);
-    this.bookingService.guardarSnacks(snackEntries);
+    this.bookingService.guardarSnacks(this.lineasPedido());
     this.router.navigate(['/payment']);
   }
 }

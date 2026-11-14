@@ -1,13 +1,15 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { BookingService } from '../../../services/booking';
+import { BookingResumen, BookingService } from '../../../services/booking';
 import { AuthService } from '../../../services/auth.service';
 import { SaleTransactionService, SaleTransactionRequestDTO, SaleTransactionResponseDTO } from '../../../services/sale-transaction.service';
 import { environment } from '../../../environments/environment';
 import { toDataURL } from 'qrcode';
+import { BookingSummaryComponent } from '../shared/booking-summary/booking-summary';
+import { CheckoutStepperComponent } from '../shared/checkout-stepper/checkout-stepper';
 
 type MetodoPago = 'tarjeta' | 'yape';
 
@@ -21,13 +23,13 @@ interface CardForm {
 @Component({
   selector: 'app-payment',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [DecimalPipe, FormsModule, BookingSummaryComponent, CheckoutStepperComponent],
   templateUrl: './payment.html',
   styleUrl: './payment.css'
 })
 export class Payment implements OnInit {
 
-  resumen: any;
+  resumen!: BookingResumen;
   metodoPago: MetodoPago = 'tarjeta';
 
   card: CardForm = { titular: '', numero: '', vencimiento: '', cvv: '' };
@@ -49,7 +51,7 @@ export class Payment implements OnInit {
   // Resultado exitoso — guardamos la respuesta del backend
   pagoExitoso       = false;
   transaccionRespuesta: SaleTransactionResponseDTO | null = null;
-  resumenSnapshot: any = null;
+  resumenSnapshot: BookingResumen | null = null;
 
   // Número de tarjeta formateado para la vista previa
   numeroMostrado = '';
@@ -65,14 +67,14 @@ export class Payment implements OnInit {
     private cdr: ChangeDetectorRef
   ) {}
 
-ngOnInit(): void {
-  this.resumen = this.bookingService.obtenerResumen();
-  if (!this.resumen.tickets?.length && !this.resumen.snacks?.length) {
-    this.router.navigate(['/seats']);
-    return;
+  ngOnInit(): void {
+    this.resumen = this.bookingService.obtenerResumen();
+    if (!this.resumen.tickets?.length && !this.resumen.snacks?.length) {
+      this.router.navigate(['/seats']);
+      return;
+    }
+    this.cotizar(null);
   }
-  this.cotizar(null);
-}
 
   // ── Método de pago ────────────────────────────────────────────────────────
   seleccionarMetodo(m: MetodoPago): void {
@@ -291,6 +293,24 @@ ngOnInit(): void {
     enlace.href = this.qrDataUrl;
     enlace.download = `cinemax-${this.transaccionRespuesta?.qrCodeData ?? 'ticket'}.png`;
     enlace.click();
+  }
+
+  // "2026-11-13 19:30:00" → "Viernes 13 de noviembre" y "19:30"
+  get fechaTicket(): string {
+    const fecha = this.resumenSnapshot?.fechaHora?.split(' ')[0];
+    if (!fecha) return '';
+    const dia = new Date(`${fecha}T00:00:00`);
+    if (isNaN(dia.getTime())) return fecha;
+    const texto = dia.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' }).replace(',', '');
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
+  }
+
+  get horaTicket(): string {
+    return this.resumenSnapshot?.fechaHora?.split(' ')[1]?.slice(0, 5) ?? '';
+  }
+
+  regresar(): void {
+    this.router.navigate([this.resumen.idShowtime ? '/snacks' : '/confiteria']);
   }
 
   volverAlInicio(): void {

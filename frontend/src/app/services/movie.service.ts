@@ -41,6 +41,11 @@ export class MovieService {
     return this.http.get<Movie[]>(`${this.apiUrl}/status/Cartelera`);
   }
 
+  // Todas, en cualquier estado (cartelera, estreno, preventa).
+  getAllMovies(): Observable<Movie[]> {
+    return this.http.get<Movie[]>(this.apiUrl);
+  }
+
   getMovieById(id: string): Observable<Movie> {
     return this.http.get<Movie>(`${this.apiUrl}/${id}`);
   }

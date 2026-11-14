@@ -1,200 +1,52 @@
-<div class="container mt-4 mb-5" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+<div class="pagina-clara">
+  <div class="container">
+    <app-checkout-stepper pasoActual="tickets" />
+    <h1 class="checkout-titulo">Elige tus entradas</h1>
 
-  <!-- ── STEPPER ──────────────────────────────────────────────────────────── -->
-  <div class="progress-wrapper mb-5 mx-auto shadow-sm">
-    <div class="d-flex justify-content-between align-items-center position-relative w-100 px-4">
-      <div class="progress-line position-absolute" style="z-index: 1;"></div>
-      <div class="progress-step completed position-relative" style="z-index: 2;" title="Asientos">
-        <i class="fa-solid fa-couch"></i>
-      </div>
-      <div class="progress-step active position-relative" style="z-index: 2;" title="Tickets">
-        <i class="fa-solid fa-ticket"></i>
-      </div>
-      <div class="progress-step position-relative" style="z-index: 2;" title="Snacks">
-        <i class="fa-solid fa-burger"></i>
-      </div>
-      <div class="progress-step position-relative" style="z-index: 2;" title="Pago">
-        <i class="fa-regular fa-credit-card"></i>
-      </div>
-    </div>
-  </div>
+    @if (error) { <div class="aviso-error">{{ error }}</div> }
 
-  <h3 class="text-center fw-bold mb-5 text-white" style="letter-spacing: 1px;">SELECCIONA TUS ENTRADAS</h3>
-
-  <!-- ── ERROR ────────────────────────────────────────────────────────────── -->
-  <div *ngIf="error" class="alert alert-danger text-center rounded-3">{{ error }}</div>
-
-  <!-- ── SPINNER ──────────────────────────────────────────────────────────── -->
-  <div *ngIf="cargando && !error" class="text-center py-5">
-    <div class="spinner-border" style="color: #8a2be2;" role="status"></div>
-    <p class="text-secondary mt-3 small">Cargando tarifas...</p>
-  </div>
-
-  <!-- ── CONTENIDO ────────────────────────────────────────────────────────── -->
-  <div *ngIf="!cargando && !error" class="row g-5">
-
-    <!-- ── LISTA DE TARIFAS ──────────────────────────────────────────────── -->
-    <div class="col-lg-8">
-
-      <div class="tickets-container p-4 rounded-4 mb-4">
-
-        <div *ngFor="let fila of filas; let last = last"
-             class="ticket-row d-flex justify-content-between align-items-center py-4"
-             [class.border-bottom]="!last"
-             [class.border-secondary]="!last">
-
-          <!-- Info categoría -->
-          <div>
-            <div class="d-flex align-items-center gap-2 mb-1">
-              <h5 class="fw-bold text-white mb-0">{{ fila.categoryName | uppercase }}</h5>
-              <!-- Badge especial para asientos WHEELCHAIR -->
-              <span *ngIf="fila.categoryCode === 'DISCAPACITADO'"
-                    class="badge-wheelchair d-flex align-items-center gap-1">
-                <i class="fa-solid fa-wheelchair" style="font-size: 0.75rem;"></i>
-                Incluye asientos PMR
-              </span>
-              <span *ngIf="fila.categoryCode === 'ADULTO_MAYOR'"
-                    class="badge-senior">
-                <i class="fa-solid fa-person-cane" style="font-size: 0.75rem;"></i>
-              </span>
-            </div>
-            <p class="text-secondary mb-0 small">{{ fila.descripcion }}</p>
+    @if (cargando && !error) {
+      <p class="cargando">Cargando las tarifas…</p>
+    } @else if (!error) {
+      <div class="checkout-grid">
+        <section>
+          <div class="panel tarifas">
+            @for (fila of filas; track fila.categoryCode) {
+              <div class="tarifa">
+                <div class="tarifa-info">
+                  <h3>
+                    {{ fila.categoryName }}
+                    @if (fila.categoryCode === 'DISCAPACITADO') { <i class="fa-solid fa-wheelchair" title="Incluye butacas para silla de ruedas"></i> }
+                  </h3>
+                  <p>{{ fila.descripcion }}</p>
+                </div>
+                <span class="precio">S/ {{ fila.precioUnitario | number:'1.2-2' }}</span>
+                <div class="cantidad">
+                  <button type="button" (click)="cambiarCantidad(fila, -1)" [disabled]="fila.cantidad === 0"
+                          [attr.aria-label]="'Quitar entrada ' + fila.categoryName"><i class="fa-solid fa-minus"></i></button>
+                  <span>{{ fila.cantidad }}</span>
+                  <button type="button" (click)="cambiarCantidad(fila, 1)" [disabled]="totalElegidos >= cantidadAsientos"
+                          [attr.aria-label]="'Agregar entrada ' + fila.categoryName"><i class="fa-solid fa-plus"></i></button>
+                </div>
+              </div>
+            }
           </div>
 
-          <!-- Precio + control +/- -->
-          <div class="d-flex align-items-center gap-4">
-            <div class="text-end">
-              <span class="fs-5 fw-bold text-light">S/ {{ fila.precioUnitario | number:'1.2-2' }}</span>
-              <p *ngIf="fila.cantidad > 0" class="mb-0 small subtotal-text">
-                = S/ {{ (fila.cantidad * fila.precioUnitario) | number:'1.2-2' }}
-              </p>
-            </div>
-
-            <div class="qty-control d-flex align-items-center gap-3">
-              <button class="btn-qty"
-                      (click)="cambiarCantidad(fila, -1)"
-                      [disabled]="fila.cantidad === 0">
-                <i class="fa-solid fa-minus"></i>
-              </button>
-              <span class="fs-5 fw-bold text-white text-center qty-display">{{ fila.cantidad }}</span>
-              <button class="btn-qty"
-                      (click)="cambiarCantidad(fila, 1)"
-                      [disabled]="totalElegidos >= cantidadAsientos">
-                <i class="fa-solid fa-plus"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Aviso de progreso -->
-      <div class="alert-info-bar d-flex align-items-center gap-3 rounded-3 p-3"
-           [class.alert-warn]="faltanEntradas > 0 && totalElegidos > 0"
-           [class.alert-ok]="faltanEntradas === 0">
-        <i class="fa-solid fs-5"
-           [class.fa-circle-info]="faltanEntradas > 0"
-           [class.fa-circle-check]="faltanEntradas === 0"
-           style="min-width: 20px;"></i>
-        <div class="text-light">
-          <ng-container *ngIf="faltanEntradas > 0">
-            Tienes <strong>{{ cantidadAsientos }} asiento{{ cantidadAsientos !== 1 ? 's' : '' }}</strong> seleccionado{{ cantidadAsientos !== 1 ? 's' : '' }}.
-            Aún te {{ faltanEntradas === 1 ? 'falta' : 'faltan' }}
-            <strong>{{ faltanEntradas }} entrada{{ faltanEntradas !== 1 ? 's' : '' }}</strong> por asignar.
-          </ng-container>
-          <ng-container *ngIf="faltanEntradas === 0">
-            ¡Listo! Has asignado los <strong>{{ cantidadAsientos }}</strong> ticket{{ cantidadAsientos !== 1 ? 's' : '' }} correctamente.
-          </ng-container>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ── RESUMEN LATERAL ───────────────────────────────────────────────── -->
-    <div class="col-lg-4">
-      <div class="p-4 rounded-4 summary-card shadow">
-        <h4 class="fw-bold mb-4 text-white">RESUMEN</h4>
-
-        <!-- Película -->
-        <h6 class="text-uppercase fw-bold summary-label mb-2">Película</h6>
-        <div class="d-flex gap-3 mb-4 align-items-center">
-          <img [src]="resumen.pelicula?.poster || 'Imagenes/poster-generico.svg'" alt="Póster" width="65" class="rounded-3 shadow">
-          <div>
-            <p class="mb-1 fw-bold text-white lh-sm fs-5">{{ resumen.pelicula?.nombre }}</p>
-            <span class="badge py-1 px-2 pastel-badge">{{ resumen.pelicula?.formato }}</span>
-          </div>
-        </div>
-
-        <hr class="border-secondary mb-4 opacity-50">
-
-        <!-- Cine / Fecha -->
-        <h6 class="text-uppercase fw-bold summary-label mb-2">Cine, Día y Función</h6>
-        <div class="d-flex align-items-center gap-3 mb-4">
-          <div class="icon-box"><i class="fa-regular fa-calendar text-white fs-5"></i></div>
-          <div>
-            <p class="mb-1 fw-bold text-white fs-6">{{ resumen.cine }}</p>
-            <p class="mb-0 text-light small">{{ resumen.fechaHora }}</p>
-          </div>
-        </div>
-
-        <hr class="border-secondary mb-4 opacity-50">
-
-        <!-- Asientos -->
-        <h6 class="text-uppercase fw-bold summary-label mb-2">Asientos</h6>
-        <div class="d-flex align-items-center gap-3 mb-4">
-          <div class="icon-box"><i class="fa-solid fa-couch text-white fs-5"></i></div>
-          <p class="mb-0 fw-bold text-white">
-            {{ resumen.asientos?.length ? resumen.asientos.join(', ') : 'Ninguno' }}
+          <p class="progreso" [class.listo]="faltanEntradas === 0">
+            @if (faltanEntradas > 0) {
+              Elegiste {{ cantidadAsientos }} butaca{{ cantidadAsientos !== 1 ? 's' : '' }}:
+              te {{ faltanEntradas === 1 ? 'falta' : 'faltan' }} {{ faltanEntradas }} entrada{{ faltanEntradas !== 1 ? 's' : '' }} por asignar.
+            } @else {
+              <i class="fa-solid fa-circle-check"></i> Listo: una entrada por cada butaca.
+            }
           </p>
-        </div>
+        </section>
 
-        <hr class="border-secondary mb-4 opacity-50">
-
-        <!-- Entradas elegidas (dinámico) -->
-        <h6 class="text-uppercase fw-bold summary-label mb-2">Entradas</h6>
-        <div class="mb-3">
-          <ng-container *ngFor="let fila of filas">
-            <div *ngIf="fila.cantidad > 0"
-                 class="d-flex justify-content-between text-light small mb-1">
-              <span>{{ fila.categoryName }} × {{ fila.cantidad }}</span>
-              <span>S/ {{ (fila.cantidad * fila.precioUnitario) | number:'1.2-2' }}</span>
-            </div>
-          </ng-container>
-          <div *ngIf="totalElegidos === 0" class="text-secondary small">Ninguna elegida aún</div>
-        </div>
-
-        <!-- Total -->
-        <div class="bg-dark bg-opacity-50 p-3 rounded-3 mb-4 border border-secondary border-opacity-50">
-          <div class="d-flex justify-content-between mb-2">
-            <span class="text-light">Entradas ({{ totalElegidos }})</span>
-            <span class="fw-bold text-white">S/ {{ totalPagar | number:'1.2-2' }}</span>
-          </div>
-          <div class="d-flex justify-content-between border-top border-secondary pt-2 mt-2">
-            <span class="fw-bold text-white">TOTAL A PAGAR</span>
-            <span class="fw-bold text-warning fs-5">S/ {{ totalPagar | number:'1.2-2' }}</span>
-          </div>
-        </div>
-
-        <!-- Botón continuar -->
-        <button class="btn w-100 py-3 rounded-pill fw-bold mb-3 d-flex justify-content-center align-items-center gap-2 btn-continue fs-5"
-                (click)="irSiguientePaso()"
-                [disabled]="faltanEntradas > 0">
-          CONTINUAR A DULCERÍA <i class="fa-solid fa-arrow-right"></i>
-        </button>
-
-        <!-- Aviso inline si faltan entradas -->
-        <div *ngIf="faltanEntradas > 0 && totalElegidos > 0"
-             class="text-center text-warning small mb-2">
-          <i class="fa-solid fa-triangle-exclamation me-1"></i>
-          Asigna {{ faltanEntradas }} entrada{{ faltanEntradas !== 1 ? 's' : '' }} más para continuar
-        </div>
-
-        <button class="btn w-100 py-2 rounded-pill fw-bold d-flex justify-content-center align-items-center gap-2 btn-cancel"
-                (click)="regresar()">
-          REGRESAR <i class="fa-solid fa-arrow-left"></i>
-        </button>
+        <app-booking-summary [resumen]="resumenEnVivo">
+          <button type="button" class="btn-cine" (click)="irSiguientePaso()" [disabled]="faltanEntradas > 0">Continuar</button>
+          <button type="button" class="btn-cine-secundario" (click)="regresar()">Volver a las butacas</button>
+        </app-booking-summary>
       </div>
-    </div>
-
+    }
   </div>
 </div>

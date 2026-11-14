@@ -1,8 +1,10 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
-import { BookingService, TicketEntry } from '../../../services/booking';
+import { DecimalPipe } from '@angular/common';
+import { Router } from '@angular/router';
+import { BookingResumen, BookingService, TicketEntry } from '../../../services/booking';
 import { ShowtimeService } from '../../../services/showtime.service';
+import { BookingSummaryComponent } from '../shared/booking-summary/booking-summary';
+import { CheckoutStepperComponent } from '../shared/checkout-stepper/checkout-stepper';
 
 interface FareRow {
   categoryCode: string;
@@ -15,13 +17,13 @@ interface FareRow {
 @Component({
   selector: 'app-tickets',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [DecimalPipe, BookingSummaryComponent, CheckoutStepperComponent],
   templateUrl: './tickets.html',
   styleUrl: './tickets.css'
 })
 export class Tickets implements OnInit {
 
-  resumen: any;
+  resumen!: BookingResumen;
   cantidadAsientos = 0;
 
   filas: FareRow[] = [];
@@ -100,6 +102,22 @@ export class Tickets implements OnInit {
     return this.cantidadAsientos - this.totalElegidos;
   }
 
+  get resumenEnVivo(): BookingResumen {
+    return { ...this.resumen, tickets: this.ticketsElegidos() };
+  }
+
+  private ticketsElegidos(): TicketEntry[] {
+    return this.filas
+      .filter(f => f.cantidad > 0)
+      .map(f => ({
+        categoryCode:   f.categoryCode,
+        categoryName:   f.categoryName,
+        cantidad:       f.cantidad,
+        precioUnitario: f.precioUnitario,
+        subtotal:       f.cantidad * f.precioUnitario
+      }));
+  }
+
   cambiarCantidad(fila: FareRow, delta: number): void {
     const nueva = fila.cantidad + delta;
     if (nueva < 0) return;
@@ -110,17 +128,7 @@ export class Tickets implements OnInit {
   irSiguientePaso(): void {
     if (this.totalElegidos < this.cantidadAsientos) return;
 
-    const tickets: TicketEntry[] = this.filas
-      .filter(f => f.cantidad > 0)
-      .map(f => ({
-        categoryCode:   f.categoryCode,
-        categoryName:   f.categoryName,
-        cantidad:       f.cantidad,
-        precioUnitario: f.precioUnitario,
-        subtotal:       f.cantidad * f.precioUnitario
-      }));
-
-    this.bookingService.guardarTickets(tickets);
+    this.bookingService.guardarTickets(this.ticketsElegidos());
     this.router.navigate(['/snacks']);
   }
 

@@ -1,114 +1,130 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; 
-import { RouterModule, Router } from '@angular/router';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, computed, signal, viewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { VenueService } from '../../services/venue.service';
 import * as L from 'leaflet';
+
+interface Sede {
+  idVenue: number;
+  nameVenue: string;
+  addressVenue: string;
+  districtName: string;
+  departmentName: string;
+  phoneNumber: string | null;
+  latitude: number | null;
+  longitude: number | null;
+}
 
 @Component({
   selector: 'app-sedes',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './sedes.html',
   styleUrl: './sedes.css'
 })
-export class Sedes implements OnInit {
+export class Sedes implements OnInit, AfterViewInit, OnDestroy {
 
-  // --- Estado de datos ---
-  sedes: any[] = [];
-  sedesMostradas: any[] = [];
-  departamentos: string[] = [];
+  private readonly contenedorMapa = viewChild.required<ElementRef<HTMLElement>>('mapa');
 
-  // --- Estado de filtros ---
-  departamentoSeleccionado: string = '';
-  textoBusqueda: string = '';
+  readonly sedes = signal<Sede[]>([]);
+  readonly cargando = signal(true);
+  readonly error = signal(false);
+  readonly departamento = signal('');
+  readonly busqueda = signal('');
+  readonly elegida = signal<number | null>(null);
 
-  // --- Estado del modal de mapa ---
-  sedeDetalle: any = null;
-  map: L.Map | undefined;
-  marker: L.Marker | undefined;
+  readonly departamentos = computed(() =>
+    [...new Set(this.sedes().map(s => s.departmentName).filter(Boolean))]);
 
-  constructor(
-    private venueService: VenueService, 
-    private router: Router, 
-    private cdr: ChangeDetectorRef
-  ) {}
+  readonly mostradas = computed(() => {
+    const texto = this.busqueda().trim().toLowerCase();
+    return this.sedes().filter(s =>
+      (!this.departamento() || s.departmentName === this.departamento()) &&
+      (!texto || s.nameVenue.toLowerCase().includes(texto) || s.districtName?.toLowerCase().includes(texto)));
+  });
 
-  // --- Inicialización ---
+  private mapa?: L.Map;
+  private marcadores = new Map<number, L.Marker>();
+  private readonly icono = L.icon({ iconUrl: 'Imagenes/marcador-sede.svg', iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -32] });
 
-  ngOnInit() {
-    this.venueService.getPublicVenues().subscribe(data => {
-      this.sedes = data;
+  constructor(private venueService: VenueService, private router: Router) {}
 
-      // Extrae departamentos únicos para los tabs de filtro
-      this.departamentos = [...new Set(this.sedes.map(s => s.departmentName))].filter(d => d);
-
-      // Selecciona el primer departamento por defecto
-      if (this.departamentos.length > 0) {
-        this.departamentoSeleccionado = this.departamentos[0];
-        this.aplicarFiltros();
+  ngOnInit(): void {
+    this.venueService.getPublicVenues().subscribe({
+      next: (data: Sede[]) => {
+        this.sedes.set(data);
+        this.departamento.set(this.departamentos()[0] ?? '');
+        this.cargando.set(false);
+        this.pintarMarcadores();
+      },
+      error: () => {
+        this.cargando.set(false);
+        this.error.set(true);
       }
-
-      this.cdr.detectChanges();
     });
   }
 
-  // --- Filtros ---
-
-  seleccionarDepartamento(dep: string) {
-    this.departamentoSeleccionado = dep;
-    this.textoBusqueda = ''; // limpia el buscador al cambiar de departamento
-    this.aplicarFiltros();
+  ngAfterViewInit(): void {
+    this.mapa = L.map(this.contenedorMapa().nativeElement, { scrollWheelZoom: false }).setView([-12.0464, -77.0428], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(this.mapa);
+    this.pintarMarcadores();
   }
 
-  // Filtra sedes por departamento activo y texto del buscador (nombre o distrito)
-  aplicarFiltros() {
-    this.sedesMostradas = this.sedes.filter(s => {
-      const coincideDep = s.departmentName === this.departamentoSeleccionado;
-      const coincideTexto =
-        s.nameVenue.toLowerCase().includes(this.textoBusqueda.toLowerCase()) ||
-        s.districtName?.toLowerCase().includes(this.textoBusqueda.toLowerCase());
-      return coincideDep && coincideTexto;
-    });
+  ngOnDestroy(): void {
+    this.mapa?.remove();
   }
 
-  // --- Navegación ---
-
-  // Lleva al usuario a la cartelera filtrada por sede
-  irACartelera(sedeId: number) {
-    this.router.navigate(['/movies'], { queryParams: { sede: sedeId } });
+  elegirDepartamento(dep: string): void {
+    this.departamento.set(dep);
+    this.busqueda.set('');
+    this.elegida.set(null);
+    this.pintarMarcadores();
   }
 
-  // --- Modal de detalles con mapa ---
-
-  verDetalles(sede: any) {
-    this.sedeDetalle = sede;
-    setTimeout(() => this.initMap(sede), 300); // espera a que el DOM renderice el contenedor del mapa
+  buscar(texto: string): void {
+    this.busqueda.set(texto);
+    this.pintarMarcadores();
   }
 
-  cerrarDetalles() {
-    this.sedeDetalle = null;
+  verEnMapa(sede: Sede): void {
+    this.elegida.set(sede.idVenue);
+    const marcador = this.marcadores.get(sede.idVenue);
+    if (!marcador || !this.mapa) return;
+    this.mapa.flyTo(marcador.getLatLng(), 16, { duration: 0.6 });
+    marcador.openPopup();
   }
 
-  // Inicializa el mapa Leaflet centrado en la sede; usa Lima como fallback si no hay coordenadas
-  initMap(sede: any) {
-    if (this.map) this.map.remove();
+  irACartelera(sede: Sede): void {
+    localStorage.setItem('cinemax_cine', String(sede.idVenue));
+    this.router.navigate(['/movies'], { queryParams: { idVenue: sede.idVenue } });
+  }
 
-    const lat = sede.latitude || -12.046374;
-    const lng = sede.longitude || -77.042793;
+  comoLlegar(sede: Sede): string {
+    return `https://www.google.com/maps/dir/?api=1&destination=${sede.latitude},${sede.longitude}`;
+  }
 
-    this.map = L.map('mapa-cliente').setView([lat, lng], 16);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap'
-    }).addTo(this.map);
+  private contenidoPopup(s: Sede): HTMLElement {
+    const div = document.createElement('div');
+    const nombre = document.createElement('strong');
+    nombre.textContent = s.nameVenue;
+    div.append(nombre, document.createElement('br'), s.addressVenue ?? '');
+    return div;
+  }
 
-    const customIcon = L.icon({
-      iconUrl: 'Imagenes/marcador-sede.svg',
-      iconSize: [40, 40],
-      iconAnchor: [20, 40]
-    });
+  private pintarMarcadores(): void {
+    if (!this.mapa) return;
+    this.marcadores.forEach(m => m.remove());
+    this.marcadores.clear();
 
-    this.marker = L.marker([lat, lng], { icon: customIcon }).addTo(this.map);
-    this.map.invalidateSize();
+    const conUbicacion = this.mostradas().filter(s => s.latitude != null && s.longitude != null);
+    for (const s of conUbicacion) {
+      const marcador = L.marker([s.latitude!, s.longitude!], { icon: this.icono, title: s.nameVenue })
+        .bindPopup(this.contenidoPopup(s))
+        .on('click', () => this.elegida.set(s.idVenue))
+        .addTo(this.mapa);
+      this.marcadores.set(s.idVenue, marcador);
+    }
+    if (conUbicacion.length) {
+      const limites = L.latLngBounds(conUbicacion.map(s => [s.latitude!, s.longitude!] as L.LatLngTuple));
+      this.mapa.fitBounds(limites, { padding: [48, 48], maxZoom: 14 });
+    }
   }
 }

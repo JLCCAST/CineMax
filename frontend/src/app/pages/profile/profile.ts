@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { DecimalPipe } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
@@ -20,7 +20,7 @@ function confirmPasswordMatchValidator(group: AbstractControl): ValidationErrors
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+  imports: [DecimalPipe, ReactiveFormsModule, RouterModule],
   templateUrl: './profile.html',
   styleUrl: './profile.css'
 })
@@ -41,6 +41,7 @@ export class Profile implements OnInit {
   perfilSoloLectura = { email: '', idDocumentType: 1, documentNumber: '', imageUrl: '' };
 
   misCompras: any[] = [];
+  comprasVisibles = 10;
   cargandoCompras: boolean = false;
 
   imagenSeleccionada: File | null = null;
@@ -69,7 +70,6 @@ export class Profile implements OnInit {
     const rol = this.authService.getRole();
     const rolesAdmin = ['GERENTE_GENERAL', 'GERENTE_DE_MARKETING', 'GERENTE_DE_OPERACIONES', 'ADMIN'];
     this.esAdmin = rolesAdmin.includes(rol) || document.referrer.includes('/admin');
-    console.log('ROL detectado:', rol, '| esAdmin:', this.esAdmin);
     this.cdr.detectChanges();
 
     this.route.queryParams.subscribe(params => {
@@ -289,6 +289,13 @@ export class Profile implements OnInit {
 
   volver(): void {
     this.router.navigate(['/admin/dashboard']);
+  }
+
+  // "2026-11-18" → "mié 18 nov 2026"
+  fechaCompra(fecha: string): string {
+    const dia = new Date(`${fecha}T00:00:00`);
+    return isNaN(dia.getTime()) ? fecha
+      : dia.toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).replace(/[.,]/g, '');
   }
 
   cargarMisCompras() {

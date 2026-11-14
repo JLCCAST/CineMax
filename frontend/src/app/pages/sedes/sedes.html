@@ -1,133 +1,49 @@
-<div class="container-fluid py-5 px-lg-5 text-white" style="background-color: var(--background-color); min-height: 100vh;">
-  
-  <div class="row mb-4">
-    <div class="col-12">
-      <h1 class="fw-bold text-uppercase d-inline-block border-bottom border-3 pb-2" style="color: white; letter-spacing: 1px; border-color: var(--primary-color) !important;">NUESTROS CINES</h1>
-      <p class="text-secondary mt-2">Encuentra la sede más cercana y disfruta de la mejor experiencia.</p>
-    </div>
-  </div>
+<div class="pagina-clara">
+  <div class="container">
+    <h1 class="checkout-titulo">Nuestros cines</h1>
 
-  <div class="row">
-    <div class="col-lg-3 mb-4">
-      <div class="card bg-dark border-secondary shadow sticky-top" style="top: 100px; z-index: 10; border-radius: 12px;">
-        <div class="card-header border-bottom border-secondary bg-transparent py-3">
-          <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-location-dot me-2" style="color: var(--primary-color);"></i>Ubicación</h5>
-        </div>
-        <div class="list-group list-group-flush" style="border-radius: 0 0 12px 12px; overflow: hidden;">
-          
-          <button *ngFor="let dep of departamentos" 
-                  class="list-group-item list-group-item-action py-3 border-secondary"
-                  [ngClass]="{'bg-sede-active text-white fw-bold': departamentoSeleccionado === dep, 'bg-dark text-secondary': departamentoSeleccionado !== dep}"
-                  (click)="seleccionarDepartamento(dep)"
-                  style="cursor: pointer; transition: 0.3s;">
-            {{ dep | uppercase }}
-            <i class="fa-solid fa-chevron-right float-end mt-1" *ngIf="departamentoSeleccionado === dep"></i>
-          </button>
-
-        </div>
+    <div class="filtros">
+      <div class="pestanas" role="tablist">
+        @for (dep of departamentos(); track dep) {
+          <button type="button" role="tab" [class.activa]="departamento() === dep"
+                  [attr.aria-selected]="departamento() === dep" (click)="elegirDepartamento(dep)">{{ dep }}</button>
+        }
       </div>
+      <label class="buscador">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="search" placeholder="Busca por cine o distrito" [value]="busqueda()"
+               (input)="buscar($any($event.target).value)" aria-label="Buscar cine">
+      </label>
     </div>
 
-    <div class="col-lg-9">
-      
-      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 bg-dark p-3 rounded border border-secondary shadow-sm">
-        <h5 class="text-white fw-bold mb-2 mb-md-0 m-0">
-          <i class="fa-solid fa-building me-2" style="color: var(--primary-color);"></i> Cines en {{ departamentoSeleccionado || '...' }}
-        </h5>
-        
-        <div class="input-group" style="max-width: 350px;">
-          <span class="input-group-text bg-transparent border-secondary" style="color: var(--primary-color);">
-            <i class="fa-solid fa-magnifying-glass"></i>
-          </span>
-          <input type="text" class="form-control bg-transparent text-white border-secondary" 
-                 placeholder="Buscar por cine o distrito..." 
-                 [(ngModel)]="textoBusqueda" 
-                 (input)="aplicarFiltros()">
-        </div>
-      </div>
-
-      <div *ngIf="sedesMostradas.length === 0" class="text-center py-5 text-muted border border-secondary rounded" style="background-color: #1a1a1f;">
-        <i class="fa-solid fa-store-slash fs-1 mb-3 opacity-50"></i>
-        <h5>No se encontraron cines que coincidan con tu búsqueda.</h5>
-      </div>
-
-      <div class="row row-cols-1 row-cols-md-2 g-4">
-        
-        <div class="col" *ngFor="let sede of sedesMostradas">
-          <div class="card h-100 text-white shadow hover-card" style="background-color: #161619; border: 1px solid #333; border-radius: 12px; overflow: hidden;">
-            
-            <div style="height: 200px; overflow: hidden; position: relative;">
-              <img *ngIf="sede.imageUrl" [src]="sede.imageUrl" class="w-100 h-100" style="object-fit: cover;">
-              <div *ngIf="!sede.imageUrl" class="w-100 h-100 d-flex align-items-center justify-content-center bg-secondary">
-                <i class="fa-solid fa-film fs-1 opacity-50"></i>
+    <div class="contenido">
+      <section class="lista">
+        @if (cargando()) {
+          <p class="cargando">Cargando los cines…</p>
+        } @else if (error()) {
+          <div class="aviso-error">No se pudieron cargar los cines. Intenta más tarde.</div>
+        } @else {
+          @for (s of mostradas(); track s.idVenue) {
+            <article class="cine" [class.elegido]="elegida() === s.idVenue">
+              <button type="button" class="cine-datos" (click)="verEnMapa(s)" [attr.aria-label]="'Ver ' + s.nameVenue + ' en el mapa'">
+                <h2 class="font-display">{{ s.nameVenue }}</h2>
+                <p><i class="fa-solid fa-location-dot"></i> {{ s.addressVenue }}</p>
+                @if (s.phoneNumber) { <p><i class="fa-solid fa-phone"></i> {{ s.phoneNumber }}</p> }
+              </button>
+              <div class="cine-acciones">
+                <button type="button" class="btn-cine" (click)="irACartelera(s)">Ver cartelera</button>
+                @if (s.latitude != null && s.longitude != null) {
+                  <a class="btn-cine-secundario" [href]="comoLlegar(s)" target="_blank" rel="noopener">Cómo llegar</a>
+                }
               </div>
-              <div class="position-absolute bottom-0 start-0 w-100 p-3" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);">
-                <h4 class="fw-bold mb-0" style="color: var(--primary-color);">{{ sede.nameVenue }}</h4>
-              </div>
-            </div>
+            </article>
+          } @empty {
+            <p class="vacio">No encontramos cines con ese nombre o distrito.</p>
+          }
+        }
+      </section>
 
-            <div class="card-body p-4">
-              <p class="text-light small mb-2"><i class="fa-solid fa-location-dot me-2" style="color: var(--primary-color);"></i>{{ sede.addressVenue }}</p>
-              <p class="text-white small mb-3"><i class="fa-solid fa-city me-2" style="color: var(--primary-color);"></i>{{ sede.districtName }}</p>
-              
-              <div class="d-flex gap-2 mt-4 pt-2 border-top border-secondary">
-                <button class="btn btn-sede-primary fw-bold flex-grow-1" (click)="irACartelera(sede.idVenue)">
-                  <i class="fa-solid fa-ticket me-2"></i>CARTELERA
-                </button>
-                <button class="btn btn-outline-secondary fw-bold" (click)="verDetalles(sede)" title="Ver mapa" style="border-color: var(--primary-color) !important; color: var(--primary-color);">
-                  <i class="fa-solid fa-map-location-dot"></i>
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-backdrop fade show" *ngIf="sedeDetalle" style="background-color: rgba(0,0,0,0.85);"></div>
-<div class="modal fade show d-block" *ngIf="sedeDetalle" tabindex="-1" role="dialog" style="z-index: 1055;">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content bg-dark text-white shadow-lg" style="border: 1px solid var(--primary-color); border-radius: 12px; overflow: hidden;">
-      
-      <div class="modal-header border-secondary pb-3 pt-4 px-4" style="background-color: #1a1a1f;">
-        <h3 class="modal-title fw-bold m-0" style="color: var(--primary-color);">
-          <i class="fa-solid fa-building me-2"></i>{{ sedeDetalle.nameVenue }}
-        </h3>
-        <button type="button" class="btn-close btn-close-white" (click)="cerrarDetalles()"></button>
-      </div>
-
-      <div class="modal-body p-4">
-        <div class="row mb-4">
-          <div class="col-md-6 border-end border-secondary">
-            <h6 class="text-secondary fw-bold text-uppercase mb-3 small">Información de Contacto</h6>
-            <p class="mb-2"><i class="fa-solid fa-location-arrow me-2 text-info"></i> {{ sedeDetalle.addressVenue }}, {{ sedeDetalle.districtName }}</p>
-            <p class="mb-0"><i class="fa-solid fa-phone me-2 text-info"></i> {{ sedeDetalle.phoneNumber || 'No disponible' }}</p>
-          </div>
-          <div class="col-md-6 ps-md-4">
-            <h6 class="text-secondary fw-bold text-uppercase mb-3 small">Formatos Disponibles</h6>
-            <div class="d-flex gap-2 flex-wrap">
-              <span class="badge border border-secondary p-2 text-white"><i class="fa-solid fa-glasses me-1 text-warning"></i> 3D</span>
-              <span class="badge border border-secondary p-2 text-white">2D</span>
-              <span class="badge border border-secondary p-2 text-white"><i class="fa-solid fa-wheelchair me-1 text-info"></i> Accesible</span>
-            </div>
-          </div>
-        </div>
-
-        <h6 class="text-secondary fw-bold text-uppercase mb-2 small"><i class="fa-solid fa-map-pin me-2 text-danger"></i>Ubicación Exacta</h6>
-        <div id="mapa-cliente" class="w-100 shadow-sm" style="height: 350px; border-radius: 8px; border: 1px solid #444;"></div>
-      </div>
-
-      <div class="modal-footer border-secondary pt-3 pb-4 px-4 d-flex justify-content-between" style="background-color: #1a1a1f;">
-        <button type="button" class="btn btn-outline-secondary px-4" (click)="cerrarDetalles()">Cerrar</button>
-        <button type="button" class="btn btn-sede-primary px-5 fw-bold" (click)="irACartelera(sedeDetalle.idVenue)">
-          COMPRAR ENTRADAS <i class="fa-solid fa-arrow-right ms-2"></i>
-        </button>
-      </div>
-
+      <div class="mapa" #mapa aria-label="Mapa de los cines"></div>
     </div>
   </div>
 </div>

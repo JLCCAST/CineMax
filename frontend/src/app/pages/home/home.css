@@ -1,348 +1,450 @@
-/* Control de pantallas */
-
-.screen { 
-    display: none; width: 100%; 
-}
-.screen.active { 
-    display: block; 
-}
-
-/* Cabecera (Navbar) */
-
-.bg-dark-custom { 
-    background-color: var(--background-color) 
+/* Banner: franja oscura de borde a borde bajo la cabecera negra. */
+.banner {
+    position: relative;
+    overflow: hidden;
+    background: #141418 url('/Imagenes/Portada/hero.jpg') center / cover no-repeat;
+    color: #fff;
 }
 
-.border-bottom-custom { 
-    border-bottom: 0.2rem solid var(--surface-color); 
+.banner-imagen {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(10, 10, 12, 0.72);
 }
 
-.logo {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--secondary-color);
+.banner-imagen.con-poster {
+    background-position: center 25%;
+    background-size: cover;
+    filter: brightness(0.35);
 }
 
-.b-header {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: var(--text-light);
-    transition: color 0.3s;
-}
-
-.b-header:hover { 
-    color: var(--secondary-color); 
-}
-
-.b-perfil {
-    width: 2.8rem;
-    height: 2.8rem;
-    border-radius: 0.8rem;
-    filter: brightness(0) invert(1);
-    transition: 0.3s;
-}
-
-.b-perfil:hover {
-    transform: scale(1.1);
-    border: 2px solid var(--primary-color);
-    filter: invert(92%) sepia(10%) saturate(836%) hue-rotate(215deg) brightness(101%) contrast(97%);
-}
-
-/* Carrusel de banners */
-
-.carousel-inner {
-    border: 2px solid var(--primary-color);
-    height: 500px;
-    border-radius: 15px;
-    height: 420px
-}
-
-.carousel-item img {
-    height: 500px;
-    width: 100%;
-    object-fit: cover;
-    object-position: center;
-    height: 420px
-}
-
-/* Láminas de películas en el carrusel */
-.slide-pelicula {
-    height: 420px;
+.banner-contenido {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 2.5rem;
-    padding: 2rem 5rem;
-    background: linear-gradient(120deg, #2a1145 0%, #0d0618 100%);
-    color: white;
+    min-height: 440px;
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
 }
 
-.carousel-item img.slide-poster {
-    height: 340px;
-    width: auto;
+.banner-vacio {
+    min-height: 260px;
+}
+
+.banner-poster {
+    flex-shrink: 0;
+    width: 230px;
     aspect-ratio: 2 / 3;
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    object-fit: cover;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
-.slide-texto {
-    max-width: 560px;
+.banner-texto {
+    max-width: 620px;
 }
 
-.slide-texto p {
-    color: rgba(255, 255, 255, 0.75);
-}
-
-.slide-etiqueta {
-    display: inline-block;
-    margin-bottom: 0.75rem;
-    padding: 0.2rem 0.8rem;
-    border-radius: 999px;
-    background-color: var(--primary-dark);
+.banner-estado {
+    margin: 0 0 0.5rem;
+    color: #c4b5fd;
     font-size: 0.85rem;
     font-weight: 700;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
 }
 
-@media (max-width: 768px) {
-    .slide-pelicula {
-        gap: 1.25rem;
-        padding: 1.5rem;
-    }
-
-    .carousel-item img.slide-poster {
-        height: 220px;
-    }
+.banner-titulo {
+    margin: 0 0 0.75rem;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 600;
+    line-height: 1.05;
 }
 
-/* Caja de filtros */
+.banner-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 1rem;
+    margin: 0;
+    color: #cfcfd6;
+    font-size: 0.95rem;
+}
 
-.filtro {
-    background-color: var(--background-color);
-    border-radius: 12px;
-    border: 1px solid var(--surface-color);
+.banner-sinopsis {
+    margin: 1rem 0 1.5rem;
+    color: #e2e2e8;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
-.label-filtro {
-    display: block;
+.banner-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.banner-flecha {
+    position: absolute;
+    top: 50%;
+    width: 44px;
+    height: 64px;
+    margin-top: -32px;
+    border: none;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
     font-size: 1.1rem;
-    font-weight: 800;
-    color: var(--primary-color);
-    margin-bottom: 0;
-    padding-left: 0.8rem;
 }
 
-.select-minimal {
-    border: none;
-    background-color: transparent;
-    font-size: 1.4rem;
-    color: #b0b0b0;
-    box-shadow: none;
-    font-size: 1.2rem;  
+.banner-flecha:hover {
+    background: rgba(0, 0, 0, 0.75);
 }
 
-.border-end-custom { 
-    border-right: 1px solid var(--surface-color); 
+.banner-flecha.izquierda {
+    left: 0;
 }
 
-.btn-filtrar-redondeado {
-    background-color: var(--secondary-color);
-    color: var(--text-dark);
-    border-radius: 50px;
-    padding: 0.6rem 2rem;
-    font-weight: bold;
-    border: none;
-    transition: 0.3s;
-    font-size: 1.2rem
+.banner-flecha.derecha {
+    right: 0;
 }
 
-.btn-filtrar-redondeado:hover {
-    background-color: var(--primary-color);
-    color: var(--text-light);
-    transform: scale(1.05);
-}
-
-/* Cartelera (Mosaico) */
-
-.border-bottom-purple { 
-    border-bottom: 1px solid var(--surface-color); 
-}
-
-.poster-container {
-    position: relative;
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: var(--surface-color);
-    transition: all 0.3s ease;
-    min-height: 250px; 
-}
-
-.img-mosaico {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-/* Título sobre el póster genérico, cuando la película aún no tiene imagen. */
-.titulo-mosaico {
+.banner-puntos {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
-    padding: 1rem;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
-    color: white;
-    font-weight: 700;
-    font-size: 1.3rem;
+    bottom: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
-.badge-estreno {
-    position: absolute;
-    top: 15px;
-    left: -35px;
-    background-color: var(--primary-dark);
-    color: white;
-    padding: 5px 40px;
-    transform: rotate(-45deg);
-    font-size: 1.1rem;
-    font-weight: bold;
-    z-index: 2;
+.banner-puntos button {
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    background: transparent;
 }
 
-.ver-mas-card {
-    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-dark) 100%);
-    border-radius: 8px;
-    transition: 0.3s;
+.banner-puntos button.activo {
+    background: #fff;
 }
 
-.poster-container:hover, .ver-mas-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 10px 25px var(--primary-dark);
+/* ── Contenido claro ───────────────────────────────────────────────────── */
+.contenido-claro {
+    padding: 2rem 0 4rem;
+    background: var(--page-bg);
+    color: var(--ink);
 }
 
-/* Carrusel Promos */
-
-.img-promo {
-    height: 250px;
-    object-fit: cover;
-    border-radius: 15px;
+.seccion {
+    margin-top: 3rem;
+    scroll-margin-top: 90px;
 }
 
-/* Pie de pagina */
-
-.footer-cine {
-    background-color: var(--surface-color);
-    color: var(--text-light);
-    margin-top: 5rem;
-    padding: 2rem 0;
+.seccion-cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--line);
 }
 
-.footer-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
+.titulo-seccion {
+    margin: 0;
+    padding-bottom: 0.6rem;
+    font-size: 1.7rem;
+    font-weight: 600;
 }
 
-.footer-links a {
-    color: #b0b0b0;
-    text-decoration: none;
-    transition: 0.3s;
+.nota {
+    margin: 0 0 0.6rem;
+    color: var(--ink-muted);
     font-size: 0.9rem;
 }
 
-.footer-links a:hover { 
-    color: var(--primary-color); padding-left: 5px; 
-}
-
-.social-icon {
-    width: 40px;
-    height: 40px;
-    background-color: var(--background-color);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.ver-todo {
+    margin-bottom: 0.6rem;
+    color: var(--brand);
+    font-weight: 600;
     text-decoration: none;
-    transition: 0.3s;
-}
-.social-icon:hover { 
-    background-color: var(--primary-color); 
 }
 
-.app-badge { 
-    height: 38px; 
-    border-radius: 6px; 
+.ver-todo:hover {
+    text-decoration: underline;
 }
 
-.border-top-purple { 
-    border-top: 2px solid var(--primary-dark); 
+.vacio {
+    color: var(--ink-muted);
 }
 
-.legal-link { 
-    color: white; 
-    text-decoration: none; 
-    font-size: 0.9rem; 
+/* ── Compra rápida ─────────────────────────────────────────────────────── */
+.compra-rapida {
+    display: grid;
+    grid-template-columns: auto repeat(4, minmax(0, 1fr)) auto;
+    align-items: end;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-card);
+    background: var(--card);
+    box-shadow: var(--shadow-card);
 }
 
-.legal-link:hover { 
-    color: var(--primary-color); 
+.compra-titulo {
+    align-self: center;
+    margin: 0;
+    padding-right: 0.5rem;
+    color: var(--brand);
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.1;
 }
 
-/* ESTILOS DEL PANEL DE LOGIN */
-.login-panel {
-  background-color: #242424; /* Fondo gris oscuro */
-  border-left: 1px solid var(--surface-color);
-  width: 400px; /* Ancho del panel */
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin: 0;
 }
 
-.login-logo {
-  max-width: 180px;
+.campo span {
+    color: var(--ink-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
-.custom-input-group {
-  border: 1px solid #555;
-  border-radius: 8px;
-  overflow: hidden;
-  background-color: #242424;
+.campo select {
+    padding: 0.6rem 0.7rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: #fff;
+    color: var(--ink);
+    font: inherit;
 }
 
-.custom-input-group .form-control {
-  background-color: transparent;
-  border: none;
-  color: white;
-  padding: 14px 15px;
-  font-size: 0.9rem;
+.campo select:disabled {
+    background-color: #f5f5f7;
+    color: #9e9ca8;
 }
 
-.custom-input-group .form-control::placeholder {
-  color: #888;
+.compra-rapida .btn-cine {
+    padding: 0.62rem 1.6rem;
 }
 
-.custom-input-group .form-control:focus {
-  box-shadow: none;
-  background-color: transparent;
+/* ── Películas ─────────────────────────────────────────────────────────── */
+.grilla-peliculas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+    gap: 2rem 1.25rem;
 }
 
-.custom-input-group .input-group-text {
-  background-color: transparent;
-  border: none;
-  color: white;
+@media (max-width: 768px) {
+    .grilla-peliculas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.5rem 0.9rem;
+    }
 }
 
-.btn-login {
-  background-color: #9b59b6; /* Tu morado */
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  transition: 0.3s;
+/* ── Promociones ───────────────────────────────────────────────────────── */
+.grilla-promos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
 }
 
-.btn-login:hover {
-  background-color: #8e44ad;
+.promo {
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--card);
+    box-shadow: var(--shadow-card);
 }
 
-.login-links {
-  font-size: 0.85rem;
+/* Si la imagen no existe, queda un fondo plano con el ícono. */
+.promo-imagen,
+.confiteria-imagen {
+    position: relative;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: var(--brand-tint);
+    color: var(--brand);
+}
+
+.promo-imagen {
+    aspect-ratio: 16 / 9;
+    font-size: 2.4rem;
+}
+
+.promo-imagen img,
+.confiteria-imagen img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.promo-texto {
+    padding: 1rem 1.15rem 1.2rem;
+}
+
+.promo-texto h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.promo-texto p {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.promo-texto .codigo {
+    margin-top: 0.7rem;
+    color: var(--ink);
+}
+
+.codigo strong {
+    padding: 0.1rem 0.45rem;
+    border: 1px dashed var(--accent);
+    color: #9a6a00;
+}
+
+/* ── Confitería ────────────────────────────────────────────────────────── */
+.confiteria {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+}
+
+.confiteria-imagen {
+    min-height: 280px;
+    font-size: 3.5rem;
+}
+
+.confiteria-texto {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem 2.25rem;
+}
+
+.confiteria-texto .titulo-seccion {
+    padding: 0;
+}
+
+.confiteria-texto p {
+    margin: 0;
+    color: var(--ink-muted);
+    line-height: 1.6;
+}
+
+/* ── Cines ─────────────────────────────────────────────────────────────── */
+.grilla-cines {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.cine {
+    display: flex;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    border-radius: var(--radius-card);
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+}
+
+.cine > i {
+    margin-top: 0.2rem;
+    color: var(--brand);
+    font-size: 1.3rem;
+}
+
+.cine h3 {
+    margin: 0 0 0.2rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.cine p {
+    margin: 0 0 0.5rem;
+    color: var(--ink-muted);
+    font-size: 0.9rem;
+}
+
+.cine a {
+    color: var(--brand);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+/* ── Tableta y celular ─────────────────────────────────────────────────── */
+@media (max-width: 991px) {
+    .compra-rapida {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .compra-titulo,
+    .compra-rapida .btn-cine {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .banner-contenido {
+        gap: 1.25rem;
+        min-height: 0;
+        padding-top: 1.75rem;
+        padding-bottom: 2.75rem;
+    }
+
+    .banner-poster {
+        width: 110px;
+    }
+
+    .banner-sinopsis {
+        display: none;
+    }
+
+    .banner-acciones {
+        margin-top: 1rem;
+    }
+
+    .banner-flecha {
+        display: none;
+    }
+
+    .compra-rapida {
+        grid-template-columns: 1fr;
+        padding: 1.1rem;
+    }
+
+    .confiteria {
+        grid-template-columns: 1fr;
+    }
+
+    .confiteria-imagen {
+        min-height: 180px;
+    }
+
+    .confiteria-texto {
+        padding: 1.5rem;
+    }
 }

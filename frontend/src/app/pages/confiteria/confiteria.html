@@ -1,198 +1,71 @@
-<div class="confiteria-page">
-
-  <!-- Encabezado principal -->
-  <div class="conf-header text-center py-5">
-    <h1 class="conf-titulo">SELECCIONE SUS SNACKS</h1>
-    <p class="conf-subtitulo">Haz tu visita aún más especial</p>
-  </div>
-
-  <!-- ── PASO 1: Selección de sede ─────────────────────────────────────── -->
-  <div *ngIf="!sedeSeleccionada" class="sede-selector-section">
-
-    <!-- Cargando sedes -->
-    <div *ngIf="cargandoSedes" class="text-center py-5">
-      <div class="spinner-border text-pink" role="status"></div>
-    </div>
-
-    <!-- Error al cargar sedes -->
-    <div *ngIf="error" class="text-center text-secondary py-5">
-      No se pudieron cargar las sedes. Intenta más tarde.
-    </div>
-
-    <!-- Cards de sedes disponibles -->
-    <div *ngIf="!cargandoSedes && !error" class="sede-selector-inner">
-
-      <div class="sede-label">
-        <span class="sede-label-line"></span>
-        <span class="sede-label-text">¿EN QUÉ SEDE VAS A DISFRUTAR TU ANTOJO?</span>
-        <span class="sede-label-line"></span>
+<div class="pagina-clara">
+  <div class="container">
+    <header class="cabecera">
+      <div>
+        <h1 class="checkout-titulo">Confitería</h1>
+        <p>Pide en línea y recoge tu pedido en el cine, sin hacer cola.</p>
       </div>
+      @if (sedes.length) {
+        <label class="campo-cine">
+          <span>Recoges en</span>
+          <select (change)="elegirSede($any($event.target).value)" aria-label="Cine donde recoges">
+            <option value="" [selected]="!sedeSeleccionada">Elige un cine</option>
+            @for (s of sedes; track s.idVenue) {
+              <option [value]="s.idVenue" [selected]="s.idVenue === sedeSeleccionada?.idVenue">{{ s.nameVenue }}</option>
+            }
+          </select>
+        </label>
+      }
+    </header>
 
-      <div class="sede-cards-row">
-        <div *ngFor="let sede of sedes" class="sede-card-new" (click)="seleccionarSede(sede)">
-          <div class="sede-card-glow"></div>
-
-          <!-- Ícono decorativo de fondo -->
-          <div class="sede-card-bg-icon">
-            <i class="fa-solid fa-cookie-bite"></i>
-          </div>
-
-          <div class="sede-card-icon">
-            <i class="fa-solid fa-cookie-bite"></i>
-          </div>
-
-          <!-- Datos de la sede desde la BD -->
-          <div class="sede-card-content">
-            <h4 class="sede-card-name">{{ sede.nameVenue }}</h4>
-            <p class="sede-card-address">
-              <i class="fa-solid fa-location-dot me-1"></i>{{ sede.address }}
-            </p>
-            <div class="sede-card-tags">
-              <span class="sede-tag"><i class="fa-solid fa-candy-cane me-1"></i>Dulces</span>
-              <span class="sede-tag"><i class="fa-solid fa-burger me-1"></i>Combos</span>
-              <span class="sede-tag"><i class="fa-solid fa-cup-straw me-1"></i>Bebidas</span>
-            </div>
-          </div>
-
-          <div class="sede-card-footer">
-            <div class="sede-card-action">
-              Seleccionar <i class="fa-solid fa-arrow-right ms-2"></i>
-            </div>
-            <div class="sede-card-dot"></div>
-          </div>
-
+    @if (cargandoSedes) {
+      <p class="cargando">Cargando los cines…</p>
+    } @else if (error && !sedeSeleccionada) {
+      <div class="aviso-error">No se pudieron cargar los cines. Intenta más tarde.</div>
+    } @else if (!sedeSeleccionada) {
+      <section class="elige-cine">
+        <h2 class="font-display">¿En qué cine recoges tu pedido?</h2>
+        <div class="cines">
+          @for (s of sedes; track s.idVenue) {
+            <button type="button" (click)="seleccionarSede(s)">
+              <strong>{{ s.nameVenue }}</strong>
+              <span>{{ s.addressVenue }}</span>
+            </button>
+          }
         </div>
+      </section>
+    } @else {
+      <div class="checkout-grid">
+        <section>
+          <div class="pestanas categorias" role="tablist">
+            @for (cat of categories; track cat.idSnackCategory) {
+              <button type="button" role="tab" [class.activa]="categoriaActiva?.idSnackCategory === cat.idSnackCategory"
+                      [attr.aria-selected]="categoriaActiva?.idSnackCategory === cat.idSnackCategory"
+                      (click)="categoriaActiva = cat">{{ cat.nameCategory }}</button>
+            }
+          </div>
+
+          @if (cargando) {
+            <p class="cargando">Cargando los productos…</p>
+          } @else if (error) {
+            <div class="aviso-error">No se pudieron cargar los productos. Intenta más tarde.</div>
+          } @else if (snacksFiltrados.length) {
+            <div class="productos">
+              @for (snack of snacksFiltrados; track snack.idSnack) {
+                <app-tarjeta-snack [snack]="snack" [cantidad]="cantidadEnCarrito(snack)"
+                                   (sumar)="agregarAlCarrito(snack)" (restar)="quitarDelCarrito(snack)" />
+              }
+            </div>
+          } @else {
+            <p class="vacio">Este cine no tiene productos de esta categoría por ahora.</p>
+          }
+        </section>
+
+        <app-booking-summary [resumen]="resumen">
+          @if (!carrito.length) { <p class="vacio-pedido">Aún no agregaste productos.</p> }
+          <button type="button" class="btn-cine" [disabled]="!carrito.length" (click)="continuarCompra()">Continuar al pago</button>
+        </app-booking-summary>
       </div>
-
-    </div>
+    }
   </div>
-
-  <!-- ── PASO 2: Catálogo de snacks (sede ya seleccionada) ─────────────── -->
-  <div *ngIf="sedeSeleccionada">
-    <div class="container-fluid px-4 pb-5">
-      <div class="row g-4">
-
-        <!-- Columna izquierda: catálogo de productos -->
-        <div class="col-lg-8">
-
-          <!-- Barra con sede activa y opción de cambiar -->
-          <div class="cambiar-sede-bar mb-4">
-            <div class="sede-activa-info">
-              <i class="fa-solid fa-location-dot me-2"></i>
-              <span>{{ sedeSeleccionada?.nameVenue }}</span>
-            </div>
-            <button class="btn-cambiar-sede" (click)="cambiarSede()">
-              <i class="fa-solid fa-arrow-left me-2"></i> Cambiar sede
-            </button>
-          </div>
-
-          <!-- Tabs de categorías desde la BD -->
-          <div class="conf-tabs mb-4">
-            <button
-              *ngFor="let cat of categories"
-              class="conf-tab"
-              [class.active]="categoriaActiva?.idSnackCategory === cat.idSnackCategory"
-              (click)="categoriaActiva = cat">
-              {{ cat.nameCategory | uppercase }}
-            </button>
-          </div>
-
-          <!-- Estado de carga -->
-          <div *ngIf="cargando" class="text-center py-5">
-            <div class="spinner-border text-pink" role="status"></div>
-          </div>
-
-          <!-- Error al cargar productos -->
-          <div *ngIf="error && !cargando" class="text-center text-secondary py-5">
-            No se pudieron cargar los productos. Intenta más tarde.
-          </div>
-
-          <!-- Grid de productos filtrados por categoría activa -->
-          <div *ngIf="!cargando && !error" class="snacks-grid">
-            <div *ngFor="let snack of snacksFiltrados" class="snack-card">
-
-              <!-- Imagen del snack o logo por defecto -->
-              <div class="snack-img-wrap">
-                <img
-                  *ngIf="snack.imageUrlSnack"
-                  [src]="snack.imageUrlSnack"
-                  [alt]="snack.nameSnack"
-                  class="snack-img">
-                <div *ngIf="!snack.imageUrlSnack" class="snack-placeholder">
-                  <img src="/Imagenes/logo_CINEMAX.jpeg" alt="CINEMAX" class="placeholder-logo">
-                </div>
-              </div>
-
-              <!-- Info del snack desde la BD -->
-              <div class="snack-info">
-                <p class="snack-name">{{ snack.nameSnack | uppercase }}</p>
-                <p class="snack-desc">{{ snack.descriptionSnack }}</p>
-                <p class="snack-price">S/ {{ snack.price | number:'1.2-2' }}</p>
-                <!-- Aviso de stock bajo (solo si quedan 5 o menos) -->
-                <p class="snack-stock" *ngIf="snack.stock <= 5">Solo {{ snack.stock }} disponibles</p>
-              </div>
-
-              <!-- Controles del carrito: botón agregar o contador +/- -->
-              <div class="snack-actions">
-                <ng-container *ngIf="cantidadEnCarrito(snack) === 0; else contador">
-                  <button class="btn-agregar" (click)="agregarAlCarrito(snack)">AGREGAR</button>
-                </ng-container>
-                <ng-template #contador>
-                  <div class="snack-counter">
-                    <button class="counter-btn" (click)="quitarDelCarrito(snack)">−</button>
-                    <span>{{ cantidadEnCarrito(snack) }}</span>
-                    <!-- Botón + deshabilitado si se alcanzó el stock máximo -->
-                    <button class="counter-btn" (click)="agregarAlCarrito(snack)" [disabled]="cantidadEnCarrito(snack) >= snack.stock">+</button>
-                  </div>
-                </ng-template>
-              </div>
-
-            </div>
-
-            <!-- Sin productos en la categoría -->
-            <div *ngIf="snacksFiltrados.length === 0" class="text-center text-secondary py-5 w-100">
-              No hay productos en esta categoría.
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Columna derecha: resumen del carrito -->
-        <div class="col-lg-4">
-          <div class="resumen-box">
-            <h5 class="resumen-titulo">RESUMEN</h5>
-
-            <!-- Carrito vacío -->
-            <div *ngIf="carrito.length === 0" class="text-secondary text-center py-4" style="font-size: 0.85rem;">
-              Aún no agregaste productos
-            </div>
-
-            <!-- Items del carrito -->
-            <div *ngFor="let item of carrito" class="resumen-item">
-              <div class="resumen-item-info">
-                <span class="resumen-item-name">{{ item.snack.nameSnack }}</span>
-                <span class="resumen-item-qty">x{{ item.cantidad }}</span>
-              </div>
-              <span class="resumen-item-price">S/ {{ (item.snack.price * item.cantidad) | number:'1.2-2' }}</span>
-            </div>
-
-            <div class="resumen-divider"></div>
-
-            <!-- Total calculado en el componente -->
-            <div class="resumen-total">
-              <span>TOTAL A CANCELAR</span>
-              <span class="total-price">S/ {{ totalCarrito | number:'1.2-2' }}</span>
-            </div>
-
-            <!-- Continuar solo si hay algo en el carrito -->
-            <button class="btn-continuar w-100 mt-4" [disabled]="carrito.length === 0" (click)="continuarCompra()">
-              CONTINUAR →
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
 </div>
